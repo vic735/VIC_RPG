@@ -1,0 +1,17 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { Battle, grow, castSeconds, validateBuild } = require('./engine.js');
+const D = require('./data.js');
+const make = (options = {}) => new Battle({ rng: () => .9, rules: { critChance: 0, dodgeChance: 0 }, ...options });
+test('規格成長公式與最低讀條', () => { assert.equal(grow(100, 10, 2, .5), 127); assert.equal(castSeconds(100, 40), 3); assert.equal(castSeconds(80, 999), .5); });
+test('Build 上限與重複配置', () => { assert.throws(() => validateBuild({ ...D.defaultBuild, moves: ['quick', 'heavy', 'fire', 'interrupt', 'slime'] })); assert.throws(() => validateBuild({ ...D.defaultBuild, moves: ['quick', 'quick'] })); });
+test('立即扣費、資源不足與讀條期間拒絕出招', () => { const b = make(); b.start(); assert.equal(b.choose('heavy').ok, true); assert.equal(b.player.stamina, 70); assert.equal(b.choose('quick').ok, false); b.player.cast = null; b.player.mana = D.moves.fire.cost.mana - 1; assert.equal(b.choose('fire').ok, false); assert.equal(b.player.mana, D.moves.fire.cost.mana - 1); });
+test('傷害依最大體力，不依目前體力', () => { const b = make(); b.start(); b.player.stamina = D.moves.quick.cost.stamina; b.choose('quick'); b.advance(2); assert.equal(b.player.stamina, 0); assert.equal(b.enemy.hp, 280); });
+test('魔法依最大魔力', () => { const b = make(); b.start(); b.choose('fire'); b.advance(3); assert.equal(b.player.mana, 80 - D.moves.fire.cost.mana); assert.equal(b.enemy.hp, 264); });
+test('敏捷較高可在敵方攻擊前多次出手；普通攻擊不中斷', () => { const b = make(); b.start(); b.choose('quick'); b.advance(2); b.choose('quick'); b.advance(2); assert.equal(b.enemy.hp, 200); assert.equal(b.player.hp, 240); assert.equal(b.enemy.cast.endAt, 5.5); b.advance(1.5); assert.equal(b.player.hp, 196); });
+test('控制攻擊中斷並重開敵方讀條', () => { const b = make(); b.start(); b.choose('interrupt'); b.advance(1.5); assert.equal(b.enemy.cast.endAt, 7); assert.ok(b.events.some(e => e.type === 'interrupt')); });
+test('強制爆擊與閃避可驗證分支', () => { const c = make({ rules: { critChance: 1, dodgeChance: 0, critMultiplier: 1.5 } }); c.start(); c.choose('quick'); c.advance(2); assert.equal(c.enemy.hp, 240); const d = make({ rules: { dodgeChance: 1 } }); d.start(); d.choose('interrupt'); d.advance(1.5); assert.equal(d.enemy.hp, 360); assert.equal(d.enemy.cast.endAt, 5.5); });
+test('前三次死亡、非重複衰退、復活恢復與終局鎖定', () => { const b = make({ rng: () => 0 }); for (let n = 1; n <= 3; n++) { b.start(); b.advance(100); assert.equal(b.run.deaths, n); if (n < 3) { assert.equal(b.phase, 'revived'); assert.equal(b.player.hp, b.player.stats.hp); } } assert.equal(new Set(b.run.debuffIds).size, 2); assert.equal(b.run.status, 'failed'); assert.equal(b.start(), false); assert.equal(b.choose('quick').ok, false); });
+test('勝利完全恢復且保留本局 Debuff', () => { const b = make(); b.run.debuffIds.push('fatigue'); b.start(); b.enemy.hp = 1; b.player.hp = 1; b.choose('fire'); b.advance(3); assert.equal(b.phase, 'victory'); for (const k of ['hp', 'stamina', 'mana']) assert.equal(b.player[k], b.player.stats[k]); assert.deepEqual(b.run.debuffIds, ['fatigue']); });
+test('大步長與小步長保持相同敵方事件', () => { const a = make(), b = make(); a.start(); b.start(); a.advance(12); for (let i = 0; i < 120; i++) b.advance(.1); assert.equal(a.player.hp, b.player.hp); assert.deepEqual(a.events, b.events); });
+test('結束後時間凍結、非法時間拒絕', () => { const b = make(); b.start(); b.advance(100); const time = b.time; b.advance(50); assert.equal(b.time, time); assert.throws(() => b.advance(Infinity)); });
