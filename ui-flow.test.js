@@ -143,7 +143,7 @@ test('v0.2 HUD 最終消耗、液面、需求線、MP/SP 分色與容器充能',
 });
 
 test('設定頁可開啟測試工作台、修改資源／大絕／屬性並開始獨立戰鬥',()=>{
- const h=harness();h.click('settings');h.click('debug-lab');
+ const h=harness();h.click('settings');const settingsHtml=h.ctx.GameScreens.settings(h.game.settings);assert.ok(settingsHtml.includes('遊戲版本'));assert.ok(settingsHtml.includes('v'+h.ctx.GameData.release.version));h.click('debug-lab');
  const values={};for(let i=0;i<4;i++){values['skill-'+i]=['economy','afterimage','chill','earth_body'][i];values['move-'+i]=['fireball','double_slash','water_0','earth_0'][i];}
  Object.assign(values,{ultimate:'nova',hp:'1000',mana:'50',stamina:'80',agility:'70',charge:'75',physical:'1.2',attack:'5',element:'light','enemy-element':'dark','enemy-element2':'fire',statuses:'[]'});
  for(const k of ['head','chest','arms','feet','weapon'])values['gear-'+k]=k==='weapon'?'sword':'';

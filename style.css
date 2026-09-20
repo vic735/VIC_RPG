@@ -98,3 +98,4 @@
 .codex-entry.achievement-card{grid-template-columns:minmax(0,1fr);width:100%;box-sizing:border-box;padding:18px}
 .achievement-card>div{min-width:0;width:100%}
 .achievement-card p{overflow-wrap:break-word;margin-top:8px}
+.release-version strong{font:26px Georgia;color:#dcc98e;letter-spacing:2px;white-space:nowrap}
