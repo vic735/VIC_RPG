@@ -36,7 +36,7 @@
     expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
-    enemyGrowth: .15, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 4.2, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },

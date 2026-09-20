@@ -352,7 +352,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
-    enemyGrowth: .15, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 4.2, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },
@@ -645,9 +645,9 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     preview(id){const move=this.getMove(id);if(!move)return null;const trace=new Set(move.modifications);const damage=this.damageValue(this.player,this.enemy,move,false,trace);return {...move,estimatedDamage:damage,castTime:this.castDuration(move,this.player),modifications:[...trace]};}
     damageValue(actor,target,move,critical=false,trace){
       const maximum=actor.stats[move.damageType==='physical'?'stamina':'mana'];const ctx={actor,target,move,critical};
-      let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1),ctx,trace);
+      let gapFactor=1;if(this.options.balance50&&this.options.levelGap&&actor!==this.player){const gap=this.options.levelGap,rules=D.balance.levelGapCombat||{};gapFactor=Math.min(rules.enemyDamageCap??1.75,1+Math.max(0,gap)*(rules.enemyDamagePerLevel??.015));}let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1)*gapFactor,ctx,trace);
       for(const m of move.reservedModifiers||[])if(move.consumeReserved&&R.matches(m.conditions,{...ctx,battle:this}))damage=m.op==='add'?damage+m.value:damage*m.value;
-      damage*=R.elementMultiplier(move.elements,target.elements);if(critical)damage*=this.rule('critMultiplier',actor,ctx);
+      damage*=R.elementMultiplier(move.elements,target.elements);if(actor===this.player&&target===this.enemy&&this.options.balance50){const rules=D.balance.enemyDefense||{},gap=Math.max(0,this.options.levelGap||0),base=move.damageType==='physical'?this.enemyDefinition.physicalDefense||0:this.enemyDefinition.magicResistance||0,defense=base+gap*(rules.levelGapPerLevel||0),constant=rules.formulaConstant||100,reduction=Math.min(rules.maximumReduction??.8,defense/(constant+defense));damage*=1-reduction;}if(critical)damage*=this.rule('critMultiplier',actor,ctx);
       return Math.max(0,target.runtime.modify('incoming',damage,{move,target:actor,critical},trace));
     }
     recover(actor,resource,amount,ctx={}){const before=actor[resource];actor[resource]=Math.min(actor.stats[resource],actor[resource]+Math.max(0,amount));const recovered=actor[resource]-before;if(recovered>0){actor.runtime.emit('OnResourceRecovered',{...ctx,resource,recovered});if(resource==='hp')actor.runtime.emit('OnHPChanged',{...ctx});}return recovered;}
@@ -938,10 +938,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     if(run.dungeon.rewardClaimed)return [];
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
-  function enemyDefinition(type,level){const source=D.monsters[type];if(!source)throw Error('未知敵人');const stats={};for(const [k,v]of Object.entries(source.stats))stats[k]=source.growth?(k==='agility'||k==='luck'?v+(level-1)*source.growth[k]:v*(1+(level-1)*source.growth[k])):v*(1+(level-1)*D.balance.enemyGrowth);return {...source,stats,level};}
+  function enemyDefinition(type,level,options={}){const source=D.monsters[type];if(!source)throw Error('未知敵人');const stats={},pressure=D.balance.enemyLevelPressure||{start:5,perLevel:0,agilityPerLevel:0},pressureScale=options.overworld===false?1:1+Math.max(0,level-pressure.start)*pressure.perLevel,defense=D.balance.enemyDefense||{base:0,perLevel:0};for(const [k,v]of Object.entries(source.stats)){if(source.growth){stats[k]=k==='agility'||k==='luck'?v+(level-1)*source.growth[k]:v*(1+(level-1)*source.growth[k])*pressureScale;}else{stats[k]=v*(1+(level-1)*D.balance.enemyGrowth)*pressureScale;}if(k==='agility'&&options.overworld!==false)stats[k]+=Math.max(0,level-pressure.start)*pressure.agilityPerLevel;}return {...source,stats,level,physicalDefense:defense.base+level*defense.perLevel+(source.physicalDefenseBonus||0),magicResistance:defense.base+level*defense.perLevel+(source.magicResistanceBonus||0)};}
   function battleFor(run, encounter, rng = Math.random) {
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, balance50:true, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, balance50:true, levelGap:encounter.level-run.level, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{overworld:!run.dungeon}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
