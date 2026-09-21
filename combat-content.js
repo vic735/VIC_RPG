@@ -98,6 +98,23 @@ function enrich(D){
   for(const effect of m.effects){if(effect.type==='interrupt')cost+=15;if(effect.type==='heal'||effect.type==='restore')cost+=20;if(effect.type==='status')cost+=18;}
   m.ultimateChargeCost=explicitUltimateCosts[m.id]||Math.max(60,Math.min(200,Math.round(cost/5)*5));
  }
+ // Keep every ability description readable in the archive, loadout picker and
+ // shop. The numeric fields remain data-driven; this only gives them a clear
+ // human-facing explanation in one place.
+ const eventName=e=>({OnPhysicalSkillFinished:'物理招式完成後',OnMagicSkillFinished:'魔法招式完成後',OnSpellFinished:'咒語完成後',OnCriticalHit:'造成爆擊時',OnDamageTaken:'受到傷害時',OnDodge:'成功閃避時',OnInterruptSuccess:'成功中斷時',OnSkillCastFinished:'招式完成後',OnHPChanged:'生命值變化時',OnLethalDamage:'受到致命傷害時'}[e]||e.replace(/^On/,''));
+ const effectName=e=>e.type==='interrupt'?'命中時可中斷敵方讀條':e.type==='restore'?`命中後恢復 ${e.amount} ${e.resource==='mana'?'MP':'SP'}`:e.type==='heal'?'恢復生命':e.type==='status'&&e.status?`${e.status.name}（${e.status.duration} 秒）`:'';
+ for(const m of Object.values(D.moves)){
+  const base=(m.description||m.subtitle||m.name).replace(/；數值為原型平衡設定。?$/,'').replace(/[。；]+$/,'');
+  const kind=m.damageType==='physical'?'物理':m.damageType==='magic'?'魔法':'咒語';
+  const cost=Object.entries(m.cost||{}).map(([key,value])=>`${value} ${key==='mana'?'MP':'SP'}`).join('＋')||'無';
+  const effects=(m.effects||[]).map(effectName).filter(Boolean);
+  m.description=`${base}。類型：${kind}；消耗：${cost}；攻擊時間：${m.attackTime}。${effects.length?`附加效果：${effects.join('、')}。`:''}`;
+ }
+ for(const s of Object.values(D.skills)){
+  if(!s.description)continue;
+  const trigger=s.hooks?.length?`觸發時機：${s.hooks.map(h=>eventName(h.event)).join('、')}。`:'效果：配置後自動生效。';
+  if(!s.description.includes('觸發時機')&&!s.description.includes('配置後'))s.description=`${s.description} ${trigger}`;
+ }
  D.balance.recoverySeconds=3;
 }
 if(typeof module!=='undefined')module.exports=enrich;else root.CombatContent=enrich;
