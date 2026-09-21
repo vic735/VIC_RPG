@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.7.2', date: '2026-09-21' },
+    release: { version: '0.7.7', date: '2026-09-21' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -37,7 +37,7 @@
     expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
-    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 4.2, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },
@@ -105,7 +105,7 @@
   }
   data.monsters.greywind_0.stats.hp=85;data.monsters.greywind_3.stats.hp=60;
   const firstMine=data.dungeons.find(d=>d.id==='abandoned_mine');
-  const mineRoles=[['normal',160,10],['normal',180,12],['elite',320,12],['boss',640,12]];
+  const mineRoles=[['normal',125,9],['normal',145,10],['elite',240,11],['boss',420,12]];
   firstMine.enemyWaves.forEach((wave,i)=>{const [role,hp,power]=mineRoles[i],id='opening_mine_'+role+'_'+i,source=data.monsters[wave.type];data.monsters[id]={...source,id,name:source.name,stats:{...source.stats,hp,stamina:power,mana:power,agility:12},growth:{hp:.035,stamina:.014,mana:.014,agility:.15,luck:.05}};wave.type=id;});
   firstMine.bossId=firstMine.enemyWaves.at(-1).type;firstMine.encounters=firstMine.enemyWaves.map(w=>w.type);
   // World content may contribute moves after the combat catalogue is enriched.
