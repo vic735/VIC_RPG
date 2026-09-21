@@ -94,13 +94,13 @@ test('新 UI 完整流程：四方向戰鬥、充能警告、四場地下城、�
   click('journal'); assert.ok(!elements.get('modal').innerHTML.includes('data-action="library-equip"')); click('close');
   game.run.level=50;key('F1'); click('debug-dungeon'); step(3); key('e'); click('enter-dungeon', 'abandoned_mine');
   for (let i = 0; i < 4; i++) { winBattle(); assert.equal(game.run.points,0); click('result-next'); }
-  assert.equal(game.modal, 'reward'); assert.ok(game.permanent.skills.includes('swordsmanship')); assert.ok(elements.get('modal').innerHTML.includes('SKILL') === false || elements.get('modal').innerHTML.includes('再次取得')); click('reward-next');
-  assert.equal(game.modal, 'acquire'); assert.equal(game.offered.id, 'swordsmanship'); click('acquire-equip'); assert.equal(game.modal, 'replace');
+  assert.equal(game.modal, 'reward'); const rewardedSkill=game.run.pendingAcquisitions.find(x=>x.kind==='talents')?.id;assert.ok(rewardedSkill);assert.ok(game.permanent.skills.includes(rewardedSkill)); assert.ok(elements.get('modal').innerHTML.includes('SKILL') === false || elements.get('modal').innerHTML.includes('再次取得')); click('reward-next');
+  assert.equal(game.modal, 'acquire'); assert.equal(game.offered.id, rewardedSkill); click('acquire-equip'); assert.equal(game.modal, 'replace');
   const oldMoves = [...game.run.build.talents]; click('replace-choose', null, { index: 1 }); assert.equal(game.modal, 'replace-confirm'); assert.deepEqual([...game.run.build.talents], oldMoves, 'no mutation before confirm');
-  click('replace-back'); click('replace-choose', null, { index: 3 }); click('replace-confirm'); assert.equal(game.run.build.talents[3], 'swordsmanship'); assert.equal(game.run.pendingAcquisitions.length, 0); assert.equal(game.scene, 'explore');
+  click('replace-back'); click('replace-choose', null, { index: 3 }); click('replace-confirm'); assert.equal(game.run.build.talents[3], rewardedSkill); assert.equal(game.run.pendingAcquisitions.length, 0); assert.equal(game.scene, 'explore');
   key('e'); click('enter-dungeon', 'abandoned_mine');
   for (let i = 0; i < 4; i++) { winBattle(); assert.equal(game.run.points,0); click('result-next'); }
-  assert.ok(game.permanent.skills.includes('swordsmanship')); click('reward-next'); assert.equal(game.scene, 'explore', 'duplicate must not offer another slot');
+  assert.ok(game.permanent.skills.includes(rewardedSkill)); click('reward-next'); assert.equal(game.scene, 'explore', 'duplicate must not offer another slot');
   assert.ok(h.saved.has('afterlight.progress.v2'));
   game.run.level=1;for (let death = 1; death <= 3; death++) { if (death > 1) { key('F1'); click('debug-dungeon'); step(3); } key('e'); click('enter-dungeon', 'abandoned_mine'); for (let i = 0; i < 4000 && game.modal !== 'result'; i++) step(); assert.equal(game.run.deaths, death); click('result-next'); }
   assert.equal(game.scene, 'title'); game.permanent.books.push('inferno');game.permanent.moves.fire=3;click('library'); click('library-category', 'books'); assert.ok(elements.get('screen').innerHTML.includes('3 / 3')); click('learn-book', 'inferno'); assert.equal(game.permanent.moves.inferno, 1);

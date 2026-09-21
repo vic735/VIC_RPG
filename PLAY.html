@@ -271,13 +271,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.CombatContent=enr
  D.enemySpawnData=[];
  for(const [ri,r]of D.world.regions.entries()){
   const archetypeTune=[{hp:1,stamina:1,exp:.8},{hp:.9,stamina:.94,exp:1.35},{hp:.92,stamina:.96,exp:1.5},{hp:.8,stamina:.88,exp:1.15}];
-  designs[ri].forEach(([sprite,name,elements,moves],i)=>{const id=r.id+'_'+i,base=clone(D.monsters[sprite]),tune=archetypeTune[i];D.monsters[id]={...base,id,name,sprite,elements,moves,behavior:['neutral','active','guard','timid'][i],radius:[0,225,140,185][i],speed:[30,100,75,80][i],stats:{...base.stats,hp:Math.round(base.stats.hp*tune.hp),stamina:Math.round(base.stats.stamina*tune.stamina),mana:Math.max(base.stats.mana,45+ri*8),agility:base.stats.agility+(ri===3?38:ri*4)},skills:ri===0?[]:ri===1?['chill']:ri===2?['heavy_master']:ri===3?['fast_cast']:['night_erosion'],expFactor:tune.exp*(1+ri*.08),dropChance:ri===0?.4:.25,dropPool:r.id+'_field',growth:{hp:.04,stamina:.014,mana:.016,agility:.16,luck:.07},color:['#a3b481','#70b1a0','#d89966','#a0cede','#b3a0d1'][ri]};r.enemyPools.push(id);});
-  const elite=r.id+'_elite';D.monsters[elite]={...clone(D.monsters[r.enemyPools[1]]),id:elite,name:r.name+'菁英',sprite:'boss',elite:true,behavior:'guard',radius:170,stats:{hp:290,stamina:68,mana:58,agility:32+(ri===3?28:0),luck:9},moves:[...designs[ri][1][3],'crush'],skills:['unyielding'],expFactor:2.3,dropChance:.75};r.elitePools.push(elite);
+  designs[ri].forEach(([sprite,name,elements,moves],i)=>{const id=r.id+'_'+i,base=clone(D.monsters[sprite]),tune=archetypeTune[i];D.monsters[id]={...base,id,name,sprite,elements,moves,behavior:['neutral','active','guard','timid'][i],radius:[0,225,140,185][i],speed:[30,100,75,80][i],stats:{...base.stats,hp:Math.round(base.stats.hp*tune.hp),stamina:Math.round(base.stats.stamina*tune.stamina),mana:Math.max(base.stats.mana,45+ri*8),agility:base.stats.agility+(ri===3?38:ri*4)},skills:ri===0?[]:ri===1?['chill']:ri===2?['heavy_master']:ri===3?['fast_cast']:['night_erosion'],expFactor:tune.exp*(1+ri*.08),dropChance:ri===0?.035:.025,dropPool:r.id+'_field',growth:{hp:.04,stamina:.014,mana:.016,agility:.16,luck:.07},color:['#a3b481','#70b1a0','#d89966','#a0cede','#b3a0d1'][ri]};r.enemyPools.push(id);});
+  const elite=r.id+'_elite';D.monsters[elite]={...clone(D.monsters[r.enemyPools[1]]),id:elite,name:r.name+'菁英',sprite:'boss',elite:true,behavior:'guard',radius:170,stats:{hp:290,stamina:68,mana:58,agility:32+(ri===3?28:0),luck:9},moves:[...designs[ri][1][3],'crush'],skills:['unyielding'],expFactor:2.3,dropChance:.35};r.elitePools.push(elite);
   for(let i=0;i<20;i++){const depth=[.09,.35,.6,.9][Math.floor(i/5)],angle=i*2.399,rx=r.bounds[2]/2*(1-depth),ry=r.bounds[3]/2*(1-depth),x=Math.round(r.x+Math.cos(angle)*rx),y=Math.round(r.y+Math.sin(angle)*ry),isElite=i===3||i===18;D.enemySpawnData.push({id:r.id+'-spawn-'+i,regionId:r.id,x,y,type:isElite?elite:r.enemyPools[i%4],elite:isElite,levelBonus:isElite?8:0});}
  }
  // Accessible opening encounters, away from the safe camp.
  D.enemySpawnData.unshift({id:'opening-slime',regionId:'greywind',x:590,y:350,type:'greywind_0',level:2},{id:'opening-beast',regionId:'greywind',x:350,y:650,type:'greywind_3',level:3});
- D.monsters.camp_golem={id:'camp_golem',name:'沉眠石頭人',sprite:'golem',worldScale:1.55,labelHeight:180,behavior:'neutral',stats:{hp:420,stamina:82,mana:35,agility:12,luck:4},elements:['earth'],moves:['crush','goblin'],skills:['unyielding'],radius:0,speed:0,color:'#a2ad92',expFactor:1.8,dropChance:.75,dropPool:'greywind_field',growth:{hp:.035,stamina:.016,mana:.016,agility:.12,luck:.05}};
+ D.monsters.camp_golem={id:'camp_golem',name:'沉眠石頭人',sprite:'golem',worldScale:1.55,labelHeight:180,behavior:'neutral',stats:{hp:420,stamina:82,mana:35,agility:12,luck:4},elements:['earth'],moves:['crush','goblin'],skills:['unyielding'],radius:0,speed:0,color:'#a2ad92',expFactor:1.8,dropChance:.15,dropPool:'greywind_field',growth:{hp:.035,stamina:.016,mana:.016,agility:.12,luck:.05}};
  D.enemySpawnData.push({id:'camp-golem',regionId:'greywind',x:190,y:510,type:'camp_golem',level:18});
  D.world.spawns=D.enemySpawnData.map(e=>[e.x,e.y,e.type]);
  const gear=[['mining_guard','礦工護腕','arms',{stamina:18}],['root_coat','腐根外衣','chest',{hp:55,mana:15}],['tide_hood','潮汐兜帽','head',{mana:35}],['rift_blade','裂谷巨劍','weapon',{stamina:45}],['titan_plate','巨人重甲','chest',{hp:150}],['frost_robe','霜紋法袍','chest',{mana:65}],['storm_boots','雷行靴','feet',{agility:30}],['blacklight_crown','黑光冠','head',{mana:90,luck:20}],['abyss_blade','深淵刃','weapon',{stamina:100}],['end_guard','終末護甲','chest',{hp:250,mana:60}],['end_blade','終末之刃','weapon',{stamina:130,agility:25}]];
@@ -331,6 +331,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.CombatContent=enr
  D.rewardPools.greywind_field.entries.push({rewardType:'talents',rewardIds:firstRegionSkills,weight:3,rarity:'common',requirements:{}});
  D.rewardPools.abandoned_mine_rare.entries.find(e=>e.rewardType==='equipment').rewardIds.push('greatsword','bow');
  D.worldContentVersion=1;
+ D.balance.rewardSourceTargets={dungeonSkillShare:.82,wildSkillShare:.18,ordinaryAbilityDropChance:[.025,.035],eliteAbilityDropChance:.35};
  D.startingSkills=[];
  D.startingMoves=['quick','fire'];
 }
@@ -341,7 +342,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.7.8', date: '2026-09-21' },
+    release: { version: '0.8.0', date: '2026-09-22' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -504,8 +505,59 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   ];elementSkillIds[el]=line.map(s=>s.id);
  }
  const addTalentRewards=(poolId,ids)=>{const pool=D.rewardPools[poolId],entry=pool?.entries.find(e=>e.rewardType==='talents');if(!entry)return false;for(const id of ids)if(!entry.rewardIds.includes(id))entry.rewardIds.push(id);return true;};
- for(const [el,dungeonIds] of Object.entries(elementSkillDungeons))dungeonIds.forEach((dungeonId,index)=>{const dungeon=D.dungeons.find(d=>d.id===dungeonId);if(!dungeon)return;const ids=elementSkillIds[el],last=index===dungeonIds.length-1,mid=last?[ids[1],ids[2],ids[5]]:[ids[1],ids[4]];addTalentRewards(dungeon.primaryRewardPool,index===0?[ids[0],ids[4]]:[ids[1],ids[5]]);if(!addTalentRewards(dungeon.secondaryRewardPool,mid))addTalentRewards(dungeon.primaryRewardPool,mid);if(last)addTalentRewards(dungeon.rareRewardPool,[ids[2],ids[3],ids[6]]);});
- D.elementSkillSystem={version:1,elements:Object.keys(elementLabels),skills:elementSkillIds,skillCount:49,minimumResourceCostMultiplier:D.balance.elementSkills.minimumResourceCostMultiplier,maximumResistanceReduction:D.balance.elementSkills.maximumResistanceReduction,phenomenonMap:{lightning:'metal',ice:'water',wind:'wood'}};
+ const allElementSkillIds=Object.values(elementSkillIds).flat();
+ for(const pool of Object.values(D.rewardPools))for(const entry of pool.entries)if(entry.rewardType==='talents')entry.rewardIds=entry.rewardIds.filter(id=>!allElementSkillIds.includes(id));
+ const elementalDungeonAllocation={
+  abandoned_mine:['earth_affinity','element_earth_resistance','element_earth_blessing'],
+  old_lab:['fire_affinity','element_fire_resistance','metal_affinity','element_metal_resistance','element_metal_blessing'],
+  root_cave:['wood_affinity','element_wood_resistance','element_wood_blessing','element_wood_immunity'],
+  sunken_temple:['water_affinity','element_water_resistance','element_water_blessing','light_affinity','element_light_resistance'],
+  lava_vein:['element_fire_blessing','element_fire_grace','element_fire_immunity','element_fire_authority','element_fire_absorb'],
+  giant_ruins:['element_earth_grace','element_earth_immunity','element_earth_authority','element_earth_absorb'],
+  frozen_tower:['element_water_grace','element_water_immunity','element_water_authority','element_water_absorb'],
+  thunder_workshop:['element_metal_grace','element_metal_immunity','element_metal_absorb'],
+  blacklight_chapel:['element_light_blessing','element_light_grace','element_light_immunity','element_light_absorb','dark_affinity','element_dark_resistance'],
+  element_abyss:['element_wood_grace','element_wood_absorb','element_dark_blessing','element_dark_grace','element_dark_immunity','element_dark_absorb'],
+  terminal_structure:['element_metal_authority','element_wood_authority','element_light_authority','element_dark_authority']
+ };
+ for(const [dungeonId,ids] of Object.entries(elementalDungeonAllocation)){const dungeon=D.dungeons.find(d=>d.id===dungeonId);if(!dungeon)continue;const standard=ids.filter(id=>!['rare','legendary'].includes(D.skills[id]?.rarity)),rare=ids.filter(id=>['rare','legendary'].includes(D.skills[id]?.rarity));addTalentRewards(dungeonId==='abandoned_mine'?dungeon.rareRewardPool:dungeon.primaryRewardPool,standard);addTalentRewards(dungeon.rareRewardPool,rare);const rareEntry=D.rewardPools[dungeon.rareRewardPool].entries.find(e=>e.rewardType==='talents');if(rareEntry&&!rareEntry.rewardIds.length)rareEntry.rewardIds.push(ids.at(-1));}
+ D.elementSkillSystem={version:2,elements:Object.keys(elementLabels),skills:elementSkillIds,skillCount:49,dungeonAllocation:elementalDungeonAllocation,dungeonSkillShareTarget:.82,wildSkillShareTarget:.18,minimumResourceCostMultiplier:D.balance.elementSkills.minimumResourceCostMultiplier,maximumResistanceReduction:D.balance.elementSkills.maximumResistanceReduction,phenomenonMap:{lightning:'metal',ice:'water',wind:'wood'}};
+ // Rebuild every non-class player reward source. About 82% of collectible
+ // moves/skills belong to dungeons; the remaining early/common set belongs to
+ // field monsters. Starting moves, the locked starter ultimate and spellbook
+ // lessons keep their dedicated acquisition rules.
+ const dungeonProfiles={
+  abandoned_mine:{elements:['earth'],keywords:['physical','weapon','survival','defense']},old_lab:{elements:['metal','fire'],keywords:['magic','resource','basic']},
+  root_cave:{elements:['wood'],keywords:['growth','heal','control']},sunken_temple:{elements:['water','light'],keywords:['heal','defense','resource']},
+  lava_vein:{elements:['fire','earth'],keywords:['magic','physical','cross_element']},giant_ruins:{elements:['earth'],keywords:['physical','weapon','survival']},
+  frozen_tower:{elements:['water'],keywords:['magic','control','resource']},thunder_workshop:{elements:['metal'],keywords:['control','weapon','resource']},
+  blacklight_chapel:{elements:['light','dark'],keywords:['heal','defense','cross_element']},element_abyss:{elements:['metal','wood','water','fire','earth','light','dark'],keywords:['hybrid','cross_element']},
+  terminal_structure:{elements:['metal','wood','water','fire','earth','light','dark'],keywords:['ultimate','special','luck','survival']}
+ };
+ const dungeonIds=Object.keys(dungeonProfiles),fieldIds=D.world.regions.map(r=>r.id+'_field'),bookMoves=new Set(Object.values(D.books).map(b=>b.moveId));
+ const rewardIds=kind=>new Set(Object.values(D.rewardPools).flatMap(p=>p.entries.filter(e=>e.rewardType===kind).flatMap(e=>e.rewardIds)));
+ const moveCandidates=new Set([...rewardIds('moves'),...Object.entries(D.moves).filter(([,v])=>v.shopEligible).map(([id])=>id),...bookMoves,...D.startingMoves]);
+ const skillCandidates=new Set([...rewardIds('talents'),...Object.entries(D.skills).filter(([,v])=>v.shopEligible).map(([id])=>id),...D.startingSkills]);
+ const directMoves=[...moveCandidates].filter(id=>D.moves[id]&&!D.startingMoves.includes(id)&&!bookMoves.has(id)&&D.moves[id].contentScope!=='classExclusive');
+ const directSkills=[...skillCandidates].filter(id=>D.skills[id]&&D.skills[id].contentScope!=='classExclusive');
+ const rarityRank=x=>({common:0,uncommon:1,rare:2,legendary:3}[x?.rarity]??(x?.shopTier||1)-1);
+ const elementList=x=>[...new Set(x?.targetElements||x?.elements||x?.specElements||[])];
+ const wildScore=(id,kind)=>{const x=(kind==='moves'?D.moves:D.skills)[id],elements=elementList(x),cost=Object.values(x.cost||{}).reduce((n,v)=>n+v,0);return rarityRank(x)*30+(x.targetElements?.length?25:0)+(elements.length>1?20:0)+(x.shopEligible===false?12:0)+(kind==='moves'?(x.multiplier||0)*5+cost/10:0);};
+ const chooseWild=(ids,kind,total)=>[...ids].sort((a,b)=>wildScore(a,kind)-wildScore(b,kind)||a.localeCompare(b)).slice(0,total);
+ const totalRewardMoves=directMoves.length+bookMoves.size,totalRewardSkills=directSkills.length,wildMoveIds=chooseWild(directMoves,'moves',Math.round(totalRewardMoves*.18)),wildSkillIds=chooseWild(directSkills,'talents',Math.round(totalRewardSkills*.18));
+ const wildMoves=new Set(wildMoveIds),wildSkills=new Set(wildSkillIds),dungeonMoves=directMoves.filter(id=>!wildMoves.has(id)),dungeonSkills=directSkills.filter(id=>!wildSkills.has(id));
+ for(const pool of Object.values(D.rewardPools))for(const entry of pool.entries)if(['moves','talents'].includes(entry.rewardType))entry.rewardIds=[];
+ const itemScore=(id,kind,dungeonId)=>{const x=(kind==='moves'?D.moves:D.skills)[id],profile=dungeonProfiles[dungeonId],elements=elementList(x),category=String(x.category||x.skillCategory||x.damageType||x.specKind||'').toLowerCase(),dual=elements.length>1;let score=elements.reduce((n,e)=>n+(profile.elements.includes(e)?18:0),0);score+=profile.keywords.reduce((n,k)=>n+(category.includes(k)?7:0),0);if(dual&&dungeonId==='element_abyss')score+=20;if(!elements.length&&dungeonId==='terminal_structure'&&rarityRank(x)>=2)score+=10;if(kind==='moves'&&x.damageType==='physical'&&['abandoned_mine','giant_ruins'].includes(dungeonId))score+=6;return score;};
+ const allocate=(ids,kind)=>{const base=Math.floor(ids.length/dungeonIds.length),extra=ids.length%dungeonIds.length,remaining=Object.fromEntries(dungeonIds.map((id,i)=>[id,base+(i<extra?1:0)])),result=Object.fromEntries(dungeonIds.map(id=>[id,[]]));const sorted=[...ids].sort((a,b)=>elementList((kind==='moves'?D.moves:D.skills)[b]).length-elementList((kind==='moves'?D.moves:D.skills)[a]).length||rarityRank((kind==='moves'?D.moves:D.skills)[b])-rarityRank((kind==='moves'?D.moves:D.skills)[a])||a.localeCompare(b));for(const id of sorted){const choices=dungeonIds.filter(d=>remaining[d]>0).sort((a,b)=>itemScore(id,kind,b)-itemScore(id,kind,a)||result[a].length-result[b].length||a.localeCompare(b)),chosen=choices[0];result[chosen].push(id);remaining[chosen]--;}return result;};
+ const dungeonMoveAllocation=allocate(dungeonMoves,'moves'),dungeonSkillAllocation=allocate(dungeonSkills,'talents');
+ const put=(poolId,type,ids)=>{const entry=D.rewardPools[poolId]?.entries.find(e=>e.rewardType===type);if(entry)entry.rewardIds.push(...ids);};
+ for(const dungeonId of dungeonIds){const dungeon=D.dungeons.find(d=>d.id===dungeonId);for(const [type,ids,source] of [['moves',dungeonMoveAllocation[dungeonId],D.moves],['talents',dungeonSkillAllocation[dungeonId],D.skills]]){const ordered=[...ids].sort((a,b)=>rarityRank(source[a])-rarityRank(source[b])),rareCount=Math.max(1,Math.round(ordered.length*.25)),split=Math.max(1,ordered.length-rareCount);put(dungeon.primaryRewardPool,type,ordered.slice(0,split));put(dungeon.rareRewardPool,type,ordered.slice(split));}}
+ const fieldProfiles={greywind:['earth'],verdant:['wood','water'],redrift:['fire','earth'],froststorm:['water','metal'],obsidian:['light','dark']};
+ const allocateFields=(ids,kind)=>{const result=Object.fromEntries(fieldIds.map(id=>[id,[]]));for(const id of ids){const x=(kind==='moves'?D.moves:D.skills)[id],elements=elementList(x),choices=fieldIds.sort((a,b)=>{const ar=a.replace('_field',''),br=b.replace('_field',''),as=elements.filter(e=>fieldProfiles[ar].includes(e)).length*10-result[a].length,bs=elements.filter(e=>fieldProfiles[br].includes(e)).length*10-result[b].length;return bs-as||a.localeCompare(b);});result[choices[0]].push(id);}return result;};
+ const fieldMoveAllocation=allocateFields(wildMoveIds,'moves'),fieldSkillAllocation=allocateFields(wildSkillIds,'talents');
+ for(const poolId of fieldIds){const pool=D.rewardPools[poolId];pool.entries=pool.entries.filter(e=>!['moves','talents'].includes(e.rewardType));pool.entries.push({rewardType:'moves',rewardIds:fieldMoveAllocation[poolId],weight:3,rarity:'common',requirements:{}},{rewardType:'talents',rewardIds:fieldSkillAllocation[poolId],weight:1,rarity:'common',requirements:{}});}
+ const assignedElement={};for(const [dungeonId,ids] of Object.entries(dungeonSkillAllocation))for(const id of ids)if(allElementSkillIds.includes(id))(assignedElement[dungeonId]??=[]).push(id);D.elementSkillSystem.dungeonAllocation=assignedElement;
+ D.contentDistribution={version:1,dungeonShareTarget:.82,wildShareTarget:.18,startingMoves:[...D.startingMoves],spellbookMoves:[...bookMoves],dungeonMoves:dungeonMoveAllocation,dungeonSkills:dungeonSkillAllocation,wildMoves:fieldMoveAllocation,wildSkills:fieldSkillAllocation};
  D.contentV1={version:1,moves,skills,moveCount:100,skillCount:72,initialMoveIds:['M001','M002','M003','M004','M005','M006','M007','M008','M009','M014','M015','M020','M021','M022','M026','M027','M032','M038','M044','M072'],initialSkillIds:['S001','S002','S003','S004','S005','S012','S014','S018','S023','S025','S026','S043','S048','S050']};
  for(const m of Object.values(D.moves))if(m.standardElementMatrix&&(m.name.includes('強')||m.name.includes('重岩彈')))m.family='STRONG_BULLET';
  for(const [el,rootName] of Object.entries(roots)){const id='std_'+el+'_greater_orb';if(!D.moves[id])D.moves[id]={id,name:`森・${rootName}・烏`,subtitle:`${elementLabels[el]}屬性高階巨球`,description:`${elementLabels[el]}屬性高階巨球：高傷害的後期招式。`,icon:'orb',kind:'normal',damageType:'magic',elements:[el],multiplier:2.25,cost:{mana:38},attackTime:190,ultimateChargeCost:150,effects:[],family:'GREATER_ORB',standardElementMatrix:true,matrixElement:el};D.moves[id].ultimateChargeCost||=150;const dungeonId={metal:'thunder_workshop',wood:'root_cave',water:'frozen_tower',fire:'lava_vein',earth:'giant_ruins',light:'blacklight_chapel',dark:'element_abyss'}[el],d=D.dungeons.find(x=>x.id===dungeonId),entry=d&&D.rewardPools[d.primaryRewardPool].entries.find(x=>x.rewardType==='moves');if(entry&&!entry.rewardIds.includes(id))entry.rewardIds.push(id);}

@@ -49,3 +49,34 @@ test('雙屬性抗性與兩個吸收效果都會疊加，MP 不超過上限',()=
  b.receiveDamage(b.enemy,b.player,amount,move);
  close(b.player.mana,1000);
 });
+
+test('49 個元素技能平均分配至 11 座地下城且沒有重複歸屬',()=>{
+ const allocation=D.elementSkillSystem.dungeonAllocation,assigned=Object.values(allocation).flat();
+ assert.equal(Object.keys(allocation).length,11);
+ assert.equal(assigned.length,49);
+ assert.equal(new Set(assigned).size,49);
+ for(const ids of Object.values(allocation))assert.ok(ids.length>=3&&ids.length<=6);
+ for(const [dungeonId,ids] of Object.entries(allocation)){
+  const dungeon=D.dungeons.find(d=>d.id===dungeonId),poolIds=[dungeon.primaryRewardPool,dungeon.rareRewardPool];
+  const rewards=poolIds.flatMap(id=>D.rewardPools[id].entries.filter(e=>e.rewardType==='talents').flatMap(e=>e.rewardIds));
+  for(const id of ids)assert.ok(rewards.includes(id),`${id} 未放入 ${dungeonId}`);
+ }
+});
+
+test('普通野怪能力掉落率降至 2.5%～3.5%，技能來源目標為地下城 82%',()=>{
+ const ordinary=D.world.regions.flatMap(r=>r.enemyPools).map(id=>D.monsters[id]);
+ assert.ok(ordinary.every(m=>m.dropChance>=.025&&m.dropChance<=.035));
+ assert.equal(D.balance.rewardSourceTargets.dungeonSkillShare,.82);
+ assert.equal(D.balance.rewardSourceTargets.wildSkillShare,.18);
+});
+
+test('全部非職業獎勵重新分配，地下城占比介於 75%～90% 且各城最多差一種',()=>{
+ const c=D.contentDistribution,dm=Object.values(c.dungeonMoves).flat(),ds=Object.values(c.dungeonSkills).flat(),wm=Object.values(c.wildMoves).flat(),ws=Object.values(c.wildSkills).flat();
+ assert.equal(new Set([...dm,...wm,...c.spellbookMoves]).size,dm.length+wm.length+c.spellbookMoves.length);
+ assert.equal(new Set([...ds,...ws]).size,ds.length+ws.length);
+ const moveShare=(dm.length+c.spellbookMoves.length)/(dm.length+c.spellbookMoves.length+wm.length),skillShare=ds.length/(ds.length+ws.length);
+ assert.ok(moveShare>=.75&&moveShare<=.9);assert.ok(skillShare>=.75&&skillShare<=.9);
+ for(const values of [Object.values(c.dungeonMoves).map(x=>x.length),Object.values(c.dungeonSkills).map(x=>x.length)])assert.ok(Math.max(...values)-Math.min(...values)<=1);
+ for(const id of [...dm,...wm])assert.notEqual(D.moves[id].contentScope,'classExclusive');
+ for(const id of [...ds,...ws])assert.notEqual(D.skills[id].contentScope,'classExclusive');
+});

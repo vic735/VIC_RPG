@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.7.8', date: '2026-09-21' },
+    release: { version: '0.8.0', date: '2026-09-22' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },

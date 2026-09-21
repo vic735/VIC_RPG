@@ -32,7 +32,7 @@ test('完整玩法核心：普通戰鬥 → EXP → 四場地下城 → 永久�
   const normal = fight(r, { type: 'slime', level: 2 }); assert.equal(normal.phase, 'victory'); P.grantExp(r, 2); assert.deepEqual(p.moves, P.freshProgress().moves);
   r.level=50; r.dungeon = { id: 'abandoned_mine', stage: 0 };
   for (let i = 0; i < 4; i++) { r.dungeon.stage = i; const encounter = P.dungeonEncounter(r); const b = fight(r, encounter); assert.equal(b.phase, 'victory', `地下城第 ${i + 1} 場應可通關`); for (const key of ['hp', 'stamina', 'mana']) assert.ok(b.player[key]<=b.player.stats[key]); r.dungeonResources=Object.fromEntries(['hp','mana','stamina'].map(k=>[k,b.player[k]]));P.carryBattleCharge(r,b);P.grantExp(r, encounter.level); if (r.points) P.allocate(r, 'stamina'); }
-  const rewards=P.dungeonReward(p,r,()=>0,{combination:'move_gear'}); assert.ok(p.moves.heavy_slash);assert.ok(p.equipment.includes('mining_guard'));assert.equal(rewards.length,2);const next=P.createRun(p);assert.equal(next.level,1);assert.equal(next.moveLevels.heavy_slash,1);assert.equal(next.deaths,0);
+  const rewards=P.dungeonReward(p,r,()=>0,{combination:'move_gear'}),moveReward=rewards.find(x=>x.kind==='moves'); assert.ok(moveReward&&p.moves[moveReward.id]);assert.ok(p.equipment.includes('mining_guard'));assert.equal(rewards.length,2);const next=P.createRun(p);assert.equal(next.level,1);assert.equal(next.moveLevels[moveReward.id],1);assert.equal(next.deaths,0);
 
 });
 
