@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data'),R=require('./skill-runtime'),C=require('./engine'),P=require('./progression'),Lab=require('./debug-lab');
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 function battle(talents=[],moves=['double_slash','fireball','freeze','earth_0'],extra={}){const b=Lab.build({talents,moves,rng:()=>.99,...extra});b.enemy.cast.endAt=1e6;return b;}
-function cast(b,id){assert.equal(b.choose(id).ok,true);b.advance(b.player.cast.duration);return b;}
+function cast(b,id){assert.equal(b.choose(id).ok,true);const move=b.player.cast.move;b.advance(b.player.cast.duration+Math.max(0,(move.hits||1)-1)*(move.hitInterval??.18)+.001);return b;}
 function effect(b,id,actor=b.player){return actor.statuses[id];}
 
 test('正式 50 技能、23 既有招式與 48 招式骨架均具備可執行資料',()=>{
@@ -28,9 +28,14 @@ test('臨機應變在雙資源低於 20% 同時生效，等於20%不生效',()=>
  const b=battle(['adapt']);b.player.mana=b.player.stamina=19;close(b.getMove('fireball').cost.mana,17);close(b.getMove('double_slash').cost.stamina,15.3);
  b.player.mana=b.player.stamina=20;close(b.getMove('fireball').cost.mana,20);close(b.getMove('double_slash').cost.stamina,18);
 });
-for(const [move,crit,elements]of [['heavy_slash',false,[]],['double_slash',false,[]],['double_slash',true,[]],['wind_slash',true,['water']]])test('殘影只追加一次實際整招傷害、不爆擊不遞迴：'+move+crit,()=>{
- const b=battle(['afterimage'],[move],{critChance:crit?1:0,enemyElements:elements});cast(b,move);
- const hits=b.events.filter(e=>e.type==='damage'&&e.actorId==='player'),echo=b.events.filter(e=>e.type==='afterimage');assert.equal(hits.length,D.moves[move].hits);assert.equal(echo.length,1);close(echo[0].damage,hits.reduce((n,e)=>n+e.damage,0)*.25);assert.equal(echo[0].critical,false);assert.deepEqual(echo[0].elements,D.moves[move].elements);
+test('二連斬分兩個時間點命中，第二刀完成前不能開始下一招',()=>{
+ const b=battle([],['double_slash']);assert.equal(b.choose('double_slash').ok,true);const duration=b.player.cast.duration;b.advance(duration);
+ let hits=b.events.filter(e=>e.type==='damage'&&e.actorId==='player');assert.equal(hits.length,1);assert.ok(b.player.sequence);assert.equal(b.choose('double_slash').ok,false);
+ b.advance(.17);assert.equal(b.events.filter(e=>e.type==='damage'&&e.actorId==='player').length,1);b.advance(.02);hits=b.events.filter(e=>e.type==='damage'&&e.actorId==='player');assert.equal(hits.length,2);assert.ok(hits[1].time>hits[0].time);assert.equal(b.player.sequence,null);
+});
+for(const [move,crit,elements]of [['heavy_slash',false,[]],['double_slash',false,[]],['double_slash',true,[]],['wind_slash',true,['water']]])test('殘影依每段實際傷害逐刀追擊、不爆擊不遞迴：'+move+crit,()=>{
+ const b=battle(['afterimage'],[move],{critChance:crit?1:0,enemyElements:elements});cast(b,move);b.advance(.6);
+ const hits=b.events.filter(e=>e.type==='damage'&&e.actorId==='player'),echo=b.events.filter(e=>e.type==='afterimage');assert.equal(hits.length,D.moves[move].hits);assert.equal(echo.length,hits.length);for(let i=0;i<hits.length;i++){close(echo[i].damage,hits[i].damage*.25);assert.equal(echo[i].critical,false);assert.deepEqual(echo[i].elements,D.moves[move].elements);if(i)assert.ok(echo[i].time>echo[i-1].time);}
 });
 test('多段實際伤害受剩餘 HP 限制，已倒下不再觸發殘影',()=>{const b=battle(['afterimage'],['double_slash']);b.enemy.hp=20;cast(b,'double_slash');close(b.events.filter(e=>e.type==='damage')[0].damage,20);assert.equal(b.events.filter(e=>e.type==='afterimage').length,0);});
 test('寒氣持續四秒、重複只刷新 -10%、較強效果優先',()=>{

@@ -24,7 +24,7 @@
       this.moveScale = options.moveScale || (() => 1);
       this.equipmentEffects = options.equipmentEffects || {};
       this.options = options;
-      this.charge = 0; this.enemyTurn = 0;
+      this.charge = 0; this.enemyTurn = 0; this.delayedHits=[];
       this.base = { ...D.player, ...options.stats };
       for (const [key, value] of Object.entries(this.base)) if (!Number.isFinite(value) || value < (key === 'hp' ? 1 : 0)) throw Error('能力值必須是有效非負數，HP 至少 1');
       this.build = copy(options.build || D.defaultBuild);
@@ -36,7 +36,7 @@
     resetActors() {
       const stats = { ...this.base };
       for (const id of this.run.debuffIds) { const d = D.debuffs.find(d => d.id === id); stats[d.stat] *= d.factor; }
-      const actor = (id, stats) => ({ id, stats, hp: stats.hp, stamina: stats.stamina, mana: stats.mana, cast: null, statuses: {}, shield: 0, elements: [], weaponType: null });
+      const actor = (id, stats) => ({ id, stats, hp: stats.hp, stamina: stats.stamina, mana: stats.mana, cast: null, sequence: null, statuses: {}, shield: 0, elements: [], weaponType: null });
       this.player = actor('player', stats); this.enemy = actor('enemy', { ...this.enemyDefinition.stats });
       this.player.elements = this.options.elements || []; this.enemy.elements = this.enemyDefinition.elements || [];
       this.player.weaponType = D.equipment[this.build.equipment.weapon]?.weaponType;
@@ -86,7 +86,7 @@
     }
     begin(actor, id, asUltimate = false) {
       if (this.phase !== 'fighting') return { ok: false, reason: '目前不在戰鬥中' };
-      if (actor.cast) return { ok: false, reason: '正在讀條中' };
+      if (actor.cast||actor.sequence) return { ok: false, reason: actor.sequence?'連擊尚未結束':'正在讀條中' };
       const move = this.getMove(id, actor);
       if (!move || (actor === this.player && !this.build.moves.includes(id) && this.build.ultimate !== id)) return { ok: false, reason: '未配置此招式' };
       const isUltimate = actor === this.player && this.build.ultimate === id && asUltimate;
@@ -104,22 +104,24 @@
     }
     choose(id, asUltimate = this.build.ultimate === id && !this.build.moves.includes(id)) { return this.begin(this.player, id, asUltimate); }
     resolve(actor) {
-      const cast=actor.cast,move=cast.move||this.getMove(cast.moveId,actor);actor.cast=null;
-      const target=actor===this.player?this.enemy:this.player,ctx={actor,target,move,spent:cast.spent||move.cost,totalDamage:0,successfulSupport:false,healing:false};
-      const hostile=move.multiplier>0||move.effects.some(e=>e.type==='interrupt'||e.status?.target==='enemy');let connected=!hostile;
-      for(let hit=0;hit<(move.hits||1)&&hostile&&target.hp>0;hit++){
-        if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move})){this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id});continue;}
-        if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id});continue;}
-        connected=true;
-        if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move});const damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/(move.hits||1),move,critical);
-          ctx.totalDamage+=damage;this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1});
-          if(damage>0)actor.runtime.emit('OnDamageDealt',{...ctx,damage,critical});if(critical)actor.runtime.emit('OnCriticalHit',{...ctx,damage,critical});
-        }
+      const cast=actor.cast,move=cast.move||this.getMove(cast.moveId,actor),target=actor===this.player?this.enemy:this.player;actor.cast=null;
+      const hostile=move.multiplier>0||move.effects.some(e=>e.type==='interrupt'||e.status?.target==='enemy');actor.sequence={moveId:move.id,move,targetId:target.id,spent:cast.spent||move.cost,hits:hostile?(move.hits||1):1,index:0,nextAt:this.time,totalDamage:0,hitDamages:[],connected:!hostile,hostile};this.resolveSequenceHit(actor);
+    }
+    resolveSequenceHit(actor){
+      const sequence=actor.sequence;if(!sequence)return;const move=sequence.move,target=sequence.targetId==='enemy'?this.enemy:this.player,hit=sequence.index;
+      if(sequence.hostile&&target.hp>0){
+        if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move}))this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});
+        else if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});}
+        else {sequence.connected=true;if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
       }
-      if(connected)for(const effect of move.effects){const handler=R.effects[effect.type];if(!handler)throw Error('Unknown move effect '+effect.type);handler(this,ctx,effect);}
+      sequence.index++;if(sequence.index<sequence.hits&&target.hp>0){sequence.nextAt=this.time+(move.hitInterval??.18);return;}
+      actor.sequence=null;const ctx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:sequence.hitDamages,successfulSupport:false,healing:false};
+      if(sequence.connected)for(const effect of move.effects){const handler=R.effects[effect.type];if(!handler)throw Error('Unknown move effect '+effect.type);handler(this,ctx,effect);}
       actor.runtime.emit('OnSkillCastFinished',ctx);actor.runtime.emit(move.damageType==='physical'?'OnPhysicalSkillFinished':move.damageType==='magic'?'OnMagicSkillFinished':'OnSpellFinished',ctx);
       if(target.hp<=0)this.finish(target===this.enemy);else if(actor.hp<=0)this.finish(actor!==this.player);
     }
+    queueEcho(ctx,ratio){const hits=(ctx.hitDamages||[]).filter(n=>n>0);for(const [index,damage] of hits.entries())this.delayedHits.push({at:this.time+.12+index*(ctx.move.hitInterval??.18),actorId:ctx.actor.id,targetId:ctx.target.id,moveId:ctx.move.id,amount:damage*ratio,index:index+1,hits:hits.length});this.delayedHits.sort((a,b)=>a.at-b.at);return hits.length>0;}
+    resolveDelayedHit(){const pending=this.delayedHits.shift();if(!pending)return;const actor=pending.actorId==='player'?this.player:this.enemy,target=pending.targetId==='player'?this.player:this.enemy,move=D.moves[pending.moveId]||{id:pending.moveId,name:'殘影',damageType:'physical',elements:[],effects:[]};if(target.hp<=0)return;const damage=this.receiveDamage(actor,target,pending.amount,move,false,true);this.log('afterimage','殘影',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical:false,elements:move.elements,index:pending.index,hits:pending.hits});if(target.hp<=0)this.finish(target===this.enemy);}
     statusDeadline(){let next=Infinity;for(const a of [this.player,this.enemy])for(const s of Object.values(a.statuses))next=Math.min(next,s.expiresAt,s.tick?s.nextTick:Infinity);return next;}
     processStatuses(){for(const actor of [this.player,this.enemy])for(const [id,s]of Object.entries(actor.statuses)){
       if(s.tick&&s.nextTick<=this.time&&s.nextTick<=s.expiresAt){const source=this[s.sourceId],move={id:'status:'+id,name:s.name,damageType:'magic',elements:[],tags:[],effects:[]};const damage=this.receiveDamage(source,actor,s.tickDamage||0,move,false,true);this.log('damage',s.name,{actorId:source.id,targetId:actor.id,moveId:move.id,damage,critical:false,secondary:true});s.nextTick+=s.tick.interval;if(actor.hp<=0){this.finish(actor===this.enemy);return;}}
@@ -130,19 +132,19 @@
       if (this.phase !== 'fighting') return;
       const until = this.time + seconds;
       while (this.phase === 'fighting') {
-        if (!this.enemy.cast) this.begin(this.enemy, this.nextEnemyMove());
+        if (!this.enemy.cast&&!this.enemy.sequence) this.begin(this.enemy, this.nextEnemyMove());
         // Explicit sandbox tie-break: player first; an interrupt can cancel the enemy's same-time action.
-        const next = [this.player, this.enemy].filter(a => a.cast).sort((a, b) => a.cast.endAt - b.cast.endAt)[0];
-        const deadline=this.statusDeadline(),castAt=next?.cast.endAt??Infinity;
-        if(Math.min(deadline,castAt)>until)break;
-        if(deadline<=castAt){this.elapse(deadline);this.processStatuses();}else {this.elapse(castAt);this.resolve(next);}
+        const nextCast = [this.player, this.enemy].filter(a => a.cast).sort((a, b) => a.cast.endAt - b.cast.endAt)[0],nextSequence=[this.player,this.enemy].filter(a=>a.sequence).sort((a,b)=>a.sequence.nextAt-b.sequence.nextAt)[0];
+        const deadline=this.statusDeadline(),castAt=nextCast?.cast.endAt??Infinity,sequenceAt=nextSequence?.sequence.nextAt??Infinity,echoAt=this.delayedHits[0]?.at??Infinity,nextAt=Math.min(deadline,castAt,sequenceAt,echoAt);
+        if(nextAt>until)break;
+        if(deadline===nextAt){this.elapse(deadline);this.processStatuses();}else if(sequenceAt===nextAt){this.elapse(sequenceAt);this.resolveSequenceHit(nextSequence);}else if(echoAt===nextAt){this.elapse(echoAt);this.resolveDelayedHit();}else {this.elapse(castAt);this.resolve(nextCast);}
       }
       if (this.phase === 'fighting') this.elapse(until);
     }
     finish(won) {
       this.lastOutcome={won,enemyHP:this.enemy.hp,enemyMaxHP:this.enemy.stats.hp};
       this.player.runtime.emit('OnBattleEnd',{won}); this.enemy.runtime.emit('OnBattleEnd',{won:!won});
-      this.player.cast = null; this.enemy.cast = null;
+      this.player.cast = null; this.enemy.cast = null;this.player.sequence=null;this.enemy.sequence=null;this.delayedHits=[];
       if (won) { this.phase = 'victory'; if(!this.options.preserveResources)this.restore(); this.log('victory', this.options.preserveResources?'勝利！保留目前資源前往下一戰。':'勝利！血量、體力、魔力完全恢復。'); return; }
       this.run.deaths++;
       if (this.run.deaths >= 3) { this.phase = 'gameover'; this.run.status = 'failed'; this.log('death', '第三次死亡，本局結束。'); return; }

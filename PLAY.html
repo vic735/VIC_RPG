@@ -166,6 +166,11 @@ function enrich(D){
  rows.forEach(add);
  const neutral=[['double_slash','二連斬',1.3,18,95,[],2],['heavy_slash','重斬',2.2,24,160],['break_stance','破勢',.5,16,85,[{type:'interrupt'}]],['charge_up','蓄力',0,12,60,[buff('charged','蓄力',[mod('damage',1.35,physical)],60)]],['counter_stance','反擊架勢',0,15,70,[buff('counter_guard','反擊架勢',[mod('incoming',.75)],4)]],['focus','專注',0,10,65,[buff('focus','專注',[mod('critChance',.15,{},'add')],6)]]];
  neutral.forEach(([id,name,m,c,t,e,h])=>add([id,name,name,'physical',[],m,c,t,e,h]));
+ const ni=D.balance.nonElementIdentity,neutralMagic=[
+  ['mana_bolt','魔力彈','純粹魔力凝成的低階飛彈',ni.moves.manaBoltRatio,ni.moves.manaBoltCost,ni.moves.manaBoltAttackTime,1,100,'old_lab'],
+  ['pure_mana_cannon','純粹魔力砲','捨棄屬性與附加效果的長詠唱砲擊',ni.moves.manaCannonRatio,ni.moves.manaCannonCost,ni.moves.manaCannonAttackTime,2,190,'frozen_tower']
+ ];
+ neutralMagic.forEach(([id,name,subtitle,ratio,cost,time,tier,shopCost,preferredDungeon])=>{add([id,name,subtitle,'magic',[],ratio,cost,time]);Object.assign(D.moves[id],{contentId:id,shopEligible:true,shopTier:tier,shopCost,rarity:tier===1?'common':'uncommon',tags:['magic','non-element'],preferredDungeon});});
  const sets={metal:['真・德','真・迪','參倫・德','參倫・陸','真・法','真・倫司吧'],wood:['艾・德','艾・迪','德魯・卡阿','帕咔申・尤','艾・法','德魯・倫司吧'],water:['雅・德','雅・烏','希・德','希・迪','雅・法','希・倫司吧'],fire:['伯・德','伯・烏','伯・迪','伯・陸','阿・伯・德','伯・法'],earth:['卓・德','卓・烏','卓・迪','卓・倫司吧','阿・卓・德','卓・法'],light:['麗・德','麗・烏','麗・陸','麗・倫司吧','麗・法','麗・艾妮司'],dark:['布・德','布・烏','布・迪','布・陸','布・法','布・倫司吧']};
  for(const [element,names] of Object.entries(sets)) names.forEach((name,i)=>{const support=name.includes('法')||name.includes('倫司吧')||name.includes('艾妮司');const effects=support?[name.includes('艾妮司')?{type:'heal',ratio:.25}:buff(element+'_ward',D.elements[element]+'之庇護',[mod('incoming',.88)],4)]:element==='fire'?[burn]:element==='water'?[slow]:[];add([element+'_'+i,name,D.elements[element]+(support?'屬性咒術':'屬性攻擊'),support?'spell':'magic',[element],support?0:1.05+i*.18,14+i*3,85+i*13,effects]);});
  for(const m of Object.values(D.moves)){m.elements ||= ({fire:['fire'],inferno:['fire'],spark:['metal'],nova:['light']}[m.id]||[]);m.tags ||= [m.damageType==='physical'?'slash':'magic'];m.hits ||=1;m.originalAttackTime=m.attackTime;}
@@ -210,7 +215,19 @@ function enrich(D){
  skill('gambler','賭徒','爆擊倍率 +35%，非爆擊傷害 -8%。',[mod('critMultiplier',1.35),mod('damage',.92,{critical:false})]);
  skill('diligence','勤奮','戰鬥 EXP +12%。',[mod('exp',1.12)]);
  skill('adapt','臨機應變','MP <20% 時 SP 消耗 -15%；SP <20% 時 MP 消耗 -15%。',[mod('cost:stamina',.85,{resource:'mana',ratioLt:.2}),mod('cost:mana',.85,{resource:'stamina',ratioLt:.2})]);
- D.catalogMoveIds=[...rows.map(r=>r[0]),...neutral.map(r=>r[0]),...Object.keys(sets).flatMap(e=>sets[e].map((_,i)=>e+'_'+i))];
+ const playerSkill=(id,name,description,modifiers,tier=1,cost=120,preferredDungeon=null,distributionCategory='')=>skill(id,name,description,modifiers,[],{contentId:id,shopEligible:true,shopTier:tier,shopCost:cost,rarity:tier===1?'common':tier===2?'uncommon':'rare',tags:['non-element-specialization'],combatStacking:'forbidden',preferredDungeon,distributionCategory});
+ const np=ni.physical,nm=ni.magic;
+ playerSkill('pure_weapon','純武',`無屬性物理傷害 +${np.pureDamageBonus*100}%。`,[mod('damage',1+np.pureDamageBonus,{nonElementPhysical:true})],1,120,'abandoned_mine','physical weapon');
+ playerSkill('plain_strike','樸實一擊',`無屬性物理招式的爆擊傷害 +${np.criticalDamageBonus*100}%。`,[mod('critMultiplier',np.criticalDamageBonus,{nonElementPhysical:true},'add')],2,180,'giant_ruins','physical weapon');
+ playerSkill('tempered_body','千錘百鍊',`無屬性物理招式 SP 消耗 -${np.staminaCostReduction*100}%。`,[mod('cost:stamina',1-np.staminaCostReduction,{nonElementPhysical:true})],1,120,'thunder_workshop','physical weapon resource');
+ playerSkill('soul_strike','一擊入魂',`原始攻擊時間 ≥${np.heavyCastThreshold} 的無屬性物理傷害 +${np.heavyDamageBonus*100}%。`,[mod('damage',1+np.heavyDamageBonus,{nonElementPhysical:true,originalTimeGte:np.heavyCastThreshold})],2,190,'giant_ruins','physical weapon');
+ playerSkill('pure_arcana','純魔導',`無屬性魔法傷害 +${nm.pureDamageBonus*100}%。`,[mod('damage',1+nm.pureDamageBonus,{nonElementMagic:true})],1,120,'old_lab','magic resource');
+ playerSkill('mana_concentration','魔力凝聚',`原始攻擊時間 ≥${nm.focusCastThreshold} 的無屬性魔法傷害 +${nm.focusDamageBonus*100}%。`,[mod('damage',1+nm.focusDamageBonus,{nonElementMagic:true,originalTimeGte:nm.focusCastThreshold})],2,180,'frozen_tower','magic resource');
+ playerSkill('mana_purification','魔力純化',`無屬性魔法傷害 +${nm.purificationDamageBonus*100}%，MP 消耗 -${nm.purificationCostReduction*100}%。`,[mod('damage',1+nm.purificationDamageBonus,{nonElementMagic:true}),mod('cost:mana',1-nm.purificationCostReduction,{nonElementMagic:true})],2,185,'sunken_temple','magic resource');
+ playerSkill('overflowing_mana','滿溢魔力',`施放前 MP ≥${nm.overflowManaRatio*100}% 時，無屬性魔法傷害 +${nm.overflowDamageBonus*100}%。`,[mod('damage',1+nm.overflowDamageBonus,{nonElementMagic:true,resource:'mana',ratioGte:nm.overflowManaRatio})],2,190,'lava_vein','magic resource');
+ playerSkill('depleted_casting','枯竭施法',`施放前 MP ≤${nm.depletedManaRatio*100}% 時，無屬性魔法 MP 消耗 -${nm.depletedCostReduction*100}%。`,[mod('cost:mana',1-nm.depletedCostReduction,{nonElementMagic:true,resource:'mana',ratioLte:nm.depletedManaRatio})],2,190,'thunder_workshop','magic resource');
+ playerSkill('archmage','大魔導',`無屬性魔法傷害 +${nm.archmageDamageBonus*100}%；原始攻擊時間 ≥${nm.focusCastThreshold} 時合計 +${(nm.archmageDamageBonus+nm.archmageLongCastBonus)*100}%。`,[mod('damage',1+nm.archmageDamageBonus,{nonElementMagic:true,originalTimeLt:nm.focusCastThreshold}),mod('damage',1+nm.archmageDamageBonus+nm.archmageLongCastBonus,{nonElementMagic:true,originalTimeGte:nm.focusCastThreshold})],3,280,'terminal_structure','magic special');
+ D.catalogMoveIds=[...rows.map(r=>r[0]),...neutral.map(r=>r[0]),...neutralMagic.map(r=>r[0]),...Object.keys(sets).flatMap(e=>sets[e].map((_,i)=>e+'_'+i))];
  D.equipment.sword.weaponType='sword';D.equipment.greatsword.weaponType='sword';
  D.equipment.bow={id:'bow',name:'獵人短弓',slot:'weapon',weaponType:'bow',icon:'sword',description:'弓術配套武器；最大體力 +8。',modifiers:{stamina:8}};
  D.equipment.mace={id:'mace',name:'青銅戰鎚',slot:'weapon',weaponType:'blunt',icon:'axe',description:'鈍器精通配套武器；物理威力 +10%。',modifiers:{},physicalMultiplier:1.1};
@@ -342,7 +359,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.8.0', date: '2026-09-22' },
+    release: { version: '0.8.2', date: '2026-09-22' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -378,7 +395,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
-    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 },
+    nonElementIdentity: {
+      physical: { pureDamageBonus: .2, criticalDamageBonus: .25, staminaCostReduction: .15, heavyCastThreshold: 150, heavyDamageBonus: .3 },
+      magic: { pureDamageBonus: .2, focusCastThreshold: 150, focusDamageBonus: .25, purificationDamageBonus: .15, purificationCostReduction: .1, overflowManaRatio: .8, overflowDamageBonus: .25, depletedManaRatio: .25, depletedCostReduction: .25, archmageDamageBonus: .35, archmageLongCastBonus: .15 },
+      moves: { manaBoltRatio: 1, manaBoltCost: 10, manaBoltAttackTime: 80, manaCannonRatio: 1.6, manaCannonCost: 26, manaCannonAttackTime: 160 }
+    },
+    playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },
@@ -547,9 +570,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const totalRewardMoves=directMoves.length+bookMoves.size,totalRewardSkills=directSkills.length,wildMoveIds=chooseWild(directMoves,'moves',Math.round(totalRewardMoves*.18)),wildSkillIds=chooseWild(directSkills,'talents',Math.round(totalRewardSkills*.18));
  const wildMoves=new Set(wildMoveIds),wildSkills=new Set(wildSkillIds),dungeonMoves=directMoves.filter(id=>!wildMoves.has(id)),dungeonSkills=directSkills.filter(id=>!wildSkills.has(id));
  for(const pool of Object.values(D.rewardPools))for(const entry of pool.entries)if(['moves','talents'].includes(entry.rewardType))entry.rewardIds=[];
- const itemScore=(id,kind,dungeonId)=>{const x=(kind==='moves'?D.moves:D.skills)[id],profile=dungeonProfiles[dungeonId],elements=elementList(x),category=String(x.category||x.skillCategory||x.damageType||x.specKind||'').toLowerCase(),dual=elements.length>1;let score=elements.reduce((n,e)=>n+(profile.elements.includes(e)?18:0),0);score+=profile.keywords.reduce((n,k)=>n+(category.includes(k)?7:0),0);if(dual&&dungeonId==='element_abyss')score+=20;if(!elements.length&&dungeonId==='terminal_structure'&&rarityRank(x)>=2)score+=10;if(kind==='moves'&&x.damageType==='physical'&&['abandoned_mine','giant_ruins'].includes(dungeonId))score+=6;return score;};
+ const itemScore=(id,kind,dungeonId)=>{const x=(kind==='moves'?D.moves:D.skills)[id],profile=dungeonProfiles[dungeonId],elements=elementList(x),category=String([x.category,x.skillCategory,x.damageType,x.specKind,x.distributionCategory].filter(Boolean).join(' ')).toLowerCase(),dual=elements.length>1;let score=x.preferredDungeon===dungeonId?1000:0;score+=elements.reduce((n,e)=>n+(profile.elements.includes(e)?18:0),0);score+=profile.keywords.reduce((n,k)=>n+(category.includes(k)?7:0),0);if(dual&&dungeonId==='element_abyss')score+=20;if(!elements.length&&dungeonId==='terminal_structure'&&rarityRank(x)>=2)score+=10;if(kind==='moves'&&x.damageType==='physical'&&['abandoned_mine','giant_ruins'].includes(dungeonId))score+=6;return score;};
  const allocate=(ids,kind)=>{const base=Math.floor(ids.length/dungeonIds.length),extra=ids.length%dungeonIds.length,remaining=Object.fromEntries(dungeonIds.map((id,i)=>[id,base+(i<extra?1:0)])),result=Object.fromEntries(dungeonIds.map(id=>[id,[]]));const sorted=[...ids].sort((a,b)=>elementList((kind==='moves'?D.moves:D.skills)[b]).length-elementList((kind==='moves'?D.moves:D.skills)[a]).length||rarityRank((kind==='moves'?D.moves:D.skills)[b])-rarityRank((kind==='moves'?D.moves:D.skills)[a])||a.localeCompare(b));for(const id of sorted){const choices=dungeonIds.filter(d=>remaining[d]>0).sort((a,b)=>itemScore(id,kind,b)-itemScore(id,kind,a)||result[a].length-result[b].length||a.localeCompare(b)),chosen=choices[0];result[chosen].push(id);remaining[chosen]--;}return result;};
  const dungeonMoveAllocation=allocate(dungeonMoves,'moves'),dungeonSkillAllocation=allocate(dungeonSkills,'talents');
+ const honorPreferred=(allocation,source)=>{for(const [id,item]of Object.entries(source)){const desired=item.preferredDungeon;if(!desired||!allocation[desired])continue;const current=Object.keys(allocation).find(d=>allocation[d].includes(id));if(!current||current===desired)continue;const swapIndex=allocation[desired].findIndex(other=>source[other]?.preferredDungeon!==desired);if(swapIndex<0)continue;const replacement=allocation[desired][swapIndex],currentIndex=allocation[current].indexOf(id);allocation[desired][swapIndex]=id;allocation[current][currentIndex]=replacement;}};
+ honorPreferred(dungeonMoveAllocation,D.moves);honorPreferred(dungeonSkillAllocation,D.skills);
  const put=(poolId,type,ids)=>{const entry=D.rewardPools[poolId]?.entries.find(e=>e.rewardType===type);if(entry)entry.rewardIds.push(...ids);};
  for(const dungeonId of dungeonIds){const dungeon=D.dungeons.find(d=>d.id===dungeonId);for(const [type,ids,source] of [['moves',dungeonMoveAllocation[dungeonId],D.moves],['talents',dungeonSkillAllocation[dungeonId],D.skills]]){const ordered=[...ids].sort((a,b)=>rarityRank(source[a])-rarityRank(source[b])),rareCount=Math.max(1,Math.round(ordered.length*.25)),split=Math.max(1,ordered.length-rareCount);put(dungeon.primaryRewardPool,type,ordered.slice(0,split));put(dungeon.rareRewardPool,type,ordered.slice(split));}}
  const fieldProfiles={greywind:['earth'],verdant:['wood','water'],redrift:['fire','earth'],froststorm:['water','metal'],obsidian:['light','dark']};
@@ -642,19 +667,24 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function(root){
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
  const clone=x=>JSON.parse(JSON.stringify(x));
+ const isNonElementPhysical=move=>move?.damageType==='physical'&&(move.elements?.length||0)===0;
+ const isNonElementMagic=move=>move?.damageType==='magic'&&(move.elements?.length||0)===0;
  function elementMultiplier(attack=[],defend=[]){let advantage=false,disadvantage=false;for(const a of attack)for(const d of defend){if(D.elementEdges[a]?.includes(d))advantage=true;else if(D.elementEdges[d]?.includes(a))disadvantage=true;}return advantage===disadvantage?1:advantage?1.5:.75;}
  function matches(c={},ctx){const {actor,target,move={},battle}=ctx;
+  const originalTime=move.attackTimeBase??move.originalAttackTime??move.attackTime;
   if(c.damageType&&move.damageType!==c.damageType)return false;
+  if(c.nonElementPhysical&&!isNonElementPhysical(move))return false;
+  if(c.nonElementMagic&&!isNonElementMagic(move))return false;
   if(c.element&&!move.elements?.includes(c.element))return false;
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
-  if(c.originalTimeLt!=null&&!(move.originalAttackTime<c.originalTimeLt))return false;
-  if(c.originalTimeGte!=null&&!(move.originalAttackTime>=c.originalTimeGte))return false;
+  if(c.originalTimeLt!=null&&!(originalTime<c.originalTimeLt))return false;
+  if(c.originalTimeGte!=null&&!(originalTime>=c.originalTimeGte))return false;
   if(c.targetCasting&&!target?.cast)return false;
   if(c.targetStatus&&!target?.statuses[c.targetStatus])return false;
   if(c.targetDebuff&&!Object.values(target?.statuses||{}).some(s=>s.polarity==='debuff'&&s.expiresAt>battle.time))return false;
-  if(c.resource){const ratio=actor[c.resource]/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;}
+  if(c.resource){const ratio=actor[c.resource]/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioLte!=null&&!(ratio<=c.ratioLte))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;if(c.ratioGte!=null&&!(ratio>=c.ratioGte))return false;}
   if(c.critical!=null&&ctx.critical!==c.critical)return false;
   if(c.primary&&ctx.secondary)return false;
   if(c.alive&&actor.hp<=0)return false;
@@ -694,11 +724,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   refund(b,c,e){for(const [key,value]of Object.entries(c.spent||{}))b.recover(c.actor,key,value*e.ratio,c);},
   preventInterrupt(b,c){c.prevented=true;},
   interrupt(b,c,e){if(!c.target.cast)return false;const chance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
-  echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;const damage=b.receiveDamage(c.actor,c.target,c.totalDamage*e.ratio,c.move,false,true);b.log('afterimage','殘影',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id,damage,critical:false,elements:c.move.elements,delay:.15});},
+  echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;return b.queueEcho(c,e.ratio);},
   shield(b,c,e){c.actor.shield=Math.max(c.actor.shield,c.actor.stats.hp*e.ratio);},
   survive(b,c,e){const chance=Math.min(e.cap,c.actor.stats.luck*e.luckRate);if(b.rng()<chance)c.prevented=true;}
  };
- const api={Runtime,matches,elementMultiplier,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;
+ const api={Runtime,matches,elementMultiplier,isNonElementPhysical,isNonElementMagic,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;
 })(globalThis);
 
 </script><script>
@@ -728,7 +758,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       this.moveScale = options.moveScale || (() => 1);
       this.equipmentEffects = options.equipmentEffects || {};
       this.options = options;
-      this.charge = 0; this.enemyTurn = 0;
+      this.charge = 0; this.enemyTurn = 0; this.delayedHits=[];
       this.base = { ...D.player, ...options.stats };
       for (const [key, value] of Object.entries(this.base)) if (!Number.isFinite(value) || value < (key === 'hp' ? 1 : 0)) throw Error('能力值必須是有效非負數，HP 至少 1');
       this.build = copy(options.build || D.defaultBuild);
@@ -740,7 +770,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     resetActors() {
       const stats = { ...this.base };
       for (const id of this.run.debuffIds) { const d = D.debuffs.find(d => d.id === id); stats[d.stat] *= d.factor; }
-      const actor = (id, stats) => ({ id, stats, hp: stats.hp, stamina: stats.stamina, mana: stats.mana, cast: null, statuses: {}, shield: 0, elements: [], weaponType: null });
+      const actor = (id, stats) => ({ id, stats, hp: stats.hp, stamina: stats.stamina, mana: stats.mana, cast: null, sequence: null, statuses: {}, shield: 0, elements: [], weaponType: null });
       this.player = actor('player', stats); this.enemy = actor('enemy', { ...this.enemyDefinition.stats });
       this.player.elements = this.options.elements || []; this.enemy.elements = this.enemyDefinition.elements || [];
       this.player.weaponType = D.equipment[this.build.equipment.weapon]?.weaponType;
@@ -790,7 +820,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     }
     begin(actor, id, asUltimate = false) {
       if (this.phase !== 'fighting') return { ok: false, reason: '目前不在戰鬥中' };
-      if (actor.cast) return { ok: false, reason: '正在讀條中' };
+      if (actor.cast||actor.sequence) return { ok: false, reason: actor.sequence?'連擊尚未結束':'正在讀條中' };
       const move = this.getMove(id, actor);
       if (!move || (actor === this.player && !this.build.moves.includes(id) && this.build.ultimate !== id)) return { ok: false, reason: '未配置此招式' };
       const isUltimate = actor === this.player && this.build.ultimate === id && asUltimate;
@@ -808,22 +838,24 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     }
     choose(id, asUltimate = this.build.ultimate === id && !this.build.moves.includes(id)) { return this.begin(this.player, id, asUltimate); }
     resolve(actor) {
-      const cast=actor.cast,move=cast.move||this.getMove(cast.moveId,actor);actor.cast=null;
-      const target=actor===this.player?this.enemy:this.player,ctx={actor,target,move,spent:cast.spent||move.cost,totalDamage:0,successfulSupport:false,healing:false};
-      const hostile=move.multiplier>0||move.effects.some(e=>e.type==='interrupt'||e.status?.target==='enemy');let connected=!hostile;
-      for(let hit=0;hit<(move.hits||1)&&hostile&&target.hp>0;hit++){
-        if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move})){this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id});continue;}
-        if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id});continue;}
-        connected=true;
-        if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move});const damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/(move.hits||1),move,critical);
-          ctx.totalDamage+=damage;this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1});
-          if(damage>0)actor.runtime.emit('OnDamageDealt',{...ctx,damage,critical});if(critical)actor.runtime.emit('OnCriticalHit',{...ctx,damage,critical});
-        }
+      const cast=actor.cast,move=cast.move||this.getMove(cast.moveId,actor),target=actor===this.player?this.enemy:this.player;actor.cast=null;
+      const hostile=move.multiplier>0||move.effects.some(e=>e.type==='interrupt'||e.status?.target==='enemy');actor.sequence={moveId:move.id,move,targetId:target.id,spent:cast.spent||move.cost,hits:hostile?(move.hits||1):1,index:0,nextAt:this.time,totalDamage:0,hitDamages:[],connected:!hostile,hostile};this.resolveSequenceHit(actor);
+    }
+    resolveSequenceHit(actor){
+      const sequence=actor.sequence;if(!sequence)return;const move=sequence.move,target=sequence.targetId==='enemy'?this.enemy:this.player,hit=sequence.index;
+      if(sequence.hostile&&target.hp>0){
+        if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move}))this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});
+        else if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});}
+        else {sequence.connected=true;if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
       }
-      if(connected)for(const effect of move.effects){const handler=R.effects[effect.type];if(!handler)throw Error('Unknown move effect '+effect.type);handler(this,ctx,effect);}
+      sequence.index++;if(sequence.index<sequence.hits&&target.hp>0){sequence.nextAt=this.time+(move.hitInterval??.18);return;}
+      actor.sequence=null;const ctx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:sequence.hitDamages,successfulSupport:false,healing:false};
+      if(sequence.connected)for(const effect of move.effects){const handler=R.effects[effect.type];if(!handler)throw Error('Unknown move effect '+effect.type);handler(this,ctx,effect);}
       actor.runtime.emit('OnSkillCastFinished',ctx);actor.runtime.emit(move.damageType==='physical'?'OnPhysicalSkillFinished':move.damageType==='magic'?'OnMagicSkillFinished':'OnSpellFinished',ctx);
       if(target.hp<=0)this.finish(target===this.enemy);else if(actor.hp<=0)this.finish(actor!==this.player);
     }
+    queueEcho(ctx,ratio){const hits=(ctx.hitDamages||[]).filter(n=>n>0);for(const [index,damage] of hits.entries())this.delayedHits.push({at:this.time+.12+index*(ctx.move.hitInterval??.18),actorId:ctx.actor.id,targetId:ctx.target.id,moveId:ctx.move.id,amount:damage*ratio,index:index+1,hits:hits.length});this.delayedHits.sort((a,b)=>a.at-b.at);return hits.length>0;}
+    resolveDelayedHit(){const pending=this.delayedHits.shift();if(!pending)return;const actor=pending.actorId==='player'?this.player:this.enemy,target=pending.targetId==='player'?this.player:this.enemy,move=D.moves[pending.moveId]||{id:pending.moveId,name:'殘影',damageType:'physical',elements:[],effects:[]};if(target.hp<=0)return;const damage=this.receiveDamage(actor,target,pending.amount,move,false,true);this.log('afterimage','殘影',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical:false,elements:move.elements,index:pending.index,hits:pending.hits});if(target.hp<=0)this.finish(target===this.enemy);}
     statusDeadline(){let next=Infinity;for(const a of [this.player,this.enemy])for(const s of Object.values(a.statuses))next=Math.min(next,s.expiresAt,s.tick?s.nextTick:Infinity);return next;}
     processStatuses(){for(const actor of [this.player,this.enemy])for(const [id,s]of Object.entries(actor.statuses)){
       if(s.tick&&s.nextTick<=this.time&&s.nextTick<=s.expiresAt){const source=this[s.sourceId],move={id:'status:'+id,name:s.name,damageType:'magic',elements:[],tags:[],effects:[]};const damage=this.receiveDamage(source,actor,s.tickDamage||0,move,false,true);this.log('damage',s.name,{actorId:source.id,targetId:actor.id,moveId:move.id,damage,critical:false,secondary:true});s.nextTick+=s.tick.interval;if(actor.hp<=0){this.finish(actor===this.enemy);return;}}
@@ -834,19 +866,19 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       if (this.phase !== 'fighting') return;
       const until = this.time + seconds;
       while (this.phase === 'fighting') {
-        if (!this.enemy.cast) this.begin(this.enemy, this.nextEnemyMove());
+        if (!this.enemy.cast&&!this.enemy.sequence) this.begin(this.enemy, this.nextEnemyMove());
         // Explicit sandbox tie-break: player first; an interrupt can cancel the enemy's same-time action.
-        const next = [this.player, this.enemy].filter(a => a.cast).sort((a, b) => a.cast.endAt - b.cast.endAt)[0];
-        const deadline=this.statusDeadline(),castAt=next?.cast.endAt??Infinity;
-        if(Math.min(deadline,castAt)>until)break;
-        if(deadline<=castAt){this.elapse(deadline);this.processStatuses();}else {this.elapse(castAt);this.resolve(next);}
+        const nextCast = [this.player, this.enemy].filter(a => a.cast).sort((a, b) => a.cast.endAt - b.cast.endAt)[0],nextSequence=[this.player,this.enemy].filter(a=>a.sequence).sort((a,b)=>a.sequence.nextAt-b.sequence.nextAt)[0];
+        const deadline=this.statusDeadline(),castAt=nextCast?.cast.endAt??Infinity,sequenceAt=nextSequence?.sequence.nextAt??Infinity,echoAt=this.delayedHits[0]?.at??Infinity,nextAt=Math.min(deadline,castAt,sequenceAt,echoAt);
+        if(nextAt>until)break;
+        if(deadline===nextAt){this.elapse(deadline);this.processStatuses();}else if(sequenceAt===nextAt){this.elapse(sequenceAt);this.resolveSequenceHit(nextSequence);}else if(echoAt===nextAt){this.elapse(echoAt);this.resolveDelayedHit();}else {this.elapse(castAt);this.resolve(nextCast);}
       }
       if (this.phase === 'fighting') this.elapse(until);
     }
     finish(won) {
       this.lastOutcome={won,enemyHP:this.enemy.hp,enemyMaxHP:this.enemy.stats.hp};
       this.player.runtime.emit('OnBattleEnd',{won}); this.enemy.runtime.emit('OnBattleEnd',{won:!won});
-      this.player.cast = null; this.enemy.cast = null;
+      this.player.cast = null; this.enemy.cast = null;this.player.sequence=null;this.enemy.sequence=null;this.delayedHits=[];
       if (won) { this.phase = 'victory'; if(!this.options.preserveResources)this.restore(); this.log('victory', this.options.preserveResources?'勝利！保留目前資源前往下一戰。':'勝利！血量、體力、魔力完全恢復。'); return; }
       this.run.deaths++;
       if (this.run.deaths >= 3) { this.phase = 'gameover'; this.run.status = 'failed'; this.log('death', '第三次死亡，本局結束。'); return; }
@@ -1323,10 +1355,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       const positions = this.battlePositions(), source = positions[event.actorId], target = positions[event.targetId];
       if (event.type === 'damage' || event.type === 'dodge' || event.type === 'miss') {
         this.attacks[event.actorId] = this.time; if (event.type === 'damage') this.hits[event.targetId] = this.time;
-        this.fx.push({ type: 'text', x: target.x, y: target.y - 65, text: event.type === 'dodge' ? 'DODGE · 閃避' : event.type === 'miss' ? 'MISS' : `${Math.round(event.damage)}`, caption: event.critical ? 'CRITICAL' : '', size: event.critical ? 43 : event.type === 'damage' ? 29 : 23, color: event.type === 'dodge' ? '#a7d6d4' : event.type === 'miss' ? '#a2aaa8' : event.critical ? '#ffe2a0' : '#eee2cb', life: event.critical ? 1.6 : 1.2, total: event.critical ? 1.6 : 1.2 });
-        if (event.type === 'damage') { this.fx.push({ type: 'strike', x: target.x, y: target.y - 55, fromX: source.x, fromY: source.y - 55, move: event.moveId, life: .55, total: .55 }); for (let i = 0; i < 12; i++) this.fx.push({ type: 'spark', x: target.x, y: target.y - 40, vx: (Math.random() - .5) * 180, vy: -Math.random() * 140, life: .6, total: .6 }); }
+        const hitOffset=event.hits>1?(event.hit-(event.hits+1)/2)*34:0;
+        this.fx.push({ type: 'text', x: target.x+hitOffset, y: target.y - 65, text: event.type === 'dodge' ? 'DODGE · 閃避' : event.type === 'miss' ? 'MISS' : `${Math.round(event.damage)}`, caption: event.critical ? 'CRITICAL' : '', size: event.critical ? 43 : event.type === 'damage' ? 29 : 23, color: event.type === 'dodge' ? '#a7d6d4' : event.type === 'miss' ? '#a2aaa8' : event.critical ? '#ffe2a0' : '#eee2cb', life: event.critical ? 1.6 : 1.2, total: event.critical ? 1.6 : 1.2 });
+        if (event.type === 'damage') { this.fx.push({ type: 'strike', x: target.x, y: target.y - 55, fromX: source.x, fromY: source.y - 55, move: event.moveId, hit:event.hit||1, life: .55, total: .55 }); for (let i = 0; i < 12; i++) this.fx.push({ type: 'spark', x: target.x, y: target.y - 40, vx: (Math.random() - .5) * 180, vy: -Math.random() * 140, life: .6, total: .6 }); }
       }
-      if(event.type==='afterimage')this.fx.push({type:'echo',x:target.x,y:target.y,fromX:source.x,fromY:source.y,damage:event.damage,delay:event.delay||.15,life:.7,total:.7});
+      if(event.type==='afterimage'){const index=event.index||1,hits=event.hits||1;this.fx.push({type:'echo',x:target.x+(index-(hits+1)/2)*28,y:target.y,fromX:source.x,fromY:source.y,damage:event.damage,delay:event.delay??0,life:.7,total:.7});}
       if (event.type === 'interrupt') { this.fx.push({ type: 'text', x: target.x, y: target.y - 165, text: '中斷！', caption: 'INTERRUPT', size: 28, color: '#d9ad86', life: 1.2, total: 1.2 }); for (let i = 0; i < 8; i++) this.fx.push({ type: 'spark', x: target.x + (i - 4) * 14, y: target.y + 25, vx: (i - 4) * 14, vy: -40, life: .45, total: .45 }); }
     }
     drawBattle(game) {
@@ -1357,7 +1390,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
         if (f.type === 'text') { this.text(f.text, f.x, f.y - age * 40, f.size || 23, f.color); if (f.caption) this.text(f.caption, f.x, f.y - age * 40 - (f.size || 23) - 5, 12, f.color); }
         if(f.type==='echo' && age>=f.delay){c.globalAlpha*=.45;c.globalAlpha*=1.6;this.text(String(Math.round(f.damage)),f.x+20,f.y-80-(age-f.delay)*35,21,'#b8d8df');c.strokeStyle='#b8d8df88';c.lineWidth=3;c.beginPath();c.arc(f.x,f.y-30,36,-.7,1.4);c.stroke();}
         if (f.type === 'spark') { f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 220 * dt; this.ellipse(f.x, f.y, 2, 2, '#efcf8b'); }
-        if (f.type === 'strike') { const magic = ['fire', 'inferno', 'nova', 'pulse', 'spark'].includes(f.move); if (magic) { const t = Math.min(1, age / .25), x = f.fromX + (f.x - f.fromX) * t, y = f.fromY + (f.y - f.fromY) * t; this.glow(x, y, 60, f.move === 'nova' ? '#e6cf8aaa' : f.move === 'spark' ? '#96c4e6aa' : '#f4a864aa'); this.ellipse(x, y, 9, 9, f.move === 'spark' ? '#dae8fc' : '#ffdfae'); } else { c.strokeStyle = f.move === 'interrupt' ? '#c3affb' : '#f6e9bf'; c.lineWidth = 5; c.beginPath(); c.arc(f.x - 15, f.y, 55, -.7, 1.4); c.stroke(); } }
+        if (f.type === 'strike') { const magic = ['fire', 'inferno', 'nova', 'pulse', 'spark'].includes(f.move); if (magic) { const t = Math.min(1, age / .25), x = f.fromX + (f.x - f.fromX) * t, y = f.fromY + (f.y - f.fromY) * t; this.glow(x, y, 60, f.move === 'nova' ? '#e6cf8aaa' : f.move === 'spark' ? '#96c4e6aa' : '#f4a864aa'); this.ellipse(x, y, 9, 9, f.move === 'spark' ? '#dae8fc' : '#ffdfae'); } else { c.strokeStyle = f.move === 'interrupt' ? '#c3affb' : '#f6e9bf'; c.lineWidth = 5;c.save();c.translate(f.x-15,f.y);if(f.hit%2===0)c.scale(-1,1);c.beginPath();c.arc(0,0,55,-.7,1.4);c.stroke();c.restore(); } }
         c.restore();
       } this.fx = this.fx.filter(f => f.life > 0);
     }
@@ -1520,12 +1553,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const KEY='afterlight.session.v1',copy=x=>JSON.parse(JSON.stringify(x));
  const fields=['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom'];
  function pack(game){const out={version:1,worldVersion:D.worldContentVersion,savedAt:Date.now()};for(const k of fields)if(game[k]!==undefined)out[k]=copy(game[k]);out.modal=['result','reward','acquire','replace','replace-confirm'].includes(game.modal)?game.modal:null;
- if(game.battle){const b=game.battle;out.battle={};for(const k of ['time','phase','charge','enemyTurn','run'])out.battle[k]=copy(b[k]);if(b.lastOutcome)out.battle.lastOutcome=copy(b.lastOutcome);for(const id of ['player','enemy']){const {runtime,...actor}=b[id];out.battle[id]={...copy(actor),once:[...runtime.once]};}}
+ if(game.battle){const b=game.battle;out.battle={};for(const k of ['time','phase','charge','enemyTurn','run','delayedHits'])out.battle[k]=copy(b[k]);if(b.lastOutcome)out.battle.lastOutcome=copy(b.lastOutcome);for(const id of ['player','enemy']){const {runtime,...actor}=b[id];out.battle[id]={...copy(actor),once:[...runtime.once]};}}
  return out;}
  function save(storage,game){if(game.debugBattle)return true;try{storage.setItem(KEY,JSON.stringify(game.run?pack(game):{version:1,run:null,permanent:game.permanent}));return true;}catch(_){return false;}}
  function load(storage){try{const raw=storage.getItem(KEY);if(!raw)return {snapshot:null};const s=JSON.parse(raw);if(s.version!==1)throw Error('存檔版本不相容');if(!s.run)return {snapshot:null};if(s.worldVersion!==D.worldContentVersion)throw Error('世界版本不相容');
  const run=s.run;run.defeatedEnemyTypesThisRun=[...new Set((run.defeatedEnemyTypesThisRun||[]).filter(id=>D.monsters[id]))];if(!run.battleStats)run.battleStatsPartial=true; if(s.permanent.ultimateUnlocked===undefined)s.permanent.ultimateUnlocked=run.status==='failed';if(!s.permanent.ultimateUnlocked){run.build.ultimate=null;if(s.build)s.build.ultimate=null;}run.points=0;if(!run.loot){run.loot={};run.lootHistoryPartial=true;}if(!Number.isFinite(run.ultimateCharge))run.ultimateCharge=0;P.validateBuild(run.build,s.permanent);P.normalizeUltimateCharge(run);P.statsFor(run);if(!Number.isInteger(run.level)||run.level<1||!['active','failed'].includes(run.status)||!Number.isFinite(run.position.x)||!Number.isFinite(run.position.y)||!Array.isArray(run.world.enemies))throw Error('冒險資料不完整');for(const e of run.world.enemies)if(!D.monsters[e.type]||!Number.isFinite(e.level))throw Error('敵人資料不相容');if(run.dungeon)P.dungeonEncounter(run);
- if(!['explore','battle'].includes(s.scene))throw Error('場景不相容');if(s.scene==='battle'){if(!s.battle||!D.monsters[s.encounter?.type])throw Error('戰鬥資料不完整');const b=P.battleFor(run,s.encounter);for(const k of ['time','phase','charge','enemyTurn','run'])b[k]=s.battle[k];b.lastOutcome=s.battle.lastOutcome;if(!Number.isFinite(b.time)||!['fighting','victory','revived','gameover'].includes(b.phase))throw Error('戰鬥狀態不相容');for(const id of ['player','enemy']){const actor=s.battle[id],runtime=b[id].runtime;if(!actor||!Number.isFinite(actor.hp)||!Number.isFinite(actor.mana)||!Number.isFinite(actor.stamina))throw Error('資源資料不完整');if(actor.cast&&(!D.moves[actor.cast.moveId]||!Number.isFinite(actor.cast.endAt)||actor.cast.endAt<b.time))throw Error('讀條不相容');for(const status of Object.values(actor.statuses||{}))if(!Number.isFinite(status.expiresAt)||status.tick&&(!(status.tick.interval>0)||!Number.isFinite(status.nextTick)))throw Error('狀態不相容');const {once,...data}=actor;Object.assign(b[id],data);runtime.once=new Set(once||[]);}b.events=[];if(s.noRandom){b.rules.critChance=0;b.rules.dodgeChance=0;}s.battle=b;}
+ if(!['explore','battle'].includes(s.scene))throw Error('場景不相容');if(s.scene==='battle'){if(!s.battle||!D.monsters[s.encounter?.type])throw Error('戰鬥資料不完整');const b=P.battleFor(run,s.encounter);for(const k of ['time','phase','charge','enemyTurn','run','delayedHits'])if(s.battle[k]!==undefined)b[k]=s.battle[k];b.lastOutcome=s.battle.lastOutcome;if(!Number.isFinite(b.time)||!['fighting','victory','revived','gameover'].includes(b.phase))throw Error('戰鬥狀態不相容');for(const id of ['player','enemy']){const actor=s.battle[id],runtime=b[id].runtime;if(!actor||!Number.isFinite(actor.hp)||!Number.isFinite(actor.mana)||!Number.isFinite(actor.stamina))throw Error('資源資料不完整');if(actor.cast&&(!D.moves[actor.cast.moveId]||!Number.isFinite(actor.cast.endAt)||actor.cast.endAt<b.time))throw Error('讀條不相容');if(actor.sequence&&(!D.moves[actor.sequence.moveId]||!Number.isFinite(actor.sequence.nextAt)||actor.sequence.nextAt<b.time))throw Error('連擊資料不相容');for(const status of Object.values(actor.statuses||{}))if(!Number.isFinite(status.expiresAt)||status.tick&&(!(status.tick.interval>0)||!Number.isFinite(status.nextTick)))throw Error('狀態不相容');const {once,...data}=actor;Object.assign(b[id],data);runtime.once=new Set(once||[]);}b.events=[];if(s.noRandom){b.rules.critChance=0;b.rules.dodgeChance=0;}s.battle=b;}
  P.ensureWorldContent(run);return {snapshot:s};}catch(error){return {snapshot:null,warning:'無法接續冒險：'+error.message+'。永久收藏仍保留。'};}}
  const api={KEY,pack,save,load};if(typeof module!=='undefined')module.exports=api;else root.RunSave=api;
 })(globalThis);

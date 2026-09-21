@@ -2,19 +2,24 @@
 (function(root){
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
  const clone=x=>JSON.parse(JSON.stringify(x));
+ const isNonElementPhysical=move=>move?.damageType==='physical'&&(move.elements?.length||0)===0;
+ const isNonElementMagic=move=>move?.damageType==='magic'&&(move.elements?.length||0)===0;
  function elementMultiplier(attack=[],defend=[]){let advantage=false,disadvantage=false;for(const a of attack)for(const d of defend){if(D.elementEdges[a]?.includes(d))advantage=true;else if(D.elementEdges[d]?.includes(a))disadvantage=true;}return advantage===disadvantage?1:advantage?1.5:.75;}
  function matches(c={},ctx){const {actor,target,move={},battle}=ctx;
+  const originalTime=move.attackTimeBase??move.originalAttackTime??move.attackTime;
   if(c.damageType&&move.damageType!==c.damageType)return false;
+  if(c.nonElementPhysical&&!isNonElementPhysical(move))return false;
+  if(c.nonElementMagic&&!isNonElementMagic(move))return false;
   if(c.element&&!move.elements?.includes(c.element))return false;
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
-  if(c.originalTimeLt!=null&&!(move.originalAttackTime<c.originalTimeLt))return false;
-  if(c.originalTimeGte!=null&&!(move.originalAttackTime>=c.originalTimeGte))return false;
+  if(c.originalTimeLt!=null&&!(originalTime<c.originalTimeLt))return false;
+  if(c.originalTimeGte!=null&&!(originalTime>=c.originalTimeGte))return false;
   if(c.targetCasting&&!target?.cast)return false;
   if(c.targetStatus&&!target?.statuses[c.targetStatus])return false;
   if(c.targetDebuff&&!Object.values(target?.statuses||{}).some(s=>s.polarity==='debuff'&&s.expiresAt>battle.time))return false;
-  if(c.resource){const ratio=actor[c.resource]/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;}
+  if(c.resource){const ratio=actor[c.resource]/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioLte!=null&&!(ratio<=c.ratioLte))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;if(c.ratioGte!=null&&!(ratio>=c.ratioGte))return false;}
   if(c.critical!=null&&ctx.critical!==c.critical)return false;
   if(c.primary&&ctx.secondary)return false;
   if(c.alive&&actor.hp<=0)return false;
@@ -54,9 +59,9 @@
   refund(b,c,e){for(const [key,value]of Object.entries(c.spent||{}))b.recover(c.actor,key,value*e.ratio,c);},
   preventInterrupt(b,c){c.prevented=true;},
   interrupt(b,c,e){if(!c.target.cast)return false;const chance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
-  echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;const damage=b.receiveDamage(c.actor,c.target,c.totalDamage*e.ratio,c.move,false,true);b.log('afterimage','殘影',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id,damage,critical:false,elements:c.move.elements,delay:.15});},
+  echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;return b.queueEcho(c,e.ratio);},
   shield(b,c,e){c.actor.shield=Math.max(c.actor.shield,c.actor.stats.hp*e.ratio);},
   survive(b,c,e){const chance=Math.min(e.cap,c.actor.stats.luck*e.luckRate);if(b.rng()<chance)c.prevented=true;}
  };
- const api={Runtime,matches,elementMultiplier,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;
+ const api={Runtime,matches,elementMultiplier,isNonElementPhysical,isNonElementMagic,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;
 })(globalThis);
