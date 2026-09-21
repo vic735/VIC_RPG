@@ -25,11 +25,12 @@
   return true;
  }
  class Runtime{
-  constructor(battle,actor,sources=[]){this.battle=battle;this.actor=actor;this.hooks=new Map();this.modifiers=new Map();this.once=new Set();
+  constructor(battle,actor,sources=[]){this.battle=battle;this.actor=actor;this.sources=sources;this.hooks=new Map();this.modifiers=new Map();this.once=new Set();
    for(const source of sources){for(const h of source.hooks||[]){const list=this.hooks.get(h.event)||[];list.push({...h,source:source.id,name:source.name});this.hooks.set(h.event,list);}for(const m of source.combatModifiers||[]){const list=this.modifiers.get(m.stage)||[];list.push({...m,source:source.id,name:source.name});this.modifiers.set(m.stage,list);}}
   }
   context(extra={}){return {battle:this.battle,actor:this.actor,target:this.actor===this.battle.player?this.battle.enemy:this.battle.player,...extra,actor:this.actor,battle:this.battle};}
   list(stage,ctx){const transient=Object.values(this.actor.statuses).filter(s=>s.expiresAt>this.battle.time).flatMap(s=>(s.modifiers||[]).map(m=>({...m,name:s.name,source:s.id})));return [...(this.modifiers.get(stage)||[]),...transient.filter(m=>m.stage===stage)].filter(m=>matches(m.conditions,this.context(ctx)));}
+  elementTotals(elements=[],trace){const unique=[...new Set(elements||[])],totals={damageBonus:0,costReduction:0,incomingReduction:0,absorbToMp:0};if(!unique.length)return totals;for(const source of this.sources){if(!source.targetElements?.some(e=>unique.includes(e)))continue;totals.damageBonus+=source.elementDamageBonusPct||0;totals.costReduction+=source.elementCostReductionPct||0;totals.incomingReduction+=source.incomingElementDamageReductionPct||0;totals.absorbToMp+=source.damageToMpAbsorbPct||0;if(trace&&(source.elementDamageBonusPct||source.elementCostReductionPct||source.incomingElementDamageReductionPct||source.damageToMpAbsorbPct))trace.add(source.name);}return totals;}
   modify(stage,value,ctx={},trace){const mods=this.list(stage,ctx);let add=0,multiply=1;for(const m of mods){const v=m.perInjury!=null?1+Math.min(2,this.battle.run.debuffIds.length)*m.perInjury:m.value;if(m.op==='add')add+=v;else multiply*=v;if(trace)trace.add(m.name);}return (value+add)*multiply;}
   emit(event,extra={}){const ctx=this.context(extra);for(const h of this.hooks.get(event)||[]){const key=h.source+':'+event;if(h.once&&this.once.has(key)||!matches(h.conditions,ctx))continue;if(h.once)this.once.add(key);let triggered=false;for(const e of h.effects||[]){const handler=effects[e.type];if(!handler)throw Error('Unknown effect '+e.type);triggered=handler(this.battle,ctx,e)!==false||triggered;}if(triggered)this.battle.log('skill',h.name,{actorId:this.actor.id,skillId:h.source,duration:.8});}return ctx;}
  }

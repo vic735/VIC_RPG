@@ -54,7 +54,8 @@
       const move={...original,cost:{...original.cost},multiplier:original.multiplier*(player?this.moveScale(this.moveLevels[id]||1):1)*(player&&physical?this.equipmentEffects.physicalMultiplier||1:1),attackTime:original.attackTime+(player&&physical?this.equipmentEffects.physicalAttackTime||0:0)};
       if(player&&physical&&(this.equipmentEffects.physicalMultiplier||this.equipmentEffects.physicalAttackTime))trace.add(D.equipment[this.build.equipment.weapon]?.name||'裝備');
       const ctx={move};move.attackTime=actor.runtime.modify('attackTime',move.attackTime,ctx,trace);
-      for(const [resource,value]of Object.entries(move.cost))move.cost[resource]=Math.max(0,Math.round(actor.runtime.modify('cost:'+resource,value,ctx,trace)*100)/100);
+      const elementRules=D.balance.elementSkills||{},elementTotals=actor.runtime.elementTotals(move.elements,trace),costFactor=Math.max(elementRules.minimumResourceCostMultiplier??.2,1-elementTotals.costReduction);
+      for(const [resource,value]of Object.entries(move.cost))move.cost[resource]=Math.max(0,Math.round(actor.runtime.modify('cost:'+resource,value,ctx,trace)*costFactor*100)/100);
       // Consumed next-cast modifiers must survive for the whole selected move, not future moves.
       move.reservedModifiers=Object.values(actor.statuses).filter(s=>s.consume===move.damageType&&s.expiresAt>this.time).flatMap(s=>s.modifiers.filter(m=>m.stage==='damage'));
       move.modifications=[...trace]; return move;
@@ -65,17 +66,17 @@
     preview(id){const move=this.getMove(id);if(!move)return null;const trace=new Set(move.modifications);const damage=this.damageValue(this.player,this.enemy,move,false,trace);return {...move,estimatedDamage:damage,castTime:this.castDuration(move,this.player),modifications:[...trace]};}
     damageValue(actor,target,move,critical=false,trace){
       const maximum=actor.stats[move.damageType==='physical'?'stamina':'mana'];const ctx={actor,target,move,critical};
-      let gapFactor=1;if(this.options.balance50&&this.options.levelGap&&actor!==this.player){const gap=this.options.levelGap,rules=D.balance.levelGapCombat||{};gapFactor=Math.min(rules.enemyDamageCap??1.75,1+Math.max(0,gap)*(rules.enemyDamagePerLevel??.015));}let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1)*gapFactor,ctx,trace);
+      let gapFactor=1;if(this.options.balance50&&this.options.levelGap&&actor!==this.player){const gap=this.options.levelGap,rules=D.balance.levelGapCombat||{};gapFactor=Math.min(rules.enemyDamageCap??1.75,1+Math.max(0,gap)*(rules.enemyDamagePerLevel??.015));}let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1)*gapFactor,ctx,trace);damage*=1+actor.runtime.elementTotals(move.elements,trace).damageBonus;
       for(const m of move.reservedModifiers||[])if(move.consumeReserved&&R.matches(m.conditions,{...ctx,battle:this}))damage=m.op==='add'?damage+m.value:damage*m.value;
       damage*=R.elementMultiplier(move.elements,target.elements);if(actor===this.player&&target===this.enemy&&this.options.balance50){const rules=D.balance.enemyDefense||{},gap=Math.max(0,this.options.levelGap||0),base=move.damageType==='physical'?this.enemyDefinition.physicalDefense||0:this.enemyDefinition.magicResistance||0,defense=base+gap*(rules.levelGapPerLevel||0),constant=rules.formulaConstant||100,reduction=Math.min(rules.maximumReduction??.8,defense/(constant+defense));damage*=1-reduction;}if(critical)damage*=this.rule('critMultiplier',actor,ctx);
-      return Math.max(0,target.runtime.modify('incoming',damage,{move,target:actor,critical},trace));
+      damage=target.runtime.modify('incoming',damage,{move,target:actor,critical},trace);const resistance=target.runtime.elementTotals(move.elements,trace).incomingReduction,cap=D.balance.elementSkills?.maximumResistanceReduction??.95;return Math.max(0,damage*(1-Math.min(cap,resistance)));
     }
     recover(actor,resource,amount,ctx={}){const before=actor[resource];actor[resource]=Math.min(actor.stats[resource],actor[resource]+Math.max(0,amount));const recovered=actor[resource]-before;if(recovered>0){actor.runtime.emit('OnResourceRecovered',{...ctx,resource,recovered});if(resource==='hp')actor.runtime.emit('OnHPChanged',{...ctx});}return recovered;}
     receiveDamage(actor,target,amount,move,critical=false,secondary=false){
       const absorbed=Math.min(target.shield,amount);target.shield-=absorbed;amount-=absorbed;
       if(amount>=target.hp){const lethal=target.runtime.emit('OnLethalDamage',{move,target:actor,secondary});if(lethal.prevented)amount=Math.max(0,target.hp-1);}
       const actual=Math.min(target.hp,amount);target.hp=Math.max(0,target.hp-amount);
-      const ctx={move,damage:actual,critical,secondary,target:actor};target.runtime.emit('OnDamageTaken',ctx);target.runtime.emit('OnHPChanged',ctx);return actual;
+      const ctx={move,damage:actual,critical,secondary,target:actor};target.runtime.emit('OnDamageTaken',ctx);target.runtime.emit('OnHPChanged',ctx);const absorb=target.runtime.elementTotals(move.elements).absorbToMp;if(actual>0&&absorb>0){const recovered=this.recover(target,'mana',actual*absorb,{...ctx,elementAbsorb:true});if(recovered>0)this.log('absorb',`元素吸收回復 ${recovered.toFixed(1)} MP`,{actorId:target.id,recovered,moveId:move.id});}return actual;
     }
     elapse(time) {
       const maximum = ultimateChargeCost(this.build.ultimate);

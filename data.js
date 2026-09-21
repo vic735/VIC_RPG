@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.7.7', date: '2026-09-21' },
+    release: { version: '0.7.8', date: '2026-09-21' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -37,7 +37,7 @@
     expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
-    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 }, playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },
