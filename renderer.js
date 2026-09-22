@@ -98,9 +98,11 @@
       this.camera.x = Math.max(0, Math.min(GameData.world.width - w / zoom, pos.x - w / (2 * zoom)));
       this.camera.y = Math.max(0, Math.min(GameData.world.height - h / zoom, pos.y - h / (2 * zoom)));
       c.save(); c.scale(zoom, zoom); c.translate(-this.camera.x, -this.camera.y); c.fillStyle = '#263b30'; c.fillRect(0, 0, GameData.world.width, GameData.world.height);
-      for (const r of GameData.world.regions) { c.fillStyle=r.color;c.fillRect(...r.bounds); }
+      const activeMap=run&&GameData.maps?.[run.currentMapId];
+      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,GameData.world.width,GameData.world.height);}
+      else for (const r of GameData.world.regions) { c.fillStyle=r.color;c.fillRect(...r.bounds); }
       // Low-contrast terrain marks distinguish regions without taking HUD space.
-      for(const r of GameData.world.regions)for(let i=0;i<48;i++){
+      for(const r of activeMap?[{bounds:[0,0,GameData.world.width,GameData.world.height],visualTheme:activeMap.environmentId}]:GameData.world.regions)for(let i=0;i<48;i++){
         const x=r.bounds[0]+(i*347+153)%r.bounds[2],y=r.bounds[1]+(i*593+221)%r.bounds[3];
         if(x<this.camera.x-100||x>this.camera.x+w/zoom+100||y<this.camera.y-100||y>this.camera.y+h/zoom+100)continue;
         if(r.visualTheme==='wetland')this.ellipse(x,y,62,26,'#102f3855');
@@ -112,7 +114,7 @@
       c.strokeStyle = '#a1bba04a'; c.strokeRect(25,25,GameData.world.width-50,GameData.world.height-50);
       this.camp(GameData.world.camp.x, GameData.world.camp.y);
       const things = World.scenery.filter(t => t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
-      for (const d of GameData.dungeons) things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
+      for (const d of GameData.dungeons) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
       if (run) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
         c.save(); c.translate(o.x, o.y); this.ellipse(0, 4, 22, 7, '#0a191977');
@@ -123,7 +125,7 @@
         if (near && !used) { this.text('◇',0,-65,19,'#e3d39e'); this.text(o.name,0,24,13,'#e0dec5'); }
         c.restore();
       } });
-      if (run) for (const e of run.world.enemies) if (e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
+      if (run) for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
         this.monster(e.type, e.x, e.y, GameData.monsters[e.type].worldScale||1.1);
 
         
@@ -131,7 +133,7 @@
       } });
       things.push({ y: pos.y, draw: () => { this.glow(pos.x, pos.y - 8, 70, '#dbd9a910'); this.person(pos.x, pos.y, 1.15, game.moving, game.facing || 1); } });
       things.sort((a, b) => a.y - b.y).forEach(t => t.draw());
-      if(run)for(const e of run.world.enemies)if(e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${GameData.monsters[e.type].elite?'◆ ':''}Lv.${e.level}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
+      if(run)for(const e of run.world.enemies)if((!run.currentMapId||e.mapId===run.currentMapId)&&e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${GameData.monsters[e.type].elite?'◆ ':''}Lv.${e.level}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
       if (!game.settings?.reducedMotion) for (let i = 0; i < 22; i++) { const x = pos.x - 470 + ((i * 157 + this.time * 8) % 940), y = pos.y - 320 + (i * 93 % 640) + Math.sin(this.time + i) * 15; this.ellipse(x, y, 1.3, 1.3, `rgba(212,220,153,${.15 + .3 * Math.sin(this.time + i) ** 2})`); }
       c.restore();
       const vignette = c.createRadialGradient(w / 2, h / 2, h * .15, w / 2, h / 2, Math.max(w, h) * .67); vignette.addColorStop(0, '#050b0d00'); vignette.addColorStop(1, '#050b0d9c'); c.fillStyle = vignette; c.fillRect(0, 0, w, h);
@@ -216,9 +218,11 @@
     }
     minimap(canvas, run) {
       const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height; c.clearRect(0, 0, w, h); c.fillStyle = '#23362e'; c.fillRect(0, 0, w, h); const sx = w / GameData.world.width, sy = h / GameData.world.height;
-      for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
+      const activeMap=run&&GameData.maps?.[run.currentMapId];
+      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,w,h);}
+      else for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
       c.strokeStyle = '#cfbb7a55'; c.lineWidth = 2; c.beginPath(); for(const road of GameData.world.roads){c.moveTo(road[0].x*sx,road[0].y*sy);for(const {x,y}of road.slice(1))c.lineTo(x*sx,y*sy);} c.stroke();
-      if (run) { for (const e of run.world.enemies) if (e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of GameData.dungeons) if (run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4); c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
+      if (run) { for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId)&&e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of GameData.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId)&&run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } if(run.currentMapId==='north_plains_1'){c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4);} c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
     }
     draw(game, dt) { this.resize(); this.time += dt; this.ctx.clearRect(0, 0, this.width, this.height); if (game.scene === 'title') this.drawTitle(game); else if (game.scene === 'battle') this.drawBattle(game); else this.drawWorld(game); this.drawEffects(dt); }
   }

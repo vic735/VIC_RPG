@@ -72,6 +72,7 @@
 .ultimate .tile-content{inset:27px 7px 12px;width:auto;transform:none;gap:3px}#game[data-mode=battle] .ultimate .tile-content strong{font-size:14px}#game[data-mode=battle] .ultimate .tile-content small{font-size:11px}#game[data-mode=battle] .ultimate .ring-label{font-size:22px;color:#fff1c3}.ultimate.ready .vessel{filter:drop-shadow(0 0 12px #e5c67b);animation:ready-glow 1.8s infinite}.ultimate .resource-warning{font-size:11px;color:#ffcab8;background:#271d16bb;border-radius:3px;padding:2px}.ultimate.resource-short .vessel-liquid{filter:brightness(.7)}
 #game[data-mode=battle] .player-hud{top:348px;bottom:auto;left:18px;right:18px;height:67px;padding:8px 12px}.player-hud .vitals{min-width:0}#game[data-mode=battle] .player-hud .portrait{display:none}#game[data-mode=battle] .player-name{font-size:12px;margin-bottom:1px}#game[data-mode=battle] .player-hud .mp,#game[data-mode=battle] .player-hud .sp,#game[data-mode=battle] .exp-line{display:none}#game[data-mode=battle] .player-cast{top:294px;left:16px;width:235px;background:#10202bd4}#game[data-mode=battle] .enemy-battle{top:66px;left:164px;right:16px;padding:8px 12px}.enemy-name h3{font-size:17px;letter-spacing:1px}.enemy-status{font-size:10px}.enemy-name{gap:5px}.cast-meta>span{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#battle-tip{display:none}#battle-heading{top:18px!important}#battle-heading h2{font-size:17px!important}#battle-heading p{display:none}#passive-flash{position:absolute;left:18px;top:267px;z-index:6;font-size:15px;letter-spacing:1px;color:#eddb9f;text-shadow:0 2px 5px #000;pointer-events:none}#passive-flash:empty{display:none}
 .skill-card-category{font-size:11px;color:#98afa3}.picker-card[data-tooltip]{min-height:130px}.game-tooltip{pointer-events:auto}
+.move-card-subtitle{display:block;color:#afc2b7!important;margin:3px 0 7px}.move-detail-subtitle{text-align:center;color:#afc2b7!important;font-size:15px!important;letter-spacing:2px;margin-top:-5px!important}.compact-tooltip .move-detail-subtitle{text-align:left;font-size:12px!important;letter-spacing:1px;margin:0 0 6px!important}
 .debug-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.debug-fields label{font:13px system-ui;color:#b8c6ba;display:flex;flex-direction:column;gap:7px}.debug-fields select,.debug-fields input,#lab-statuses{width:100%;min-height:45px;background:#14252e;color:#e2ddca;border:1px solid #a6a17455;border-radius:4px;padding:8px;font:14px system-ui}.debug-fields select{max-width:100%}#lab-statuses{margin-top:12px;min-height:100px}.skill-card-category{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;margin:5px 0}.ability-card strong{overflow-wrap:anywhere;font-size:14px}.modal:has(#lab-statuses)>label{display:block;margin-top:18px;font-size:13px}.game-tooltip h3{overflow-wrap:anywhere}
 /* Circular ultimate control, retaining the bottom-up energy fill. */
 #game[data-mode=battle] .skill.ultimate{width:150px;height:150px;border-radius:50%}
@@ -100,10 +101,12 @@
 .achievement-card>div{min-width:0;width:100%}
 .achievement-card p{overflow-wrap:break-word;margin-top:8px}
 .release-version strong{font:26px Georgia;color:#dcc98e;letter-spacing:2px;white-space:nowrap}
+.explore-world{left:50%;transform:translateX(-50%);padding:0 16px;white-space:nowrap;font:600 13px/1 system-ui;letter-spacing:1px}.explore-world:active:not(:disabled){transform:translateX(-50%) scale(.97)}
+.world-route-modal{width:min(448px,calc(100% - 24px));text-align:center}.world-route-modal h2{margin:12px 0}.world-route-modal>p{font:13px/1.6 system-ui;margin:8px 0 16px}.world-route-modal .modal-footer{position:sticky;bottom:-26px;padding:14px 0 2px;background:linear-gradient(transparent,#132323 16%);z-index:2}.world-route-modal .modal-footer button{min-height:44px}.route-grid,.route-list,.run-choice-list{display:grid;gap:9px;max-height:475px;overflow-y:auto;overscroll-behavior:contain;padding:3px 2px 8px;touch-action:pan-y}.route-grid{grid-template-columns:1fr 1fr}.route-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:5px;padding:14px;border:1px solid #9aa99044;border-left:3px solid var(--route-color,#bba36c);border-radius:10px;background:linear-gradient(120deg,#233632ed,#142529);color:#e5dec7;min-height:95px}.route-card.current{box-shadow:inset 0 0 0 1px #e6d49b8a}.route-card strong{font:600 16px/1.3 system-ui;overflow-wrap:anywhere}.route-card small{font:11px/1.4 system-ui;color:#b6c6ae}.route-card span{font:10px/1.4 system-ui;color:#d0ba84}.route-list .route-card{min-height:77px}.route-detail{text-align:left;padding:12px;border:1px solid #a9b68c4b;border-radius:10px;background:#192d28}.route-detail p{margin:5px 0;font:12px/1.6 system-ui}.route-detail b{color:#e0ce94}.route-danger{color:#e7b989!important}.run-loadout-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.run-loadout-grid button,.run-choice-list button{min-height:60px;padding:10px;border:1px solid #a5b4964d;border-radius:9px;background:#20362f;color:#eee2c4;text-align:left}.run-loadout-grid button small,.run-choice-list button small{display:block;font:11px/1.5 system-ui;color:#b0c4b5}.run-loadout-grid button strong,.run-choice-list button strong{display:block;font:600 15px/1.5 system-ui;overflow-wrap:anywhere}.run-choice-list button{min-height:50px}.run-choice-list{max-height:460px}
 </style></head>
 <body><div id="viewport"><main id="game" data-mode="title" aria-label="餘光 RPG 遊戲">
 <canvas id="scene" aria-label="奇幻冒險遊戲場景"></canvas><div class="scene-grain"></div><div class="frame-corner corner-tl"></div><div class="frame-corner corner-br"></div>
-<div id="title-screen" class="title-screen"><div class="title-content"><span class="eyebrow">A LIGHT BEYOND THE RUINS</span><h1>餘光</h1><div class="english-title">AFTERLIGHT</div><p class="title-copy">夜色未盡，旅途未終。</p><nav class="main-menu" aria-label="主選單"><button class="menu-item highlighted" data-action="begin-run"><span>01</span>開始冒險<i>→</i></button><button class="menu-item" data-action="setup"><span>02</span>角色設定<i>→</i></button><button class="menu-item" data-action="library"><span>03</span>能力庫存<i>→</i></button><button class="menu-item" data-action="shop"><span>04</span>旅者商店<i>→</i></button><button class="menu-item" data-action="codex"><span>05</span>蒐集圖鑑<i>→</i></button><button class="menu-item" data-action="achievements"><span>06</span>成就<i>→</i></button><button class="menu-item" data-action="settings"><span>07</span>設定<i>→</i></button></nav><button id="pwa-install" class="pwa-install" hidden type="button">加入手機桌面</button><div class="title-caption">你只是一名旅人。<br>卻仍能決定，如何走過這片荒野。</div></div><div class="title-location"><span>THE OPEN WORLD</span><strong>五個區域 · 十一座地下城</strong><i></i><small>跨過門扉，將未知帶回。</small></div><footer class="title-footer"><span>ROGUELITE · EXPLORATION · TIMELINE COMBAT</span><span id="offline-status" role="status">手機直式 · 自動存檔</span></footer></div>
+<div id="title-screen" class="title-screen"><div class="title-content"><span class="eyebrow">A LIGHT BEYOND THE RUINS</span><h1>餘光</h1><div class="english-title">AFTERLIGHT</div><p class="title-copy">夜色未盡，旅途未終。</p><nav class="main-menu" aria-label="主選單"><button class="menu-item highlighted" data-action="begin-run"><span>01</span>開始冒險<i>→</i></button><button class="menu-item" data-action="setup"><span>02</span>角色設定<i>→</i></button><button class="menu-item" data-action="library"><span>03</span>能力庫存<i>→</i></button><button class="menu-item" data-action="shop"><span>04</span>旅者商店<i>→</i></button><button class="menu-item" data-action="codex"><span>05</span>蒐集圖鑑<i>→</i></button><button class="menu-item" data-action="achievements"><span>06</span>成就<i>→</i></button><button class="menu-item" data-action="settings"><span>07</span>設定<i>→</i></button></nav><button id="pwa-install" class="pwa-install" hidden type="button">加入手機桌面</button><div class="title-caption">你只是一名旅人。<br>卻仍能決定，如何走過這片荒野。</div></div><div class="title-location"><span>THE OPEN WORLD</span><strong>七個大區 · 三十五張地圖</strong><i></i><small>跨過門扉，將未知帶回。</small></div><footer class="title-footer"><span>ROGUELITE · EXPLORATION · TIMELINE COMBAT</span><span id="offline-status" role="status">手機直式 · 自動存檔</span></footer></div>
 <section id="screen" class="full-screen" hidden aria-label="局外遊戲選單"></section>
 <div id="hud" hidden>
 <section class="player-hud game-panel"><div class="portrait" id="portrait"></div><div class="vitals"><div class="player-name"><span>漂泊者</span><b id="level"></b></div><div id="resources"></div><div id="player-status"></div><div class="exp-line"><span>EXP</span><div><i id="xp-fill"></i></div><small id="xp-label"></small></div></div></section>
@@ -116,7 +119,7 @@
 <div id="skillbar" class="skillbar" aria-label="四方向招式與必殺技"></div>
 <div id="context"><button id="interact" data-action="interact" hidden></button></div>
 <div id="touch-controls" aria-label="移動控制"><div id="joystick" role="group" aria-label="拖曳搖桿移動，亦可使用方向鍵"><span class="joystick-compass" aria-hidden="true">✧</span><span id="joystick-thumb" aria-hidden="true"></span></div></div>
-<nav class="explore-menu" aria-label="探索選單"><button class="explore-settings" data-action="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 3 4 0 1 3 3 1 3 3-2 3 0 3-3 2-3-1-3 1-3-2 0-3-2-3 3-3 3-1Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="explore-character" data-action="journal" aria-label="角色狀態"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-3c0-7 16-7 16 0v3M4 21h16"/></svg><span>角色</span></button></nav>
+<nav class="explore-menu" aria-label="探索選單"><button class="explore-settings" data-action="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 3 4 0 1 3 3 1 3 3-2 3 0 3-3 2-3-1-3 1-3-2 0-3-2-3 3-3 3-1Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="explore-world" data-action="world-map" aria-label="世界地圖">世界地圖</button><button class="explore-character" data-action="journal" aria-label="角色狀態"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-3c0-7 16-7 16 0v3M4 21h16"/></svg><span>角色</span></button></nav>
 <div id="bottom-hint"></div></div>
 <div id="transition" hidden><div class="transition-sigil">◇</div></div>
 <div id="modal-backdrop" hidden><section id="modal" class="modal game-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"></section></div>
@@ -162,7 +165,11 @@ function enrich(D){
  ['lightning_whip','參倫・卡阿','雷電之鞭','magic',['metal'],.9,17,90,[{type:'interrupt',chance:.8}]],
  ['light_arrow','尤陸・希迪','光之箭','magic',['light'],1.1,16,85]
  ];
- function add(row){const [id,name,subtitle,damageType,elements,multiplier,cost,attackTime,effects=[],hits=1]=row;D.moves[id]={id,name,subtitle,description:subtitle+'；數值為原型平衡設定。',kind:'normal',damageType,elements,multiplier,cost:{[damageType==='physical'?'stamina':'mana']:cost},attackTime,effects,hits,icon:elements.includes('fire')?'flame':damageType==='physical'?'sword':'orb',tags:[damageType==='physical'?'slash':'magic',...(subtitle.includes('箭')?['arrow']:[])]};}
+ function add(row){
+  const [id,name,subtitle,damageType,elements,multiplier,cost,attackTime,effects=[],hits=1]=row;
+  const values={name,subtitle,magicText:name,localizedName:subtitle,description:subtitle+'；數值為原型平衡設定。',kind:'normal',damageType,elements,multiplier,cost:{[damageType==='physical'?'stamina':'mana']:cost},attackTime,effects,hits,icon:elements.includes('fire')?'flame':damageType==='physical'?'sword':'orb',tags:[damageType==='physical'?'slash':'magic',...(subtitle.includes('箭')?['arrow']:[])]};
+  D.moves[id]={id,...values};
+ }
  rows.forEach(add);
  const neutral=[['double_slash','二連斬',1.3,18,95,[],2],['heavy_slash','重斬',2.2,24,160],['break_stance','破勢',.5,16,85,[{type:'interrupt'}]],['charge_up','蓄力',0,12,60,[buff('charged','蓄力',[mod('damage',1.35,physical)],60)]],['counter_stance','反擊架勢',0,15,70,[buff('counter_guard','反擊架勢',[mod('incoming',.75)],4)]],['focus','專注',0,10,65,[buff('focus','專注',[mod('critChance',.15,{},'add')],6)]]];
  neutral.forEach(([id,name,m,c,t,e,h])=>add([id,name,name,'physical',[],m,c,t,e,h]));
@@ -359,7 +366,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.8.2', date: '2026-09-22' },
+    release: { version: '0.9.0', date: '2026-09-23' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -458,7 +465,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   (typeof module !== 'undefined' ? require('./combat-content.js') : root.CombatContent)(data);
   (typeof module !== 'undefined' ? require('./world-content.js') : root.WorldContent)(data);
   // Opening pacing: cheap basic attacks sustain the first continuous dungeon.
-  data.moves.quick.cost.stamina=3;data.moves.fire.cost.mana=5;data.moves.quick.ultimateChargeCost=65;data.moves.fire.ultimateChargeCost=90;
+  data.moves.quick.cost.stamina=3;Object.assign(data.moves.fire,{name:'帕・伯・烏',subtitle:'初階火球術',magicText:'帕・伯・烏',localizedName:'初階火球術',icon:'flame',elements:['fire'],tags:['magic'],description:'開局即可使用的低階火焰魔法。消耗低，適合前期持續作戰。'});data.moves.fire.cost.mana=5;data.moves.quick.ultimateChargeCost=65;data.moves.fire.ultimateChargeCost=90;
   data.balance.respawnSeconds=20;
   data.balance.quickBattleLevelGap=5;
   data.balance.quickBattleSeconds=.55;
@@ -484,8 +491,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
  const moves=[["M001","快速斬擊","無","physical","SP 8","65","否"],["M002","二連斬","無","physical","SP 12","75","T1 / 90點"],["M003","重斬","無","physical","SP 18","110","T1 / 90點"],["M004","破勢","無","physical","SP 14","95","T1 / 90點"],["M005","蓄力","無","buff","SP 10","80","T1 / 90點"],["M006","反擊架勢","無","defense","SP 12","105","T1 / 90點"],["M007","專注","無","buff","MP 10","80","T1 / 90點"],["M008","真・德（金彈）","金","magic","MP 10","70","T1 / 90點"],["M009","真・迪（鋼箭）","金","physical","SP 12","75","T1 / 90點"],["M010","參倫・德（雷電彈）","金","magic","MP 16","90","T1 / 90點"],["M011","參倫・陸（雷光束）","金","magic","MP 22","125","否"],["M012","真・法（磁力轉化）","金","buff","MP 18","105","T1 / 90點"],["M013","真・倫司吧（鋼鐵防護）","金","defense","MP 18","115","T1 / 90點"],["M014","艾・德（木靈彈）","木","magic","MP 10","70","T1 / 90點"],["M015","艾・迪（木刺箭）","木","physical","SP 12","75","T1 / 90點"],["M016","德魯・卡阿（荊棘之鞭）","木","physical","SP 18","105","T1 / 90點"],["M017","帕咔申・尤（疾風）","木","buff","SP 14","85","T1 / 90點"],["M018","艾・法（生命轉化）","木","heal","MP 20","120","否"],["M019","德魯・倫司吧（樹皮防護）","木","defense","MP 16","110","T1 / 90點"],["M020","雅・德（水彈）","水","magic","MP 10","70","T1 / 90點"],["M021","雅・烏（水球）","水","magic","MP 14","85","T1 / 90點"],["M022","希・德（冰彈）","水","magic","MP 12","80","T1 / 90點"],["M023","希・迪（冰箭）","水","physical","SP 14","85","T1 / 90點"],["M024","雅・法（流體轉化）","水","buff","MP 18","105","T1 / 90點"],["M025","希・倫司吧（冰甲）","水","defense","MP 18","115","T1 / 90點"],["M026","伯・德（火彈）","火","magic","MP 10","70","T1 / 90點"],["M027","伯・烏（火球）","火","magic","MP 14","85","T1 / 90點"],["M028","伯・迪（火箭）","火","physical","SP 14","85","T1 / 90點"],["M029","伯・陸（火焰光束）","火","magic","MP 22","125","否"],["M030","阿・伯・德（強火彈）","火","magic","MP 20","110","T2 / 140點"],["M031","伯・法（炎化）","火","buff","MP 18","110","T1 / 90點"],["M032","卓・德（岩彈）","土","magic","MP 10","75","T1 / 90點"],["M033","卓・烏（巨岩球）","土","magic","MP 20","125","T2 / 140點"],["M034","卓・迪（岩槍）","土","physical","SP 18","100","T1 / 90點"],["M035","卓・倫司吧（岩壁）","土","defense","SP 18","115","T1 / 90點"],["M036","阿・卓・德（重岩彈）","土","magic","MP 24","135","否"],["M037","卓・法（石膚）","土","buff","SP 16","105","T1 / 90點"],["M038","麗・德（光彈）","光","magic","MP 10","70","T1 / 90點"],["M039","麗・烏（光球）","光","magic","MP 14","85","T1 / 90點"],["M040","麗・陸（聖光束）","光","magic","MP 22","120","否"],["M041","麗・倫司吧（光盾）","光","defense","MP 18","115","T1 / 90點"],["M042","麗・法（光化）","光","buff","MP 18","105","T1 / 90點"],["M043","麗・艾妮司（治癒之光）","光","heal","MP 22","125","否"],["M044","布・德（暗彈）","闇","magic","MP 10","70","T1 / 90點"],["M045","布・烏（暗球）","闇","magic","MP 14","85","T1 / 90點"],["M046","布・迪（暗箭）","闇","physical","SP 14","85","T1 / 90點"],["M047","布・陸（暗束）","闇","magic","MP 22","125","否"],["M048","布・法（闇化）","闇","buff","MP 18","110","T1 / 90點"],["M049","布・倫司吧（暗幕）","闇","defense","MP 18","115","T1 / 90點"],["M050","布帕陸拉•尤陸（暗黑光束）","闇","magic","MP 30","155","否"],["M051","卡希帕陸拉•尤陸（黑光）","光＋闇","magic","MP 34","170","否"],["M052","布帕陸拉•拉亞艾尤•博拉可卡•德（暗黑冥王爆炎彈）","闇＋火","magic","MP 46","200","否"],["M053","可利德•施乏（虛擬煉金）","金","magic","MP 42","190","否"],["M054","希卡拉卡•參倫（冰凍雷光）","水＋金","magic","MP 36","180","否"],["M055","德魯•西斯（樹根陷阱）","木","control","MP 20","125","否"],["M056","博阿露巫•德（火焰彈）","火","magic","MP 18","100","T2 / 150點"],["M057","博拉可卡•德（爆焰彈）","火","magic","MP 28","140","否"],["M058","希卡拉卡·利雅參（冰凍魔法）","水","control","MP 26","145","否"],["M059","布帕陸拉•德（闇黑彈）","闇","magic","MP 20","110","否"],["M060","帕卡參•利雅參（加速魔法）","無","buff","MP 22","125","否"],["M061","倫司吧•利雅參（防護魔法）","無","defense","MP 24","130","否"],["M062","博阿露巫·爾拉（火球術）","火","magic","MP 14","90","否"],["M063","咖佈•利雅森（煙霧魔法）","無","control","MP 18","110","T2 / 150點"],["M064","帕咔申•希啊（風斬）","木","physical","SP 14","80","T1 / 90點"],["M065","咔希陸拉•博阿露巫（黑色烈火）","闇＋火","magic","MP 32","165","否"],["M066","咔希陸拉•參倫（黑色閃電）","闇＋金","magic","MP 34","170","否"],["M067","希卡拉卡•希迪•利巴（冰錐箭雨）","水","magic","MP 38","175","否"],["M068","巴•尤陸（瞬擊）","無","physical","SP 16","60","T2 / 150點"],["M069","博阿露巫•利雅參（火焰魔法）","火","buff","MP 22","120","否"],["M070","艾妮司•帕（低級治癒術）","光","heal","MP 18","115","否"],["M071","參倫•卡阿（雷電之鞭）","金","magic","MP 26","135","否"],["M072","尤陸•希迪（光之箭）","光","physical","SP 16","90","T2 / 150點"],["M073","鋼刃突進","金","physical","SP 16","80","T1 / 90點"],["M074","磁縛","金","control","MP 18","110","T1 / 90點"],["M075","雷閃","金","magic","MP 22","95","否"],["M076","金屬共鳴","金","buff","MP 20","115","T2 / 140點"],["M077","藤刺連射","木","magic","MP 16","90","T1 / 90點"],["M078","毒芽","木","magic","MP 14","95","T1 / 90點"],["M079","風步","木","buff","SP 12","75","T1 / 90點"],["M080","森之癒","木","heal","MP 22","125","否"],["M081","水刃","水","physical","SP 14","75","T1 / 90點"],["M082","霧幕","水","control","MP 18","105","T1 / 90點"],["M083","冰封","水","control","MP 24","140","否"],["M084","潮湧","水","magic","MP 26","130","T2 / 140點"],["M085","爆炎","火","magic","MP 32","165","否"],["M086","灼熱護身","火","defense","MP 18","110","T1 / 90點"],["M087","火雨","火","magic","MP 28","145","否"],["M088","熾焰衝鋒","火","physical","SP 20","115","T2 / 140點"],["M089","石突","土","physical","SP 16","90","T1 / 90點"],["M090","地震","土","physical","SP 28","150","否"],["M091","晶盾","土","defense","MP 20","120","T2 / 140點"],["M092","砂縛","土","control","MP 20","120","T2 / 140點"],["M093","淨化","光","heal","MP 18","100","T1 / 90點"],["M094","聖印","光","buff","MP 20","120","T2 / 140點"],["M095","光躍","光","magic","MP 14","75","T1 / 90點"],["M096","大治癒","光","heal","MP 32","160","否"],["M097","詛咒彈","闇","magic","MP 18","100","T1 / 90點"],["M098","影步","闇","buff","SP 12","75","T1 / 90點"],["M099","吸魂","闇","magic","MP 26","135","否"],["M100","黑幕侵蝕","闇","control","MP 24","145","否"]],skills=[["S001","生命強化","basic","T1 / 80點","BASE_POOL、SHOP0"],["S002","體能強化","basic","T1 / 80點","BASE_POOL、SHOP0"],["S003","魔力強化","basic","T1 / 80點","BASE_POOL、DUNGEON:lab、SHOP0"],["S004","迅捷","basic","T1 / 80點","BASE_POOL、SHOP0"],["S005","幸運兒","basic","T1 / 80點","BASE_POOL、SHOP0"],["S006","生命成長","growth","否","未指定"],["S007","鍛體","growth","否","DUNGEON:root、SHOP:root"],["S008","魔力天賦","growth","否","DUNGEON:lab"],["S009","疾速成長","growth","否","未指定"],["S010","天運","growth","否","未指定"],["S011","殘影","physical","否","DUNGEON:giant"],["S012","破綻洞察","physical","T1 / 110點","BASE_POOL、DUNGEON:mine、SHOP:mine"],["S013","乘勝追擊","physical","否","未指定"],["S014","迅擊","physical","T1 / 110點","BASE_POOL、DUNGEON:mine、SHOP:mine"],["S015","重擊精通","physical","否","DUNGEON:mine、DUNGEON:lava、DUNGEON:giant"],["S016","霸體","survival","否","DUNGEON:giant、SHOP:giant"],["S017","反擊本能","physical","否","DUNGEON:giant"],["S018","劍術","weapon","T1 / 110點","BASE_POOL、DUNGEON:mine、SHOP:mine"],["S019","弓術","weapon","否","DUNGEON:thunder、SHOP:thunder"],["S020","鈍器精通","weapon","否","DUNGEON:giant、SHOP:giant"],["S021","魔力循環","resource","否","DUNGEON:lab、SHOP:lab、DUNGEON:sunken、SHOP:sunken"],["S022","體力循環","resource","否","DUNGEON:mine、SHOP:mine、DUNGEON:root、SHOP:root"],["S023","節能施法","magic","T2 / 160點","BASE_POOL、DUNGEON:lab、SHOP:lab"],["S024","全力施法","magic","否","DUNGEON:lab、DUNGEON:lava、DUNGEON:abyss"],["S025","快速詠唱","magic","T2 / 160點","BASE_POOL、DUNGEON:lab、SHOP:lab、DUNGEON:frozen"],["S026","魔力護體","resource","T2 / 160點","BASE_POOL、DUNGEON:lab、SHOP:lab、DUNGEON:sunken、SHOP:sunken、DUNGEON:frozen"],["S027","魔力回收","resource","否","DUNGEON:thunder、SHOP:thunder"],["S028","身心循環","resource","否","DUNGEON:sunken、DUNGEON:abyss"],["S029","金之適性","metal","T1 / 110點","DUNGEON:lab、SHOP:lab、DUNGEON:thunder、SHOP:thunder"],["S030","雷擊反應","metal","否","DUNGEON:thunder"],["S031","木之適性","wood","T1 / 110點","DUNGEON:root、SHOP:root"],["S032","生命繁盛","wood","否","DUNGEON:root、SHOP:root"],["S033","水之適性","water","T1 / 110點","DUNGEON:sunken、SHOP:sunken、DUNGEON:frozen、SHOP:frozen"],["S034","寒氣","water","否","DUNGEON:frozen、SHOP:frozen"],["S035","火之適性","fire","T1 / 110點","DUNGEON:lab、SHOP:lab、DUNGEON:lava、SHOP:lava"],["S036","烈火蔓延","fire","否","DUNGEON:lava"],["S037","土之適性","earth","T1 / 110點","DUNGEON:mine、SHOP:mine、DUNGEON:lava、SHOP:lava"],["S038","大地之軀","earth","否","DUNGEON:mine、DUNGEON:lava、DUNGEON:giant、SHOP:giant"],["S039","光之適性","light","T1 / 110點","DUNGEON:sunken、SHOP:sunken、DUNGEON:chapel、SHOP:chapel"],["S040","聖光回響","light","否","DUNGEON:sunken、SHOP:sunken"],["S041","闇之適性","dark","T1 / 110點","DUNGEON:chapel、SHOP:chapel"],["S042","暗夜侵蝕","dark","否","DUNGEON:chapel"],["S043","不屈","survival","T2 / 180點","BASE_POOL、DUNGEON:root、DUNGEON:giant、SHOP0"],["S044","瀕死爆發","survival","否","DUNGEON:final"],["S045","緊急防護","survival","否","DUNGEON:frozen、SHOP:frozen、DUNGEON:chapel"],["S046","老兵","special","否","DUNGEON:final"],["S047","奇蹟","luck","否","DUNGEON:final"],["S048","賭徒","luck","T2 / 160點","BASE_POOL、SHOP0"],["S049","勤奮","special","T2 / 180點","SHOP0"],["S050","臨機應變","resource","T2 / 160點","BASE_POOL、DUNGEON:abyss、SHOP:abyss"],["S051","蓄勢待發","ultimate","T2 / 180點","DUNGEON:final、SHOP0"],["S052","必殺餘波","ultimate","否","DUNGEON:final"],["S053","絕境蓄能","ultimate","T2 / 180點","DUNGEON:final、SHOP0"],["S054","滿盈守勢","ultimate","否","DUNGEON:final"],["S055","魔武交替","hybrid","T2 / 160點","DUNGEON:abyss、SHOP:abyss"],["S056","交錯節奏","hybrid","T2 / 160點","DUNGEON:abyss、SHOP:abyss"],["S057","淬火","cross_element","T2 / 160點","DUNGEON:lava、SHOP:lava、DUNGEON:abyss、SHOP:abyss"],["S058","導流","cross_element","T2 / 160點","DUNGEON:thunder、SHOP:thunder、DUNGEON:abyss、SHOP:abyss"],["S059","引燃生機","cross_element","T2 / 160點","DUNGEON:root、SHOP:root、DUNGEON:abyss、SHOP:abyss"],["S060","泥濘牽制","cross_element","T2 / 160點","DUNGEON:frozen、SHOP:frozen、DUNGEON:abyss、SHOP:abyss"],["S061","光蝕循環","cross_element","T2 / 160點","DUNGEON:chapel、SHOP:chapel、DUNGEON:abyss、SHOP:abyss"],["S062","明滅加速","cross_element","否","DUNGEON:chapel、SHOP:chapel"],["S063","破甲直覺","control","T2 / 160點","DUNGEON:mine、SHOP:mine、DUNGEON:thunder、SHOP:thunder"],["S064","守勢轉攻","defense","T2 / 160點","DUNGEON:giant、SHOP:giant"],["S065","魔力高漲","resource","T2 / 160點","DUNGEON:lab、SHOP:lab、DUNGEON:lava、SHOP:lava"],["S066","體力高漲","resource","T2 / 160點","DUNGEON:giant、SHOP:giant"],["S067","低耗專家","resource","T2 / 160點","SHOP0"],["S068","長詠專家","magic","否","DUNGEON:lava、DUNGEON:frozen、SHOP:frozen"],["S069","治癒轉化","healing","否","DUNGEON:sunken、SHOP:sunken、DUNGEON:chapel"],["S070","傷勢適應","survival","否","DUNGEON:root、DUNGEON:final"],["S071","精準閃避","luck","T2 / 160點","DUNGEON:thunder、SHOP:thunder"],["S072","幸運迴響","luck","T2 / 160點","DUNGEON:chapel、SHOP:chapel"]],norm=s=>String(s||'').replace(/[・·•（）()「」【】\s]/g,'').toLowerCase();
  const elements={金:'metal',木:'wood',水:'water',火:'fire',土:'earth',光:'light',闇:'dark',無:null};
- function ensureMoves(){const byName=new Map(Object.values(D.moves).map(x=>[norm(x.name),x]));for(const [id,name,el,kind,cost,charge,shop]of moves){let m=D.moves[id]||byName.get(norm(name));if(!m){const [res,n]=cost==='-'?[null,0]:cost.split(' ');m={id,name,subtitle:'',description:name+' · '+kind,icon:kind==='magic'?'orb':kind==='physical'?'sword':kind==='heal'?'heart':'wind',kind:'normal',damageType:kind==='physical'?'physical':'magic',multiplier:kind==='magic'||kind==='physical'?1:0,cost:res?{[res==='SP'?'stamina':'mana']:Number(n)}:{},attackTime:100,effects:[]};D.moves[id]=m;}m.contentId=id;m.specName=name;m.resource=cost.startsWith('SP')?'SP':cost.startsWith('MP')?'MP':null;m.baseCost=Number((cost.match(/(\d+)/)||[])[1]||0);m.attackTimeBase=m.attackTime||100;m.minCastSec=m.minCastTime??(m.attackTimeBase/100);m.damageRatio=m.multiplier||0;m.ultimateEffect=m.ultimateEffect||{};m.specKind=kind;m.specElements=(el||'無').split('＋').map(x=>elements[x]).filter(Boolean);m.elements=m.specElements;m.ultimateChargeCost=Number(charge)||100;m.shopEligible=shop!=='否';m.shopTier=shop==='否'?null:Number((shop.match(/T(\d)/)||[])[1]||1);m.shopCost=Number((shop.match(/(\d+)點/)||[])[1]||0);m.sources=m.sources||[];D.moves[id]=m;byName.set(norm(name),m);}}
- function ensureSkills(){const byName=new Map(Object.values(D.skills).map(x=>[norm(x.name),x]));for(const [id,name,category,shop,source]of skills){let s=D.skills[id]||byName.get(norm(name));if(!s){s={id,name,description:name+' · 被動效果',icon:'star',category,modifiers:{},growthRates:{}};D.skills[id]=s;}s.contentId=id;s.specName=name;s.category=category;s.shopEligible=shop!=='否';s.shopTier=shop==='否'?null:Number((shop.match(/T(\d)/)||[])[1]||1);s.shopCost=Number((shop.match(/(\d+)點/)||[])[1]||0);s.sources=(source||'').split('、').filter(Boolean);s.combatStacking='forbidden';D.skills[id]=s;byName.set(norm(name),s);}}
+ const displayParts=name=>{const match=String(name).match(/^(.*?)（(.+)）$/);return match?{magicText:match[1].replace(/[·•]/g,'・'),localizedName:match[2]}:{magicText:null,localizedName:name};};
+ function alias(registry,id,value){if(id===value.id)return registry[id]=value;if(Object.prototype.hasOwnProperty.call(registry,id))delete registry[id];Object.defineProperty(registry,id,{value,enumerable:false,configurable:true,writable:true});}
+ function indexNames(values){const result=new Map();for(const value of values)for(const name of [value.name,value.subtitle,value.localizedName])if(name)result.set(norm(name),value);return result;}
+ function ensureMoves(){const byName=indexNames(Object.values(D.moves));for(const [id,name,el,kind,cost,charge,shop]of moves){const display=displayParts(name);let m=D.moves[id]||byName.get(norm(display.localizedName))||byName.get(norm(display.magicText||name));if(!m){const [res,n]=cost==='-'?[null,0]:cost.split(' ');m={id,name:display.magicText||name,subtitle:display.magicText?display.localizedName:'',description:display.localizedName+' · '+kind,icon:kind==='magic'?'orb':kind==='physical'?'sword':kind==='heal'?'heart':'wind',kind:'normal',damageType:kind==='physical'?'physical':'magic',multiplier:kind==='magic'||kind==='physical'?1:0,cost:res?{[res==='SP'?'stamina':'mana']:Number(n)}:{},attackTime:100,effects:[]};D.moves[id]=m;}if(display.magicText){m.name=display.magicText;m.subtitle=display.localizedName;m.magicText=display.magicText;m.localizedName=display.localizedName;}m.contentId=id;m.specName=name;m.resource=cost.startsWith('SP')?'SP':cost.startsWith('MP')?'MP':null;m.baseCost=Number((cost.match(/(\d+)/)||[])[1]||0);m.attackTimeBase=m.attackTime||100;m.minCastSec=m.minCastTime??(m.attackTimeBase/100);m.damageRatio=m.multiplier||0;m.ultimateEffect=m.ultimateEffect||{};m.specKind=kind;m.specElements=(el||'無').split('＋').map(x=>elements[x]).filter(Boolean);m.elements=m.specElements;m.ultimateChargeCost=Number(charge)||100;m.shopEligible=shop!=='否';m.shopTier=shop==='否'?null:Number((shop.match(/T(\d)/)||[])[1]||1);m.shopCost=Number((shop.match(/(\d+)點/)||[])[1]||0);m.sources=m.sources||[];alias(D.moves,id,m);for(const label of [name,m.name,m.subtitle])if(label)byName.set(norm(label),m);}}
+ function ensureSkills(){const byName=indexNames(Object.values(D.skills));for(const [id,name,category,shop,source]of skills){let s=D.skills[id]||byName.get(norm(name));if(!s){s={id,name,description:name+' · 被動效果',icon:'star',category,modifiers:{},growthRates:{}};D.skills[id]=s;}s.contentId=id;s.specName=name;s.category=category;s.shopEligible=shop!=='否';s.shopTier=shop==='否'?null:Number((shop.match(/T(\d)/)||[])[1]||1);s.shopCost=Number((shop.match(/(\d+)點/)||[])[1]||0);s.sources=(source||'').split('、').filter(Boolean);s.combatStacking='forbidden';alias(D.skills,id,s);byName.set(norm(name),s);}}
  ensureMoves();ensureSkills();
  // Standard seven-element matrix. Existing names are reused; only missing
  // families are created and tagged for dungeon reward distribution.
@@ -590,6 +600,76 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 })(globalThis);
 
 </script><script>
+/* Data-driven Run map routes. Existing combat and dungeon records keep their IDs. */
+(function(root){
+ const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
+ const rows=[
+  ['north_plains','北之平原','泛用、無屬性與基礎戰鬥','greywind','meadow','#46513e',['泛用','無屬性','物理','純魔法'],['無屬性','物理'],[[1,20],[20,40],[40,65],[70,95],[105,130]],[]],
+  ['northern_kingdom','北方國度','冰與雷交錯的長詠唱國度','froststorm','frost','#52656b',['水','金','冰','雷','中斷'],['水','金'],[[1,20],[30,60],[70,100],[110,140],[145,175]],['frozen_tower','thunder_workshop']],
+  ['mirewood','秘林沼澤','木與水交纏，重視控制和續戰','verdant','wetland','#244c43',['木','水','控制','持續傷害'],['木','水'],[[1,20],[30,55],[60,85],[95,125],[135,165]],['root_cave','sunken_temple']],
+  ['central_mines','中央山礦','礦脈、重擊與堅實防禦','redrift','volcanic','#684339',['土','金','物理','重擊','防禦'],['土','金'],[[1,20],[25,50],[55,80],[85,115],[125,155]],['abandoned_mine','lava_vein','giant_ruins']],
+  ['dark_empire','暗黑帝國','闇與光的高風險混合路線','obsidian','obsidian','#363247',['闇','光','雙屬性','Debuff'],['闇','光'],[[1,20],[35,65],[80,110],[120,150],[160,190]],['blacklight_chapel','element_abyss','terminal_structure']],
+  ['southern_kingdom','南方國度','火與光的魔法、防護與治療','redrift','volcanic','#795044',['火','光','魔法','治療','防護'],['火','光'],[[1,20],[25,50],[60,90],[100,130],[140,165]],['old_lab']],
+  ['southern_forest','南之森林','敏捷、木系與弓術的路線','verdant','wetland','#35543b',['木','弓','敏捷','暴擊'],['木'],[[1,20],[20,45],[50,75],[80,105],[115,140]],[]]
+ ];
+ const dungeonMap={abandoned_mine:1,old_lab:1,root_cave:2,sunken_temple:2,lava_vein:3,giant_ruins:4,frozen_tower:4,thunder_workshop:4,blacklight_chapel:5,element_abyss:5,terminal_structure:5};
+ const legacyToRegion={greywind:'north_plains',verdant:'mirewood',redrift:'central_mines',froststorm:'northern_kingdom',obsidian:'dark_empire'};
+ const regions=[],maps=[];
+ for(const [sortOrder,row] of rows.entries()){
+  const [id,name,description,legacyId,environmentId,color,themeTags,elementTendencies,levels,dungeonIds]=row;
+  const legacy=D.world.regions.find(r=>r.id===legacyId);
+  const region={id,name,description,mapIds:[],themeTags:[...themeTags],elementTendencies:[...elementTendencies],rewardTendencies:[...themeTags],sortOrder,uiPosition:{column:sortOrder%2,row:Math.floor(sortOrder/2)},color,environmentId,legacyRegionId:legacyId};
+  for(const [index,[recommendedLevelMin,recommendedLevelMax]] of levels.entries()){
+   const mapId=id+'_'+(index+1),assigned=dungeonIds.filter(d=>dungeonMap[d]===index+1),rewardPoolId=mapId+'_field';
+   const source=D.rewardPools[legacyId+'_field'];
+   D.rewardPools[rewardPoolId]={id:rewardPoolId,entries:JSON.parse(JSON.stringify(source?.entries||[]))};
+   const map={id:mapId,regionId:id,name:index===0?name+'・起始地圖':name+'・地圖 '+(index+1),description:index===0?description:description+'，可依目前實力選擇挑戰。',recommendedLevelMin,recommendedLevelMax,dangerTier:index+1,enemyPoolIds:[...legacy.enemyPools],elitePoolIds:[...legacy.elitePools],dungeonIds:assigned,rewardPoolIds:[rewardPoolId],elementTendencies:[...elementTendencies],gameplayTags:[...themeTags],environmentId,isAvailable:true,sortOrder:index,entry:{x:legacy.x,y:legacy.y},color};
+   region.mapIds.push(mapId);maps.push(map);
+  }
+  regions.push(region);
+ }
+ for(const dungeon of D.dungeons){const map=maps.find(m=>m.dungeonIds.includes(dungeon.id));if(map)dungeon.mapId=map.id;}
+ D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ function inferLegacy(run){
+  const dungeon=D.dungeons.find(d=>d.id===run.dungeon?.id);if(dungeon?.mapId)return dungeon.mapId;
+  const legacy=D.world.regions.find(r=>run.position.x>=r.bounds[0]&&run.position.x<r.bounds[0]+r.bounds[2]&&run.position.y>=r.bounds[1]&&run.position.y<r.bounds[1]+r.bounds[3])||D.world.regions[0];
+  return legacyToRegion[legacy.id]+'_1';
+ }
+ function ensureRun(run){
+  run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
+  run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
+  run.availableMoves=[...new Set([...(run.availableMoves||[]),...run.build.moves,run.build.ultimate,...Object.values(run.loot||{}).filter(r=>r.kind==='moves').map(r=>r.id)].filter(id=>D.moves[id]))];
+  run.availableSkills=[...new Set([...(run.availableSkills||[]),...run.build.talents,...Object.values(run.loot||{}).filter(r=>r.kind==='talents').map(r=>r.id)].filter(id=>D.skills[id]))];
+  for(const enemy of run.world.enemies){
+   if(D.maps[enemy.mapId])continue;
+   const legacy=enemy.regionId||D.world.regions.find(r=>enemy.x>=r.bounds[0]&&enemy.x<r.bounds[0]+r.bounds[2]&&enemy.y>=r.bounds[1]&&enemy.y<r.bounds[1]+r.bounds[3])?.id;
+   const region=D.regionById[legacyToRegion[legacy]||'north_plains'];
+   const nearest=region.mapIds.map(id=>D.maps[id]).sort((a,b)=>Math.max(a.recommendedLevelMin-enemy.level,enemy.level-a.recommendedLevelMax,0)-Math.max(b.recommendedLevelMin-enemy.level,enemy.level-b.recommendedLevelMax,0))[0];
+   enemy.mapId=nearest.id;
+  }
+  return run;
+ }
+ function enter(run,id){
+  const map=D.maps[id];if(!map||!map.isAvailable||run.dungeon)return false;
+  ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
+  run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
+  const existing=run.world.enemies.filter(e=>e.mapId===id).length;
+  if(existing<8){
+   const pool=[...map.enemyPoolIds],elite=map.elitePoolIds[0];
+   for(let i=existing;i<8;i++){
+    const angle=i*2.399,radius=190+(i%4)*105,type=i===7&&elite?elite:pool[i%pool.length];
+    if(!type)continue;
+    const x=Math.max(50,Math.min(D.world.width-50,Math.round(map.entry.x+Math.cos(angle)*radius))),y=Math.max(50,Math.min(D.world.height-50,Math.round(map.entry.y+Math.sin(angle)*radius)));
+    run.world.enemies.push({id:id+'-enemy-'+i,mapId:id,regionId:map.regionId,x,y,homeX:x,homeY:y,type,level:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*i/9),elite:i===7,discovered:false,defeatedUntil:0});
+   }
+  }
+  return map;
+ }
+ const api={regions,maps,byId:D.maps,ensureRun,enter,inferLegacy};
+ if(typeof module!=='undefined')module.exports=api;else root.WorldMaps=api;
+})(globalThis);
+
+</script><script>
 /* Data-driven classes.  Common content stays free; only explicit class content is restricted. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
@@ -626,7 +706,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  ['MAGE_SKILL_001','超載詠唱','MAGE'],['MAGE_SKILL_002','魔力溢流','MAGE'],['MAGE_SKILL_003','術式循環','MAGE'],['MAGE_SKILL_004','靜心','MAGE'],
  ['RANGER_SKILL_001','弱點狙擊','RANGER'],['RANGER_SKILL_002','先制射擊','RANGER'],['RANGER_SKILL_003','冷靜獵手','RANGER'],['RANGER_SKILL_004','致命時機','RANGER'],
  ['CLERIC_SKILL_001','祝福延續','CLERIC'],['CLERIC_SKILL_002','神聖回流','CLERIC'],['CLERIC_SKILL_003','慈悲','CLERIC'],['CLERIC_SKILL_004','信仰之盾','CLERIC'],
- ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','守勢轉攻','WARRIOR']
+ ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;
@@ -742,7 +822,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function validateBuild(build, unlocked = Object.keys(D.moves)) {
     if (build.talents.length > 4 || build.moves.length > 4) throw Error('天賦與普通招式各最多四個');
     if (new Set(build.moves).size !== build.moves.length || new Set(build.talents).size !== build.talents.length) throw Error('Build 不可重複配置');
-    for (const id of build.moves) if (!D.moves[id] || D.moves[id].kind !== 'normal' || !unlocked.includes(id)) throw Error('招式不存在或尚未解鎖');
+    for (const id of build.moves) {
+      const move=D.moves[id], available=move&&(unlocked.includes(id)||unlocked.includes(move.id)||unlocked.some(key=>D.moves[key]===move));
+      if (!move || move.kind !== 'normal' || !available) throw Error('招式不存在或尚未解鎖');
+    }
     if (build.ultimate !== null && typeof build.ultimate !== 'string') throw Error('必殺技最多一個 ID');
     const slots = ['head', 'chest', 'arms', 'feet', 'weapon'];
     if (Object.keys(build.equipment).some(k => !slots.includes(k))) throw Error('未知裝備欄位');
@@ -899,7 +982,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function pick(entries,rng){const total=entries.reduce((n,e)=>n+e.weight,0);if(!entries.length||total<=0)throw Error('獎勵池沒有有效候選');let value=Math.max(0,Math.min(.999999999,rng()))*total;return entries.find(e=>(value-=e.weight)<0)||entries.at(-1);}
  function pool(id,rng=Math.random,options={}){const source=D.rewardPools[id];if(!source)throw Error('未知獎勵池');const entries=source.entries.filter(e=>(!options.type||e.rewardType===options.type)&&(!e.requirements?.minLevel||(options.level||1)>=e.requirements.minLevel));const entry=pick(entries,rng),ids=entry.rewardIds;if(!ids.length)throw Error('空獎勵定義');return {kind:entry.rewardType,id:ids[Math.min(ids.length-1,Math.floor(rng()*ids.length))],rarity:entry.rarity,poolId:id};}
  function dungeon(id,rng=Math.random,options={}){const d=D.dungeons.find(d=>d.id===id);if(!d)throw Error('未知地下城');const rule=options.combination?d.rewardCombinationRules.find(r=>r.id===options.combination):pick(d.rewardCombinationRules,rng);if(!rule)throw Error('未知獎勵組合');return {dungeonId:id,combination:rule.id,rewards:rule.draws.map(draw=>pool(draw.pool,rng,{type:draw.type,level:options.level||d.level}))};}
- function enemy(type,rng=Math.random){const e=D.monsters[type];return e?.dropPool&&rng()<(e.dropChance||0)?[pool(e.dropPool,rng)]:[];}
+ function enemy(type,rng=Math.random,mapId=null){const e=D.monsters[type],map=D.maps?.[mapId],dropPool=map?.rewardPoolIds?.[0]||e?.dropPool;return dropPool&&rng()<(e?.dropChance||0)?[pool(dropPool,rng)]:[];}
  const api={pick,pool,dungeon,enemy};if(typeof module!=='undefined')module.exports=api;else root.WorldRewards=api;
 })(globalThis);
 
@@ -972,6 +1055,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const Meta=typeof module!=='undefined'?require('./meta'):root.GameMeta;
   const Classes=typeof module!=='undefined'?require('./classes'):root.ClassSystem;
   if(typeof module!=='undefined')require('./content-v1');
+  const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
   function loadProgress(storage) {
@@ -1012,9 +1096,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function createRun(permanent, build = defaultBuild(), rng = Math.random) {
     validateBuild(build, permanent);
-    return { schemaVersion: 2, activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x + (rng() - .5) * 80, y: D.world.camp.y + (rng() - .5) * 80 }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
+    const run={ schemaVersion: 2, activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x + (rng() - .5) * 80, y: D.world.camp.y + (rng() - .5) * 80 }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
+    return Maps.ensureRun(run);
   }
-  function ensureWorldContent(run){const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',x:spawn.x,y:spawn.y,homeX:spawn.x,homeY:spawn.y,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});for(const [i,s] of D.enemySpawnData.entries())if(s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
+  function ensureWorldContent(run){Maps.ensureRun(run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:spawn.x,y:spawn.y,homeX:spawn.x,homeY:spawn.y,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});for(const [i,s] of D.enemySpawnData.entries())if(s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
   function regionAt(x,y){return D.world.regions.find(r=>x>=r.bounds[0]&&x<r.bounds[0]+r.bounds[2]&&y>=r.bounds[1]&&y<r.bounds[1]+r.bounds[3])||D.world.regions[0];}
   function regionDepth(r,x,y){return Math.max(0,Math.min(1,1-Math.max(Math.abs(x-r.x)/(r.bounds[2]/2),Math.abs(y-r.y)/(r.bounds[3]/2))));}
   function regionLevel(x,y){const r=regionAt(x,y),p=regionDepth(r,x,y),index=Math.min(3,Math.floor(p*4)),band=r.subAreaLevelRanges[index],within=Math.min(1,p*4-index);return Math.round(band.min+(band.max-band.min)*within);}
@@ -1071,6 +1156,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     if (kind === 'moves') acquireMove(permanent, run, id);
     else { if (!D.skills[id]) throw Error('未知技能'); if (!permanent.skills.includes(id)) permanent.skills.push(id); }
     if (!known) run.pendingAcquisitions.push({ kind, id });
+    const available=kind==='moves'?'availableMoves':'availableSkills';run[available]||=[];if(!run[available].includes(id))run[available].push(id);
     const receipt={ kind, id, isNew: !known, before, after: kind === 'moves' ? run.moveLevels[id] : 1 };recordLoot(run,receipt);return receipt;
   }
   // The acquisition ticket is consumed on equip OR skip. There is no general in-run loadout setter.
@@ -1142,6 +1228,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt);
     let contact = null;
     for (const e of run.world.enemies) {
+      if (run.currentMapId && e.mapId !== run.currentMapId) continue;
       if (e.defeatedUntil > run.world.time) continue;
       const def = D.monsters[e.type], dist = distance(e, run.position);
       if (e.defeatedUntil > 0 && dist < 140) { e.defeatedUntil = run.world.time + .5; continue; }
@@ -1155,14 +1242,14 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       e.x = Math.max(35, Math.min(D.world.width - 35, e.x)); e.y = Math.max(35, Math.min(D.world.height - 35, e.y));
       if (distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
     }
-    for (const d of D.dungeons) if (distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
+    for (const d of D.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
     return contact;
   }
   function nearby(run) {
-    const dungeon = D.dungeons.find(d => distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
-    const enemy = run.world.enemies.filter(e => e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];
+    const enemy = run.world.enemies.filter(e => (!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];
     return enemy ? { kind: 'enemy', entity: enemy } : null;
   }
   function interactObject(run, id) {
@@ -1278,9 +1365,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       this.camera.x = Math.max(0, Math.min(GameData.world.width - w / zoom, pos.x - w / (2 * zoom)));
       this.camera.y = Math.max(0, Math.min(GameData.world.height - h / zoom, pos.y - h / (2 * zoom)));
       c.save(); c.scale(zoom, zoom); c.translate(-this.camera.x, -this.camera.y); c.fillStyle = '#263b30'; c.fillRect(0, 0, GameData.world.width, GameData.world.height);
-      for (const r of GameData.world.regions) { c.fillStyle=r.color;c.fillRect(...r.bounds); }
+      const activeMap=run&&GameData.maps?.[run.currentMapId];
+      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,GameData.world.width,GameData.world.height);}
+      else for (const r of GameData.world.regions) { c.fillStyle=r.color;c.fillRect(...r.bounds); }
       // Low-contrast terrain marks distinguish regions without taking HUD space.
-      for(const r of GameData.world.regions)for(let i=0;i<48;i++){
+      for(const r of activeMap?[{bounds:[0,0,GameData.world.width,GameData.world.height],visualTheme:activeMap.environmentId}]:GameData.world.regions)for(let i=0;i<48;i++){
         const x=r.bounds[0]+(i*347+153)%r.bounds[2],y=r.bounds[1]+(i*593+221)%r.bounds[3];
         if(x<this.camera.x-100||x>this.camera.x+w/zoom+100||y<this.camera.y-100||y>this.camera.y+h/zoom+100)continue;
         if(r.visualTheme==='wetland')this.ellipse(x,y,62,26,'#102f3855');
@@ -1292,7 +1381,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       c.strokeStyle = '#a1bba04a'; c.strokeRect(25,25,GameData.world.width-50,GameData.world.height-50);
       this.camp(GameData.world.camp.x, GameData.world.camp.y);
       const things = World.scenery.filter(t => t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
-      for (const d of GameData.dungeons) things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
+      for (const d of GameData.dungeons) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
       if (run) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
         c.save(); c.translate(o.x, o.y); this.ellipse(0, 4, 22, 7, '#0a191977');
@@ -1303,7 +1392,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
         if (near && !used) { this.text('◇',0,-65,19,'#e3d39e'); this.text(o.name,0,24,13,'#e0dec5'); }
         c.restore();
       } });
-      if (run) for (const e of run.world.enemies) if (e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
+      if (run) for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
         this.monster(e.type, e.x, e.y, GameData.monsters[e.type].worldScale||1.1);
 
         
@@ -1311,7 +1400,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       } });
       things.push({ y: pos.y, draw: () => { this.glow(pos.x, pos.y - 8, 70, '#dbd9a910'); this.person(pos.x, pos.y, 1.15, game.moving, game.facing || 1); } });
       things.sort((a, b) => a.y - b.y).forEach(t => t.draw());
-      if(run)for(const e of run.world.enemies)if(e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${GameData.monsters[e.type].elite?'◆ ':''}Lv.${e.level}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
+      if(run)for(const e of run.world.enemies)if((!run.currentMapId||e.mapId===run.currentMapId)&&e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${GameData.monsters[e.type].elite?'◆ ':''}Lv.${e.level}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
       if (!game.settings?.reducedMotion) for (let i = 0; i < 22; i++) { const x = pos.x - 470 + ((i * 157 + this.time * 8) % 940), y = pos.y - 320 + (i * 93 % 640) + Math.sin(this.time + i) * 15; this.ellipse(x, y, 1.3, 1.3, `rgba(212,220,153,${.15 + .3 * Math.sin(this.time + i) ** 2})`); }
       c.restore();
       const vignette = c.createRadialGradient(w / 2, h / 2, h * .15, w / 2, h / 2, Math.max(w, h) * .67); vignette.addColorStop(0, '#050b0d00'); vignette.addColorStop(1, '#050b0d9c'); c.fillStyle = vignette; c.fillRect(0, 0, w, h);
@@ -1396,9 +1485,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     }
     minimap(canvas, run) {
       const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height; c.clearRect(0, 0, w, h); c.fillStyle = '#23362e'; c.fillRect(0, 0, w, h); const sx = w / GameData.world.width, sy = h / GameData.world.height;
-      for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
+      const activeMap=run&&GameData.maps?.[run.currentMapId];
+      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,w,h);}
+      else for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
       c.strokeStyle = '#cfbb7a55'; c.lineWidth = 2; c.beginPath(); for(const road of GameData.world.roads){c.moveTo(road[0].x*sx,road[0].y*sy);for(const {x,y}of road.slice(1))c.lineTo(x*sx,y*sy);} c.stroke();
-      if (run) { for (const e of run.world.enemies) if (e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of GameData.dungeons) if (run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4); c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
+      if (run) { for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId)&&e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of GameData.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId)&&run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } if(run.currentMapId==='north_plains_1'){c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4);} c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
     }
     draw(game, dt) { this.resize(); this.time += dt; this.ctx.clearRect(0, 0, this.width, this.height); if (game.scene === 'title') this.drawTitle(game); else if (game.scene === 'battle') this.drawBattle(game); else this.drawWorld(game); this.drawEffects(dt); }
   }
@@ -1417,7 +1508,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const tabs = (items, active, action) => `<nav class="tabs" aria-label="畫面分頁">${items.map(([id, text]) => `<button class="tab-button ${active === id ? 'selected' : ''}" data-action="${action}" data-id="${id}" aria-pressed="${active === id}">${text}</button>`).join('')}</nav>`;
   function card(id, kind, level, selected = false, action = 'catalog-select') {
     const data = kind === 'talents' ? D.skills[id] : kind === 'books' ? D.books[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id];
-    return `<button class="ability-card tone-${tone(id)} ${selected ? 'selected' : ''}" data-action="${action}" data-id="${id}" data-kind="${kind}" aria-pressed="${selected}"><span class="card-seal">${icon(data.icon || 'book', 43)}</span><strong>${data.name}</strong>${kind==='talents'?`<small class="skill-card-category">${escape(data.description)}</small>`:''}${kind === 'moves' && data.kind !== 'ultimate' ? stars(level) : `<small>${kind === 'books' ? '永久知識' : data.kind === 'ultimate' ? '必殺技' : kind === 'equipment' ? '旅人裝備' : data.category + ' · Lv.1'}</small>`}</button>`;
+    const moveSubtitle=kind==='moves'&&data.subtitle?`<small class="move-card-subtitle">${escape(data.subtitle)}</small>`:'';
+    return `<button class="ability-card tone-${tone(id)} ${selected ? 'selected' : ''}" data-action="${action}" data-id="${id}" data-kind="${kind}" aria-pressed="${selected}"><span class="card-seal">${icon(data.icon || 'book', 43)}</span><strong>${escape(data.name)}</strong>${moveSubtitle}${kind==='talents'?`<small class="skill-card-category">${escape(data.description)}</small>`:''}${kind === 'moves' && data.kind !== 'ultimate' ? stars(level) : `<small>${kind === 'books' ? '永久知識' : data.kind === 'ultimate' ? '必殺技' : kind === 'equipment' ? '旅人裝備' : data.category + ' · Lv.1'}</small>`}</button>`;
   }
   function slot(id, kind, index, action = 'slot-pick', level = 1) {
     const data = kind === 'talents' ? D.skills[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id];
@@ -1436,9 +1528,9 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function ultimateChargeSpeed(id) { const value=D.moves[id]?.ultimateChargeCost||100; return value<=75?'快':value<=110?'普通':value<=145?'慢':'很慢'; }
   function skillDetail(skill){return `<span class="eyebrow">${escape(skill.category)}</span><h3>${escape(skill.name)}</h3><p>${escape(skill.description)}</p><p>觸發：${escape(skill.triggerType)}。持續效果只刷新時間，較強者覆蓋較弱者，不會疊層。</p><p class="effect-note">名詞說明：讀條＝敵人準備招式的時間；中斷＝取消該次準備；Buff＝強化自己；Debuff＝削弱敵人；刷新＝重新計算持續時間；不疊加＝不會重複增加強度。</p>`;}
   function effects(move) { return move.effects.map(e => e.type === 'interrupt' ? '中斷：命中時取消敵方目前讀條' : e.type === 'restore' ? `恢復：回復 ${e.amount} ${e.resource === 'stamina' ? 'SP' : 'MP'}` : e.type==='status'?`${e.status.name}：持續 ${e.status.duration} 秒（刷新時間，不重複疊加）`:e.type==='heal'?`治療：回復最大 HP ${e.ratio*100}%`:e.type).join('；') || '直接傷害：不會中斷敵方讀條'; }
-  function compactMoveDetail(move){return `<h3>${escape(move.subtitle||move.name)}</h3><p class="compact-values">預估傷害 ${move.estimatedDamage?.toFixed(1)||'0'} · ${cost(move)}<br>攻擊時間 ${move.attackTime} · 讀條 ${move.castTime?.toFixed(2)||'—'} 秒<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><p>${effects(move)}</p><p>必殺能量需求：${move.ultimateChargeCost||100}</p>${move.modifications?.length?`<p>修正：${move.modifications.map(escape).join('、')}</p>`:''}`;}
+  function compactMoveDetail(move){return `<h3>${escape(move.name)}</h3>${move.subtitle?`<p class="move-detail-subtitle">${escape(move.subtitle)}</p>`:''}<p class="compact-values">預估傷害 ${move.estimatedDamage?.toFixed(1)||'0'} · ${cost(move)}<br>攻擊時間 ${move.attackTime} · 讀條 ${move.castTime?.toFixed(2)||'—'} 秒<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><p>${effects(move)}</p><p>必殺能量需求：${move.ultimateChargeCost||100}</p>${move.modifications?.length?`<p>修正：${move.modifications.map(escape).join('、')}</p>`:''}`;}
   function moveDetail(move, level, agility, permanent = false) {
-    return `<div class="detail-icon tone-${tone(move.id)}">${icon(move.icon || 'sword', 72)}</div><small class="eyebrow">${move.kind === 'ultimate' ? 'ULTIMATE ART' : move.damageType === 'magic' ? 'ARCANE ART' : 'MARTIAL ART'}</small><h3>${escape(move.name)}${permanent ? '' : ` <span>Lv.${level}</span>`}</h3>${permanent && move.kind !== 'ultimate' ? stars(level) + `<p class="muted">永久 Lv.${level} / 3</p>` : ''}<p>${escape(move.description || '以力量擊向敵人。')}<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><div class="detail-values"><div><small>${move.estimatedDamage!=null?"預估傷害（未爆擊）":"傷害倍率"}</small><strong>${move.estimatedDamage!=null?move.estimatedDamage.toFixed(1):Math.round(move.multiplier*100)}<em>${move.estimatedDamage!=null?"":"%"}</em></strong></div><div><small>消耗</small><strong>${cost(move)}</strong></div><div><small>攻擊時間</small><strong>${move.attackTime}</strong></div><div><small>必殺能量需求</small><strong>${move.ultimateChargeCost||100}</strong></div></div><p class="effect-note">${effects(move)}</p>${move.modifications?.length?`<p class="effect-note">目前修正：${move.modifications.map(escape).join("、")}</p>`:""}`;
+    return `<div class="detail-icon tone-${tone(move.id)}">${icon(move.icon || 'sword', 72)}</div><small class="eyebrow">${move.kind === 'ultimate' ? 'ULTIMATE ART' : move.damageType === 'magic' ? 'ARCANE ART' : 'MARTIAL ART'}</small><h3>${escape(move.name)}${permanent ? '' : ` <span>Lv.${level}</span>`}</h3>${move.subtitle?`<p class="move-detail-subtitle">${escape(move.subtitle)}</p>`:''}${permanent && move.kind !== 'ultimate' ? stars(level) + `<p class="muted">永久 Lv.${level} / 3</p>` : ''}<p>${escape(move.description || '以力量擊向敵人。')}<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><div class="detail-values"><div><small>${move.estimatedDamage!=null?"預估傷害（未爆擊）":"傷害倍率"}</small><strong>${move.estimatedDamage!=null?move.estimatedDamage.toFixed(1):Math.round(move.multiplier*100)}<em>${move.estimatedDamage!=null?"":"%"}</em></strong></div><div><small>消耗</small><strong>${cost(move)}</strong></div><div><small>攻擊時間</small><strong>${move.attackTime}</strong></div><div><small>必殺能量需求</small><strong>${move.ultimateChargeCost||100}</strong></div></div><p class="effect-note">${effects(move)}</p>${move.modifications?.length?`<p class="effect-note">目前修正：${move.modifications.map(escape).join("、")}</p>`:""}`;
   }
   root.GameUI = { escape, tone, stars, icon, button, tabs, card, slot, statBar, ring, castBar, characterArt, cost, effects, moveDetail, skillDetail, compactMoveDetail, ultimateChargeSpeed };
 })(globalThis);
@@ -1534,14 +1626,17 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
  const R=typeof module!=='undefined'?require('./world-rewards.js'):root.WorldRewards;
  const valid=(value,min,max)=>{const n=Number(value);if(!Number.isInteger(n)||n<min||n>max)throw Error(`請輸入 ${min}～${max} 的整數`);return n;};
- function teleport(run,id){const r=D.world.regions.find(r=>r.id===id);if(!r)throw Error('區域不存在');const d=D.dungeons.find(d=>d.regionId===id);run.position={x:d.x,y:d.y+65};run.dungeon=null;return r;}
+ function teleport(run,id){const r=D.world.regions.find(r=>r.id===id);if(!r)throw Error('區域不存在');const d=D.dungeons.find(d=>d.regionId===id);run.dungeon=null;const Maps=typeof module!=='undefined'?require('./world-maps.js'):root.WorldMaps;if(d?.mapId)Maps.enter(run,d.mapId);run.position={x:d.x,y:d.y+65};return r;}
  function setLevel(run,n){run.level=valid(n,1,300);run.exp=0;run.points=0;}
  function enemyLevel(run,id,n){const e=run.world.enemies.find(e=>e.id===id);if(!e)throw Error('敵人不存在');e.level=valid(n,1,999);return e;}
  function enter(run,id){if(!D.dungeons.some(d=>d.id===id))throw Error('地下城不存在');run.dungeon={id,stage:0};}
  function sample(id,count,combination='',poolId='',rng=Math.random){count=valid(count,1,10000);const summary={count,combinations:{},rewards:{}};for(let i=0;i<count;i++){const roll=poolId?{combination:'指定獎勵池',rewards:[R.pool(poolId,rng)]}:R.dungeon(id,rng,combination?{combination}:{});summary.combinations[roll.combination]=(summary.combinations[roll.combination]||0)+1;for(const r of roll.rewards){const key=r.kind+':'+r.id;summary.rewards[key]=(summary.rewards[key]||0)+1;}}return summary;}
  function form(run){const opt=(id,name)=>`<option value="${id}">${name}</option>`;return `<div class="eyebrow">WORLD DIAGNOSTICS</div><h2 id="modal-title">世界測試</h2><p>傳送與等級只修改本局；抽樣只預覽，不發放收藏。</p><div class="world-tools"><label>區域<select id="world-region">${D.world.regions.map(r=>opt(r.id,r.name)).join('')}</select></label><button data-action="world-enemies">查看區域敵人池</button><button data-action="world-teleport">傳送至區域入口</button><label>玩家等級<input id="world-level" type="number" min="1" max="300" value="${run.level}"></label><button data-action="world-level">套用玩家等級</button><label>敵人<select id="world-enemy">${run.world.enemies.map(e=>opt(e.id,D.monsters[e.type].name+' Lv.'+e.level+' · '+e.id)).join('')}</select></label><label>敵人等級<input id="world-enemy-level" type="number" min="1" max="999" value="10"></label><button data-action="world-enemy-level">套用敵人等級</button><label>地下城<select id="world-dungeon">${D.dungeons.map(d=>opt(d.id,d.name+' Lv.'+d.recommendedLevel)).join('')}</select></label><button data-action="world-enter">直接挑戰地下城</button><label>指定組合<select id="world-combination">${opt('','依權重抽取')}${D.dungeons[0].rewardCombinationRules.map(r=>opt(r.id,r.id)).join('')}</select></label><label>指定池（優先於組合）<select id="world-pool">${opt('','使用所選地下城的組合')}${Object.keys(D.rewardPools).map(id=>opt(id,id)).join('')}</select></label><label>抽樣次數<input id="world-samples" type="number" min="1" max="10000" value="100"></label><button data-action="world-sample">重複抽樣</button><button data-action="world-inspect">檢視獎勵池</button></div><pre id="world-output" aria-live="polite">選擇地下城後可檢視池內容或重複抽樣。</pre><div class="modal-footer"><button data-action="close">返回探索</button></div>`;}
  function atlas(run){return `<div class="eyebrow">WORLD ATLAS</div><h2 id="modal-title">世界地圖</h2><p>所有區域自由通行。推薦等級代表危險程度。</p><svg class="world-atlas" viewBox="0 0 7200 4200" role="img" aria-label="五區世界地圖">${D.world.regions.map(r=>`<g><rect x="${r.bounds[0]}" y="${r.bounds[1]}" width="${r.bounds[2]}" height="${r.bounds[3]}" fill="${r.color}" stroke="#bcaa78" stroke-width="12"/><text x="${r.x}" y="${r.y-200}" text-anchor="middle" fill="#fff" font-size="160">${r.name}</text><text x="${r.x}" y="${r.y}" text-anchor="middle" fill="#efdab0" font-size="140">Lv.${r.min}–${r.max}</text></g>`).join('')}${D.dungeons.map(d=>`<circle cx="${d.x}" cy="${d.y}" r="40" fill="#dbb4ff"/>`).join('')}<circle cx="${run.position.x}" cy="${run.position.y}" r="75" fill="#fff" stroke="#97eee6" stroke-width="30"/></svg><p>白點：目前位置 · 紫點：地下城</p>${D.world.regions.map(r=>`<div class="atlas-region"><h3>${r.name} <small>Lv.${r.min}–${r.max}</small></h3>${D.dungeons.filter(d=>d.regionId===r.id).map(d=>`<p>◇ ${d.name} · Lv.${d.recommendedLevel} · ${d.enemyWaves.length} 場</p>`).join('')}</div>`).join('')}<div class="modal-footer"><button data-action="close">返回探索</button></div>`;}
- const api={teleport,setLevel,enemyLevel,enter,sample,form,atlas};if(typeof module!=='undefined')module.exports=api;else root.WorldDebug=api;
+ function routeAtlas(run){return `<div class="eyebrow">WORLD ATLAS · THIS RUN</div><h2 id="modal-title">世界地圖</h2><p>選擇大區，再選擇實際地圖。所有大區都能從 Lv.1 起跑，推薦等級僅供參考。</p><div class="route-grid">${D.regionData.map(r=>`<button class="route-card ${D.maps[run.currentMapId]?.regionId===r.id?'current':''}" data-action="world-region" data-id="${r.id}" style="--route-color:${r.color}"><strong>${r.name}</strong><small>${r.themeTags.slice(0,3).join(' · ')}</small><span>${r.mapIds.length} 張地圖 · Lv.1 起</span></button>`).join('')}</div><div class="modal-footer"><button data-action="close">返回探索</button></div>`;}
+ function regionMaps(run,id){const r=D.regionById[id];if(!r)return routeAtlas(run);return `<div class="eyebrow">WORLD ATLAS · ${r.name}</div><h2 id="modal-title">${r.name}</h2><p>${r.description}。選擇地圖後可查看敵人、地下城與獎勵傾向。</p><div class="route-list">${r.mapIds.map(mapId=>{const m=D.maps[mapId];return `<button class="route-card ${run.currentMapId===mapId?'current':''}" data-action="world-map-detail" data-id="${mapId}" style="--route-color:${m.color}"><strong>${m.name}${run.currentMapId===mapId?' · 目前位置':''}</strong><small>推薦 Lv.${m.recommendedLevelMin}～${m.recommendedLevelMax}</small><span>${m.gameplayTags.slice(0,3).join(' · ')}</span></button>`;}).join('')}</div><div class="modal-footer"><button data-action="world-map">返回七大區</button><button data-action="close">返回探索</button></div>`;}
+ function mapDetail(run,id){const m=D.maps[id];if(!m)return routeAtlas(run);const dungeons=m.dungeonIds.map(key=>D.dungeons.find(d=>d.id===key)).filter(Boolean);return `<div class="eyebrow">MAP ROUTE · ${D.regionById[m.regionId].name}</div><h2 id="modal-title">${m.name}</h2><p>${m.description}</p><div class="route-detail"><p><b>推薦等級</b> Lv.${m.recommendedLevelMin}～${m.recommendedLevelMax} · 危險度 ${m.dangerTier}/5</p><p><b>敵人特色</b> ${m.gameplayTags.join(' · ')}</p><p><b>主要元素</b> ${m.elementTendencies.join(' · ')}</p><p><b>可能地下城</b> ${dungeons.length?dungeons.map(d=>d.name+' Lv.'+d.recommendedLevel).join('、'):'目前未配置'}</p><p><b>獎勵傾向</b> ${D.regionById[m.regionId].rewardTendencies.join(' · ')}</p><p class="route-danger">可越級進入；若與推薦等級落差大，敵人可能難以擊敗。</p></div><div class="modal-footer"><button data-action="world-region" data-id="${m.regionId}">返回地圖列表</button><button data-action="world-enter-map" data-id="${id}">${run.currentMapId===id?'返回目前地圖':'前往這張地圖'}</button></div>`;}
+ const api={teleport,setLevel,enemyLevel,enter,sample,form,atlas:routeAtlas,regionMaps,mapDetail};if(typeof module!=='undefined')module.exports=api;else root.WorldDebug=api;
 })(globalThis);
 
 </script>
@@ -1617,7 +1712,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   // Revalidate restored saves; an invalid pending encounter must return to normal combat.
   if(!eligible(run,{enemies:pending.enemies},true)){delete run.quickBattle;return {fallback:pending.enemies};}
   const beforeLevel=run.level,beforeStats=P.statsFor(run);let amount=0;const rewards=[];
-  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng)));}
+  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng,run.currentMapId)));}
   const result={exp:{amount,beforeLevel,beforeStats,afterLevel:run.level,afterStats:P.statsFor(run),levels:run.level-beforeLevel},enemies:pending.enemies,rewards,quick:true,countsForCombatChallenges:false};
   delete run.quickBattle;run.lastEncounterResult={mode:'quick',countsForCombatChallenges:false};return result;
  }
@@ -1627,7 +1722,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 
 </script><!-- /inline-module --><script>
 /* Scene and interaction controller. Static content, simulation and UI templates remain separate. */
-const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements;
+const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps;
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) };
 const loaded = P.loadProgress(storage);
 const game = {
@@ -1741,7 +1836,7 @@ function beginRun() {
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
   game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); toast('灰風原野 · 拖曳中央搖桿移動，靠近目標即可互動。'); renderUI();
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');
 }
 function startDebugBattle(){
  try{
@@ -1751,11 +1846,17 @@ function startDebugBattle(){
   game.run=P.createRun(permanent,b.build);game.debugBattle=true;game.screen=null;$('screen').hidden=true;game.scene='battle';game.battle=b;game.encounter={type:'boss',level:1};game.eventCursor=0;game.resultHandled=false;game.resultDelay=null;game.transition=0;game.castFlashes={};game.wasReady=false;closeModal();rebuildSkills();renderUI();
  }catch(error){toast('測試設定錯誤：'+error.message);}
 }
-function worldDebugAction(action){
+function worldDebugAction(action,id){
  try{
   if(game.scene==='battle')return;
   if(action==='world-debug'){if(!game.run){game.run=P.createRun(game.permanent,game.build);game.scene='explore';}game.screen=null;$('screen').hidden=true;openModal('world-debug',WorldDebug.form(game.run));renderUI();return;}
-  if(action==='world-map'&&game.run){openModal('world-map',WorldDebug.atlas(game.run));return;}
+  if(action==='world-map'&&game.run){openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
+  if(action==='world-region'&&game.run&&['world-map','world-region','world-map-detail'].includes(game.modal)){openModal('world-region',WorldDebug.regionMaps(game.run,id),'world-route-modal');return;}
+  if(action==='world-map-detail'&&game.run&&game.modal==='world-region'){openModal('world-map-detail',WorldDebug.mapDetail(game.run,id),'world-route-modal');return;}
+  if(action==='world-enter-map'&&game.run&&game.modal==='world-map-detail'){
+    const map=Maps.enter(game.run,id);if(!map){toast('目前無法切換地圖。');return;}
+    game.keys.clear();game.touch.clear();resetJoystick();game.lastRegion=id;renderer.fx=[];renderer.hits={};renderer.attacks={};closeModal();renderUI();saveSession();toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);return;
+  }
   if(game.modal!=='world-debug')return;
   const value=id=>$('world-'+id).value;
   if(action==='world-teleport'){const region=WorldDebug.teleport(game.run,value('region'));returnExplore();toast(region.name+' · Lv.'+region.min+'–'+region.max);}
@@ -1818,7 +1919,29 @@ function chooseMove(id, asUltimate = false) {
 function showJournal() {
   if (!game.run || game.scene === 'battle') return;
   const run = game.run, stats = P.statsFor(run);
-  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">技能、招式與裝備在冒險中鎖定。<br>只有取得新能力時，才能選擇裝備或替換；永久能力庫在主選單開放。</p><div class="modal-footer">${U.button('世界地圖','world-map')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+}
+function showRunLoadout(){
+ if(!game.run||game.scene==='battle')return;
+ const b=game.run.build,slots=[...Array.from({length:4},(_,index)=>({kind:'moves',index,id:b.moves[index]})),...Array.from({length:4},(_,index)=>({kind:'talents',index,id:b.talents[index]})),{kind:'ultimate',index:0,id:b.ultimate}];
+ openModal('run-loadout',`<div class="eyebrow">THIS RUN · LOADOUT</div><h2 id="modal-title">調整本局配置</h2><p>只列出這局已帶入或取得的能力。切換地圖後配置仍會保留。</p><div class="run-loadout-grid">${slots.map(slot=>`<button data-action="run-slot" data-kind="${slot.kind}" data-index="${slot.index}"><small>${slot.kind==='talents'?'技能':slot.kind==='ultimate'?'必殺':'招式 '+('ABCD'[slot.index])}</small><strong>${U.escape(slot.id?(slot.kind==='talents'?D.skills[slot.id]:D.moves[slot.id])?.name||slot.id:'空欄位')}</strong></button>`).join('')}</div><div class="modal-footer">${U.button('返回角色狀態','journal')}${U.button('繼續探索','close',{primary:true})}</div>`,'world-route-modal');
+}
+function showRunSlot(kind,index){
+ const run=game.run;if(!run||game.scene==='battle'||!['moves','talents','ultimate'].includes(kind)||!Number.isInteger(index)||index<0||index>3)return;
+ game.runPicker={kind,index};const list=kind==='talents'?run.availableSkills:run.availableMoves,source=kind==='talents'?D.skills:D.moves;
+ const candidates=(list||[]).filter(id=>source[id]&&Classes.eligible(source[id],run.activeClassId,game.permanent)&&(kind!=='moves'||source[id].kind==='normal'));
+ openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2><div class="run-choice-list">${candidates.map(id=>`<button data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
+}
+function selectRunAbility(id){
+ const run=game.run,pick=game.runPicker;if(!run||game.modal!=='run-slot'||!pick)return;
+ const {kind,index}=pick,available=kind==='talents'?run.availableSkills:run.availableMoves;
+ if(id&&!available.includes(id)){toast('這局尚未取得這項能力。');return;}
+ const draft=JSON.parse(JSON.stringify(run.build));
+ if(kind==='ultimate'){if(id&&!game.permanent.ultimateUnlocked){toast('必殺槽尚未解鎖。');return;}draft.ultimate=id||null;}
+ else {const list=draft[kind];if(index>list.length){toast('請依序填入欄位。');return;}if(!id){if(index<list.length)list.splice(index,1);}else if(list.includes(id)&&list[index]!==id){toast('同一能力不能重複配置。');return;}else if(index===list.length)list.push(id);else list[index]=id;}
+ if(!draft.moves.length){toast('至少需要一個普通招式。');return;}
+ try{P.validateBuild(draft,game.permanent);}catch(error){toast(error.message);return;}
+ run.build=draft;rebuildSkills();showRunLoadout();saveSession();
 }
 function finishEncounter() {
   const b = game.battle, run = game.run; game.resultHandled = true;
@@ -1829,7 +1952,7 @@ function finishEncounter() {
   if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
-  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type)) : []; if(game.fieldRewards.length)persist();
+  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId)) : []; if(game.fieldRewards.length)persist();
  game.result = { won, exp, beforeLevel }; game.resultDelay = 1.05;
 
 }
@@ -1854,7 +1977,7 @@ function continueResult() {
     if (run.dungeon.stage < currentDungeon().enemyWaves.length-1) { run.dungeon.stage++; game.scene = 'explore'; startEncounter(P.dungeonEncounter(run)); return; }
     game.rewards = P.dungeonReward(game.permanent, run); Ach.dungeonClear(game.permanent,run,run.dungeon.id); Meta.clear(game.permanent,run,run.dungeon.id);Enc.clear(game.permanent,run,run.dungeon.id); saveSession();persist(); Audio.emit('itemGain', { rewards: game.rewards }); showReward(); return;
   }
-  if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...D.world.camp }; run.dungeon = null; delete run.dungeonResources; }
+  if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...(D.maps[run.currentMapId]?.entry||D.world.camp) }; run.dungeon = null; delete run.dungeonResources; }
   if(game.result.won && game.fieldRewards?.length){game.rewards=game.fieldRewards;game.fieldRewards=[];showReward();return;}
   returnExplore();
 }
@@ -1894,12 +2017,12 @@ function renderUI() {
   const run = game.run, fighting = game.scene === 'battle', stats = P.statsFor(run), actor = fighting ? game.battle.player : { ...stats, stats };
   $('level').textContent = 'Lv.' + run.level; $('resources').innerHTML = U.statBar(actor.hp, actor.stats.hp, 'hp', 'HP') + U.statBar(actor.mana, actor.stats.mana, 'mp', 'MP') + U.statBar(actor.stamina, actor.stats.stamina, 'sp', 'SP');
   $('xp-fill').style.width = (run.exp / P.levelCost(run.level) * 100) + '%'; $('xp-label').textContent = `${run.exp}/${P.levelCost(run.level)}`;
-  $('region-name').textContent = run.dungeon ? currentDungeon().name : P.regionAt(run.position.x, run.position.y).name;
+  $('region-name').textContent = run.dungeon ? currentDungeon().name : D.maps[run.currentMapId]?.name||P.regionAt(run.position.x, run.position.y).name;
   $('skillbar').hidden = !fighting;
   $('quest').hidden = true; $('battle-heading').hidden = !fighting; $('enemy-battle').hidden = !fighting; $('player-cast').hidden = !fighting; $('battle-tip').hidden = !fighting;
   $('bottom-hint').textContent = fighting ? 'W ↑ · D → · S ↓ · A ← 選招式　／　Space 必殺　／　長按查看詳細' : 'WASD / 方向鍵 移動　·　E 互動　·　B 角色狀態　·　Esc 暫停';
   if (fighting) {
-    const b = game.battle; $('battle-location').textContent = run.dungeon ? currentDungeon().name : P.regionAt(run.position.x, run.position.y).name;
+    const b = game.battle; $('battle-location').textContent = run.dungeon ? currentDungeon().name : D.maps[run.currentMapId]?.name||P.regionAt(run.position.x, run.position.y).name;
     $('battle-subtitle').textContent = `${run.dungeon ? `試煉 ${run.dungeon.stage + 1} / ${currentDungeon().enemyWaves.length} · ` : ''}戰鬥中無法逃跑`;
     const flash = id => game.castFlashes[id]?.until > renderer.time ? game.castFlashes[id].type : '';
     $('enemy-battle').innerHTML = `<div class="enemy-name"><h3>${D.monsters[game.encounter.type].name}</h3><span>Lv.${game.encounter.level}</span></div>${U.statBar(b.enemy.hp, b.enemy.stats.hp, 'hp', 'HP')}<div class="enemy-status"><span>${b.phase === 'victory' ? '已倒下' : Object.values(b.enemy.statuses).map(s=>s.name).join(' · ') || ''}</span><span>${b.enemy.elements.map(e=>D.elements[e]).join('＋')||'無屬性'}</span></div>${U.castBar(b.enemy, b.time, flash('enemy'))}`;
@@ -1985,12 +2108,15 @@ function handleAction(action, id, element) {
   else if (action === 'begin-run') beginRun();
   else if (action === 'close') { if (!['result', 'reward', 'acquire', 'replace', 'replace-confirm'].includes(game.modal)) closeModal(); }
   else if (action === 'journal') showJournal();
+  else if (action === 'run-loadout') showRunLoadout();
+  else if (action === 'run-slot'&&game.modal==='run-loadout') showRunSlot(element.dataset.kind,Number(element.dataset.index));
+  else if (action === 'run-config-select'&&game.modal==='run-slot') selectRunAbility(id);
   else if (action === 'pause') pause();
   else if(action==='full-reset')openModal('full-reset',`<h2 id="modal-title">完全重置遊戲？</h2><p>將永久刪除這個瀏覽器內的所有收藏、招式熟練度、通關紀錄、本局冒險、配置與設定。</p><p>此操作無法復原。離線遊戲檔案會保留。</p><div class="modal-footer">${U.button('取消','close')}${U.button('確認完全重置','full-reset-confirm',{primary:true})}</div>`);
   else if(action==='full-reset-confirm'&&game.modal==='full-reset')resetAllProgress();
   else if(action==='restart-basic')openModal('restart-basic',`<h2 id="modal-title">基礎配置重新出發</h2><p>結束目前冒險，以 Lv.1、快速斬擊與火球術、空白被動技能欄重新出發。</p><p>永久收藏與已累積的招式熟練度都會保留。</p>${game.run?runLootHTML(game.run):''}<div class="modal-footer">${U.button('取消','close')}${U.button('重新出發','restart-basic-confirm',{primary:true})}</div>`);
   else if(action==='restart-basic-confirm'&&game.modal==='restart-basic'){if(game.run&&!game.debugBattle){Meta.settle(game.permanent,game.run);saveSession();persist();}game.run=null;game.battle=null;game.result=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.noRandom=false;game.build=P.defaultBuild();game.lastRegion=null;saveBuild();beginRun();}
-  else if(action.startsWith('world-'))worldDebugAction(action);
+  else if(action.startsWith('world-'))worldDebugAction(action,id);
   else if (action === 'interact') interact();
   else if (action === 'move') chooseMove(id, element.dataset.ultimate === 'true');
   else if (action === 'enter-dungeon' && game.modal === 'dungeon' && D.dungeons.some(d=>d.id===id)) { if(!game.debugBattle){Meta.enter(game.permanent,id);persist();}game.run.dungeon = { id, stage: 0 }; Audio.emit('dungeonEnter'); startEncounter(P.dungeonEncounter(game.run)); }
@@ -2007,7 +2133,7 @@ function handleAction(action, id, element) {
   else if (action === 'fullscreen') { if (document.fullscreenElement) document.exitFullscreen?.(); else requestGameFullscreen(false); }
   else if (action === 'debug-close') $('debug').hidden = true;
   else if (action === 'debug-exp' && game.scene === 'explore') { P.grantExp(game.run, game.run.level); $('debug').hidden = true; showJournal(); }
-  else if (action === 'debug-dungeon' && game.scene === 'explore') { game.run.position = { x: D.dungeons[0].x, y: D.dungeons[0].y + 65 }; $('debug').hidden = true; }
+  else if (action === 'debug-dungeon' && game.scene === 'explore') { Maps.enter(game.run,D.dungeons[0].mapId); game.run.position = { x: D.dungeons[0].x, y: D.dungeons[0].y + 65 }; $('debug').hidden = true; }
   else if (action === 'debug-random') { game.noRandom = !game.noRandom; if (game.battle) { const sample = P.battleFor(game.run, game.encounter); game.battle.rules = game.noRandom ? { ...sample.rules, critChance: 0, dodgeChance: 0 } : sample.rules; } toast(game.noRandom ? '測試模式：固定命中，無爆擊' : '恢復隨機判定'); }
   renderUI();
 }
@@ -2090,7 +2216,7 @@ function combatEvent(event) {
 function frame(now) {
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
-    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const region=P.regionAt(game.run.position.x,game.run.position.y);if(game.lastRegion!==region.id){game.lastRegion=region.id;toast(region.name+' · 推薦 Lv.'+region.min+'–'+region.max);} if (enemy) startEncounter(enemy); }
+    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} if (enemy) startEncounter(enemy); }
     else if (game.scene === 'battle') {
       if (game.transition > 0) { game.transition = Math.max(0, game.transition - dt); if (!game.transition) $('transition').hidden = true; }
       else {

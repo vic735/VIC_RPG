@@ -36,7 +36,11 @@ function enrich(D){
  ['lightning_whip','參倫・卡阿','雷電之鞭','magic',['metal'],.9,17,90,[{type:'interrupt',chance:.8}]],
  ['light_arrow','尤陸・希迪','光之箭','magic',['light'],1.1,16,85]
  ];
- function add(row){const [id,name,subtitle,damageType,elements,multiplier,cost,attackTime,effects=[],hits=1]=row;D.moves[id]={id,name,subtitle,description:subtitle+'；數值為原型平衡設定。',kind:'normal',damageType,elements,multiplier,cost:{[damageType==='physical'?'stamina':'mana']:cost},attackTime,effects,hits,icon:elements.includes('fire')?'flame':damageType==='physical'?'sword':'orb',tags:[damageType==='physical'?'slash':'magic',...(subtitle.includes('箭')?['arrow']:[])]};}
+ function add(row){
+  const [id,name,subtitle,damageType,elements,multiplier,cost,attackTime,effects=[],hits=1]=row;
+  const values={name,subtitle,magicText:name,localizedName:subtitle,description:subtitle+'；數值為原型平衡設定。',kind:'normal',damageType,elements,multiplier,cost:{[damageType==='physical'?'stamina':'mana']:cost},attackTime,effects,hits,icon:elements.includes('fire')?'flame':damageType==='physical'?'sword':'orb',tags:[damageType==='physical'?'slash':'magic',...(subtitle.includes('箭')?['arrow']:[])]};
+  D.moves[id]={id,...values};
+ }
  rows.forEach(add);
  const neutral=[['double_slash','二連斬',1.3,18,95,[],2],['heavy_slash','重斬',2.2,24,160],['break_stance','破勢',.5,16,85,[{type:'interrupt'}]],['charge_up','蓄力',0,12,60,[buff('charged','蓄力',[mod('damage',1.35,physical)],60)]],['counter_stance','反擊架勢',0,15,70,[buff('counter_guard','反擊架勢',[mod('incoming',.75)],4)]],['focus','專注',0,10,65,[buff('focus','專注',[mod('critChance',.15,{},'add')],6)]]];
  neutral.forEach(([id,name,m,c,t,e,h])=>add([id,name,name,'physical',[],m,c,t,e,h]));

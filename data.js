@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.8.2', date: '2026-09-22' },
+    release: { version: '0.9.0', date: '2026-09-23' },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },
@@ -100,7 +100,7 @@
   (typeof module !== 'undefined' ? require('./combat-content.js') : root.CombatContent)(data);
   (typeof module !== 'undefined' ? require('./world-content.js') : root.WorldContent)(data);
   // Opening pacing: cheap basic attacks sustain the first continuous dungeon.
-  data.moves.quick.cost.stamina=3;data.moves.fire.cost.mana=5;data.moves.quick.ultimateChargeCost=65;data.moves.fire.ultimateChargeCost=90;
+  data.moves.quick.cost.stamina=3;Object.assign(data.moves.fire,{name:'帕・伯・烏',subtitle:'初階火球術',magicText:'帕・伯・烏',localizedName:'初階火球術',icon:'flame',elements:['fire'],tags:['magic'],description:'開局即可使用的低階火焰魔法。消耗低，適合前期持續作戰。'});data.moves.fire.cost.mana=5;data.moves.quick.ultimateChargeCost=65;data.moves.fire.ultimateChargeCost=90;
   data.balance.respawnSeconds=20;
   data.balance.quickBattleLevelGap=5;
   data.balance.quickBattleSeconds=.55;

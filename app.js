@@ -1,5 +1,5 @@
 /* Scene and interaction controller. Static content, simulation and UI templates remain separate. */
-const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements;
+const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps;
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) };
 const loaded = P.loadProgress(storage);
 const game = {
@@ -113,7 +113,7 @@ function beginRun() {
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
   game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); toast('灰風原野 · 拖曳中央搖桿移動，靠近目標即可互動。'); renderUI();
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');
 }
 function startDebugBattle(){
  try{
@@ -123,11 +123,17 @@ function startDebugBattle(){
   game.run=P.createRun(permanent,b.build);game.debugBattle=true;game.screen=null;$('screen').hidden=true;game.scene='battle';game.battle=b;game.encounter={type:'boss',level:1};game.eventCursor=0;game.resultHandled=false;game.resultDelay=null;game.transition=0;game.castFlashes={};game.wasReady=false;closeModal();rebuildSkills();renderUI();
  }catch(error){toast('測試設定錯誤：'+error.message);}
 }
-function worldDebugAction(action){
+function worldDebugAction(action,id){
  try{
   if(game.scene==='battle')return;
   if(action==='world-debug'){if(!game.run){game.run=P.createRun(game.permanent,game.build);game.scene='explore';}game.screen=null;$('screen').hidden=true;openModal('world-debug',WorldDebug.form(game.run));renderUI();return;}
-  if(action==='world-map'&&game.run){openModal('world-map',WorldDebug.atlas(game.run));return;}
+  if(action==='world-map'&&game.run){openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
+  if(action==='world-region'&&game.run&&['world-map','world-region','world-map-detail'].includes(game.modal)){openModal('world-region',WorldDebug.regionMaps(game.run,id),'world-route-modal');return;}
+  if(action==='world-map-detail'&&game.run&&game.modal==='world-region'){openModal('world-map-detail',WorldDebug.mapDetail(game.run,id),'world-route-modal');return;}
+  if(action==='world-enter-map'&&game.run&&game.modal==='world-map-detail'){
+    const map=Maps.enter(game.run,id);if(!map){toast('目前無法切換地圖。');return;}
+    game.keys.clear();game.touch.clear();resetJoystick();game.lastRegion=id;renderer.fx=[];renderer.hits={};renderer.attacks={};closeModal();renderUI();saveSession();toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);return;
+  }
   if(game.modal!=='world-debug')return;
   const value=id=>$('world-'+id).value;
   if(action==='world-teleport'){const region=WorldDebug.teleport(game.run,value('region'));returnExplore();toast(region.name+' · Lv.'+region.min+'–'+region.max);}
@@ -190,7 +196,29 @@ function chooseMove(id, asUltimate = false) {
 function showJournal() {
   if (!game.run || game.scene === 'battle') return;
   const run = game.run, stats = P.statsFor(run);
-  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">技能、招式與裝備在冒險中鎖定。<br>只有取得新能力時，才能選擇裝備或替換；永久能力庫在主選單開放。</p><div class="modal-footer">${U.button('世界地圖','world-map')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+}
+function showRunLoadout(){
+ if(!game.run||game.scene==='battle')return;
+ const b=game.run.build,slots=[...Array.from({length:4},(_,index)=>({kind:'moves',index,id:b.moves[index]})),...Array.from({length:4},(_,index)=>({kind:'talents',index,id:b.talents[index]})),{kind:'ultimate',index:0,id:b.ultimate}];
+ openModal('run-loadout',`<div class="eyebrow">THIS RUN · LOADOUT</div><h2 id="modal-title">調整本局配置</h2><p>只列出這局已帶入或取得的能力。切換地圖後配置仍會保留。</p><div class="run-loadout-grid">${slots.map(slot=>`<button data-action="run-slot" data-kind="${slot.kind}" data-index="${slot.index}"><small>${slot.kind==='talents'?'技能':slot.kind==='ultimate'?'必殺':'招式 '+('ABCD'[slot.index])}</small><strong>${U.escape(slot.id?(slot.kind==='talents'?D.skills[slot.id]:D.moves[slot.id])?.name||slot.id:'空欄位')}</strong></button>`).join('')}</div><div class="modal-footer">${U.button('返回角色狀態','journal')}${U.button('繼續探索','close',{primary:true})}</div>`,'world-route-modal');
+}
+function showRunSlot(kind,index){
+ const run=game.run;if(!run||game.scene==='battle'||!['moves','talents','ultimate'].includes(kind)||!Number.isInteger(index)||index<0||index>3)return;
+ game.runPicker={kind,index};const list=kind==='talents'?run.availableSkills:run.availableMoves,source=kind==='talents'?D.skills:D.moves;
+ const candidates=(list||[]).filter(id=>source[id]&&Classes.eligible(source[id],run.activeClassId,game.permanent)&&(kind!=='moves'||source[id].kind==='normal'));
+ openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2><div class="run-choice-list">${candidates.map(id=>`<button data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
+}
+function selectRunAbility(id){
+ const run=game.run,pick=game.runPicker;if(!run||game.modal!=='run-slot'||!pick)return;
+ const {kind,index}=pick,available=kind==='talents'?run.availableSkills:run.availableMoves;
+ if(id&&!available.includes(id)){toast('這局尚未取得這項能力。');return;}
+ const draft=JSON.parse(JSON.stringify(run.build));
+ if(kind==='ultimate'){if(id&&!game.permanent.ultimateUnlocked){toast('必殺槽尚未解鎖。');return;}draft.ultimate=id||null;}
+ else {const list=draft[kind];if(index>list.length){toast('請依序填入欄位。');return;}if(!id){if(index<list.length)list.splice(index,1);}else if(list.includes(id)&&list[index]!==id){toast('同一能力不能重複配置。');return;}else if(index===list.length)list.push(id);else list[index]=id;}
+ if(!draft.moves.length){toast('至少需要一個普通招式。');return;}
+ try{P.validateBuild(draft,game.permanent);}catch(error){toast(error.message);return;}
+ run.build=draft;rebuildSkills();showRunLoadout();saveSession();
 }
 function finishEncounter() {
   const b = game.battle, run = game.run; game.resultHandled = true;
@@ -201,7 +229,7 @@ function finishEncounter() {
   if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
-  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type)) : []; if(game.fieldRewards.length)persist();
+  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId)) : []; if(game.fieldRewards.length)persist();
  game.result = { won, exp, beforeLevel }; game.resultDelay = 1.05;
 
 }
@@ -226,7 +254,7 @@ function continueResult() {
     if (run.dungeon.stage < currentDungeon().enemyWaves.length-1) { run.dungeon.stage++; game.scene = 'explore'; startEncounter(P.dungeonEncounter(run)); return; }
     game.rewards = P.dungeonReward(game.permanent, run); Ach.dungeonClear(game.permanent,run,run.dungeon.id); Meta.clear(game.permanent,run,run.dungeon.id);Enc.clear(game.permanent,run,run.dungeon.id); saveSession();persist(); Audio.emit('itemGain', { rewards: game.rewards }); showReward(); return;
   }
-  if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...D.world.camp }; run.dungeon = null; delete run.dungeonResources; }
+  if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...(D.maps[run.currentMapId]?.entry||D.world.camp) }; run.dungeon = null; delete run.dungeonResources; }
   if(game.result.won && game.fieldRewards?.length){game.rewards=game.fieldRewards;game.fieldRewards=[];showReward();return;}
   returnExplore();
 }
@@ -266,12 +294,12 @@ function renderUI() {
   const run = game.run, fighting = game.scene === 'battle', stats = P.statsFor(run), actor = fighting ? game.battle.player : { ...stats, stats };
   $('level').textContent = 'Lv.' + run.level; $('resources').innerHTML = U.statBar(actor.hp, actor.stats.hp, 'hp', 'HP') + U.statBar(actor.mana, actor.stats.mana, 'mp', 'MP') + U.statBar(actor.stamina, actor.stats.stamina, 'sp', 'SP');
   $('xp-fill').style.width = (run.exp / P.levelCost(run.level) * 100) + '%'; $('xp-label').textContent = `${run.exp}/${P.levelCost(run.level)}`;
-  $('region-name').textContent = run.dungeon ? currentDungeon().name : P.regionAt(run.position.x, run.position.y).name;
+  $('region-name').textContent = run.dungeon ? currentDungeon().name : D.maps[run.currentMapId]?.name||P.regionAt(run.position.x, run.position.y).name;
   $('skillbar').hidden = !fighting;
   $('quest').hidden = true; $('battle-heading').hidden = !fighting; $('enemy-battle').hidden = !fighting; $('player-cast').hidden = !fighting; $('battle-tip').hidden = !fighting;
   $('bottom-hint').textContent = fighting ? 'W ↑ · D → · S ↓ · A ← 選招式　／　Space 必殺　／　長按查看詳細' : 'WASD / 方向鍵 移動　·　E 互動　·　B 角色狀態　·　Esc 暫停';
   if (fighting) {
-    const b = game.battle; $('battle-location').textContent = run.dungeon ? currentDungeon().name : P.regionAt(run.position.x, run.position.y).name;
+    const b = game.battle; $('battle-location').textContent = run.dungeon ? currentDungeon().name : D.maps[run.currentMapId]?.name||P.regionAt(run.position.x, run.position.y).name;
     $('battle-subtitle').textContent = `${run.dungeon ? `試煉 ${run.dungeon.stage + 1} / ${currentDungeon().enemyWaves.length} · ` : ''}戰鬥中無法逃跑`;
     const flash = id => game.castFlashes[id]?.until > renderer.time ? game.castFlashes[id].type : '';
     $('enemy-battle').innerHTML = `<div class="enemy-name"><h3>${D.monsters[game.encounter.type].name}</h3><span>Lv.${game.encounter.level}</span></div>${U.statBar(b.enemy.hp, b.enemy.stats.hp, 'hp', 'HP')}<div class="enemy-status"><span>${b.phase === 'victory' ? '已倒下' : Object.values(b.enemy.statuses).map(s=>s.name).join(' · ') || ''}</span><span>${b.enemy.elements.map(e=>D.elements[e]).join('＋')||'無屬性'}</span></div>${U.castBar(b.enemy, b.time, flash('enemy'))}`;
@@ -357,12 +385,15 @@ function handleAction(action, id, element) {
   else if (action === 'begin-run') beginRun();
   else if (action === 'close') { if (!['result', 'reward', 'acquire', 'replace', 'replace-confirm'].includes(game.modal)) closeModal(); }
   else if (action === 'journal') showJournal();
+  else if (action === 'run-loadout') showRunLoadout();
+  else if (action === 'run-slot'&&game.modal==='run-loadout') showRunSlot(element.dataset.kind,Number(element.dataset.index));
+  else if (action === 'run-config-select'&&game.modal==='run-slot') selectRunAbility(id);
   else if (action === 'pause') pause();
   else if(action==='full-reset')openModal('full-reset',`<h2 id="modal-title">完全重置遊戲？</h2><p>將永久刪除這個瀏覽器內的所有收藏、招式熟練度、通關紀錄、本局冒險、配置與設定。</p><p>此操作無法復原。離線遊戲檔案會保留。</p><div class="modal-footer">${U.button('取消','close')}${U.button('確認完全重置','full-reset-confirm',{primary:true})}</div>`);
   else if(action==='full-reset-confirm'&&game.modal==='full-reset')resetAllProgress();
   else if(action==='restart-basic')openModal('restart-basic',`<h2 id="modal-title">基礎配置重新出發</h2><p>結束目前冒險，以 Lv.1、快速斬擊與火球術、空白被動技能欄重新出發。</p><p>永久收藏與已累積的招式熟練度都會保留。</p>${game.run?runLootHTML(game.run):''}<div class="modal-footer">${U.button('取消','close')}${U.button('重新出發','restart-basic-confirm',{primary:true})}</div>`);
   else if(action==='restart-basic-confirm'&&game.modal==='restart-basic'){if(game.run&&!game.debugBattle){Meta.settle(game.permanent,game.run);saveSession();persist();}game.run=null;game.battle=null;game.result=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.noRandom=false;game.build=P.defaultBuild();game.lastRegion=null;saveBuild();beginRun();}
-  else if(action.startsWith('world-'))worldDebugAction(action);
+  else if(action.startsWith('world-'))worldDebugAction(action,id);
   else if (action === 'interact') interact();
   else if (action === 'move') chooseMove(id, element.dataset.ultimate === 'true');
   else if (action === 'enter-dungeon' && game.modal === 'dungeon' && D.dungeons.some(d=>d.id===id)) { if(!game.debugBattle){Meta.enter(game.permanent,id);persist();}game.run.dungeon = { id, stage: 0 }; Audio.emit('dungeonEnter'); startEncounter(P.dungeonEncounter(game.run)); }
@@ -379,7 +410,7 @@ function handleAction(action, id, element) {
   else if (action === 'fullscreen') { if (document.fullscreenElement) document.exitFullscreen?.(); else requestGameFullscreen(false); }
   else if (action === 'debug-close') $('debug').hidden = true;
   else if (action === 'debug-exp' && game.scene === 'explore') { P.grantExp(game.run, game.run.level); $('debug').hidden = true; showJournal(); }
-  else if (action === 'debug-dungeon' && game.scene === 'explore') { game.run.position = { x: D.dungeons[0].x, y: D.dungeons[0].y + 65 }; $('debug').hidden = true; }
+  else if (action === 'debug-dungeon' && game.scene === 'explore') { Maps.enter(game.run,D.dungeons[0].mapId); game.run.position = { x: D.dungeons[0].x, y: D.dungeons[0].y + 65 }; $('debug').hidden = true; }
   else if (action === 'debug-random') { game.noRandom = !game.noRandom; if (game.battle) { const sample = P.battleFor(game.run, game.encounter); game.battle.rules = game.noRandom ? { ...sample.rules, critChance: 0, dodgeChance: 0 } : sample.rules; } toast(game.noRandom ? '測試模式：固定命中，無爆擊' : '恢復隨機判定'); }
   renderUI();
 }
@@ -462,7 +493,7 @@ function combatEvent(event) {
 function frame(now) {
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
-    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const region=P.regionAt(game.run.position.x,game.run.position.y);if(game.lastRegion!==region.id){game.lastRegion=region.id;toast(region.name+' · 推薦 Lv.'+region.min+'–'+region.max);} if (enemy) startEncounter(enemy); }
+    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} if (enemy) startEncounter(enemy); }
     else if (game.scene === 'battle') {
       if (game.transition > 0) { game.transition = Math.max(0, game.transition - dt); if (!game.transition) $('transition').hidden = true; }
       else {

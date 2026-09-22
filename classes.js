@@ -34,7 +34,7 @@
  ['MAGE_SKILL_001','超載詠唱','MAGE'],['MAGE_SKILL_002','魔力溢流','MAGE'],['MAGE_SKILL_003','術式循環','MAGE'],['MAGE_SKILL_004','靜心','MAGE'],
  ['RANGER_SKILL_001','弱點狙擊','RANGER'],['RANGER_SKILL_002','先制射擊','RANGER'],['RANGER_SKILL_003','冷靜獵手','RANGER'],['RANGER_SKILL_004','致命時機','RANGER'],
  ['CLERIC_SKILL_001','祝福延續','CLERIC'],['CLERIC_SKILL_002','神聖回流','CLERIC'],['CLERIC_SKILL_003','慈悲','CLERIC'],['CLERIC_SKILL_004','信仰之盾','CLERIC'],
- ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','守勢轉攻','WARRIOR']
+ ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;

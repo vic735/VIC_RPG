@@ -8,7 +8,10 @@
   function validateBuild(build, unlocked = Object.keys(D.moves)) {
     if (build.talents.length > 4 || build.moves.length > 4) throw Error('天賦與普通招式各最多四個');
     if (new Set(build.moves).size !== build.moves.length || new Set(build.talents).size !== build.talents.length) throw Error('Build 不可重複配置');
-    for (const id of build.moves) if (!D.moves[id] || D.moves[id].kind !== 'normal' || !unlocked.includes(id)) throw Error('招式不存在或尚未解鎖');
+    for (const id of build.moves) {
+      const move=D.moves[id], available=move&&(unlocked.includes(id)||unlocked.includes(move.id)||unlocked.some(key=>D.moves[key]===move));
+      if (!move || move.kind !== 'normal' || !available) throw Error('招式不存在或尚未解鎖');
+    }
     if (build.ultimate !== null && typeof build.ultimate !== 'string') throw Error('必殺技最多一個 ID');
     const slots = ['head', 'chest', 'arms', 'feet', 'weapon'];
     if (Object.keys(build.equipment).some(k => !slots.includes(k))) throw Error('未知裝備欄位');

@@ -31,7 +31,7 @@ function harness(initialSave=[]) {
   const math = Object.create(Math); math.random = () => .5;
   const ctx = { document: doc, devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080, Math: math, Date, performance: { now: () => now }, requestAnimationFrame: fn => raf = fn, localStorage: { getItem: k => saved.get(k), setItem: (k, v) => saved.set(k, v), removeItem:k=>saved.delete(k) }, console, setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,at:timerClock+ms});return id;}, clearTimeout:id=>timers.delete(id) };
   ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = (name, fn) => windowEvents[name] = fn; vm.createContext(ctx);
-  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'classes', 'achievements', 'skill-runtime', 'engine', 'world-rewards', 'meta', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
+  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'world-maps', 'classes', 'achievements', 'skill-runtime', 'engine', 'world-rewards', 'meta', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
   const game = ctx.GameApp.game;
   function step(count = 1) { for (let i = 0; i < count; i++) { now += 50; raf(now); } }
   function click(action, id, extra = {}) {
@@ -40,6 +40,10 @@ function harness(initialSave=[]) {
     const element = sources.flatMap(buttons).find(e => e.dataset.action === action && (id == null || e.dataset.id === id) && Object.entries(extra).every(([k, v]) => e.dataset[k] === String(v)));
     assert.ok(element, 'Missing visible UI action: ' + action + ' ' + (id || '') + JSON.stringify(extra)); assert.ok(!element.disabled, 'Disabled action: ' + action);
     events.click({ target: element, preventDefault() {} });
+    if(action==='begin-run'){
+      assert.equal(game.modal,'world-map');
+      click('world-region','north_plains');click('world-map-detail','north_plains_1');click('world-enter-map','north_plains_1');
+    }
   }
   function key(key, up = false) { events[up ? 'keyup' : 'keydown']({ key, repeat: false, preventDefault() {}, target: {} }); }
   function forged(action, id) { events.click({ target: new Element(`data-action="${action}" data-id="${id || ''}"`), preventDefault() {} }); }
@@ -124,9 +128,16 @@ test('中央搖桿的類比移動、第二指隔離、放手與選單停止移�
   joystick.listeners.pointerdown(pointer(4,220,582)); joystick.listeners.lostpointercapture(pointer(4,220,582)); assert.equal(vm.runInContext('input().x',h.ctx),0);
 });
 
-test('正式探索 HUD 僅鄰近入口顯示互動，五區地圖可查看且無 NPC',()=>{
+test('正式探索 HUD 僅鄰近入口顯示互動，七大區地圖可查看且無 NPC',()=>{
  const h=harness();h.click('begin-run');const run=h.game.run;run.world.enemies=[];run.position={x:80,y:80};h.step(2);assert.equal(h.elements.get('interact').hidden,true);assert.equal(h.elements.get('skillbar').hidden,true);assert.equal(h.ctx.GameData.explorationObjects.length,0);
- const d=h.ctx.GameData.dungeons[0];run.position={x:d.x,y:d.y+65};h.step(2);assert.equal(h.elements.get('interact').hidden,false);h.click('interact');assert.equal(h.game.modal,'dungeon');assert.ok(h.elements.get('modal').innerHTML.includes('Lv.12'));assert.ok(!h.elements.get('modal').innerHTML.includes('heavy_slash'));h.click('close');h.click('journal');h.click('world-map');assert.ok(h.elements.get('modal').innerHTML.includes('黑曜禁域'));h.click('close');assert.equal(h.game.scene,'explore');
+ const d=h.ctx.GameData.dungeons[0];h.click('world-map');h.click('world-region','central_mines');h.click('world-map-detail',d.mapId);h.click('world-enter-map',d.mapId);run.position={x:d.x,y:d.y+65};h.step(2);assert.equal(h.elements.get('interact').hidden,false);h.click('interact');assert.equal(h.game.modal,'dungeon');assert.ok(h.elements.get('modal').innerHTML.includes('Lv.12'));assert.ok(!h.elements.get('modal').innerHTML.includes('heavy_slash'));h.click('close');h.click('journal');h.click('world-map');assert.ok(h.elements.get('modal').innerHTML.includes('暗黑帝國'));h.click('close');assert.equal(h.game.scene,'explore');
+});
+
+test('世界地圖可跨七大區切換，局內已取得招式可重新配置且重整保留',()=>{
+ const h=harness();h.click('begin-run');const run=h.game.run;run.level=18;run.ultimateCharge=27;h.ctx.Progression.receiveAbility(h.game.permanent,run,'moves','spark');run.pendingAcquisitions=[];
+ h.click('world-map');h.click('world-region','southern_kingdom');h.click('world-map-detail','southern_kingdom_1');assert.match(h.elements.get('modal').innerHTML,/舊魔法研究室/);h.click('world-enter-map','southern_kingdom_1');assert.equal(run.currentMapId,'southern_kingdom_1');
+ h.click('journal');h.click('run-loadout');h.click('run-slot',null,{kind:'moves',index:0});h.click('run-config-select','spark');assert.equal(run.build.moves[0],'spark');assert.equal(run.level,18);assert.equal(run.ultimateCharge,27);
+ h.click('close');const second=harness(h.saved);assert.equal(second.game.run.currentMapId,'southern_kingdom_1');assert.equal(second.game.run.build.moves[0],'spark');assert.equal(second.game.run.level,18);
 });
 
 test('v0.2 HUD 最終消耗、液面、需求線、MP/SP 分色與容器充能',()=>{
@@ -177,7 +188,7 @@ test('世界測試 UI：查看敵人／獎勵池、指定組合／池、等級�
 
 test('十一座地下城可經 UI 入口、連戰、領獎、返回探索；Lv.1 無進入硬鎖',()=>{
  for(const id of ['abandoned_mine','old_lab','root_cave','sunken_temple','lava_vein','giant_ruins','frozen_tower','thunder_workshop','blacklight_chapel','element_abyss','terminal_structure']){
-  const h=harness();h.click('begin-run');const d=h.ctx.GameData.dungeons.find(d=>d.id===id),run=h.game.run;run.world.enemies=[];run.position={x:d.x,y:d.y+65};h.step(2);h.click('interact');h.click('enter-dungeon',id);assert.equal(run.level,1);assert.equal(h.game.scene,'battle');
+  const h=harness();h.click('begin-run');const d=h.ctx.GameData.dungeons.find(d=>d.id===id),run=h.game.run;h.click('world-map');h.click('world-region',h.ctx.GameData.maps[d.mapId].regionId);h.click('world-map-detail',d.mapId);h.click('world-enter-map',d.mapId);run.world.enemies=[];run.position={x:d.x,y:d.y+65};h.step(2);h.click('interact');h.click('enter-dungeon',id);assert.equal(run.level,1);assert.equal(h.game.scene,'battle');
   for(let i=0;i<d.enemyWaves.length;i++){const b=h.game.battle;b.player.stats.stamina=100000;b.player.stamina=100000;b.player.stats.hp=100000;b.player.hp=100000;for(let ticks=0;ticks<1200&&h.game.modal!=='result';ticks++){h.key('w');h.step();}assert.equal(h.game.result.won,true,id+' wave '+i);h.click('result-next');}
   assert.equal(h.game.modal,'reward');assert.equal(h.game.permanent.dungeonCompletions[id],1);h.click('reward-next');while(h.game.modal==='acquire')h.click('acquire-skip');assert.equal(h.game.scene,'explore');assert.equal(run.dungeon,null);
  }

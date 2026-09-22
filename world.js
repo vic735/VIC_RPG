@@ -29,6 +29,7 @@
     const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt);
     let contact = null;
     for (const e of run.world.enemies) {
+      if (run.currentMapId && e.mapId !== run.currentMapId) continue;
       if (e.defeatedUntil > run.world.time) continue;
       const def = D.monsters[e.type], dist = distance(e, run.position);
       if (e.defeatedUntil > 0 && dist < 140) { e.defeatedUntil = run.world.time + .5; continue; }
@@ -42,14 +43,14 @@
       e.x = Math.max(35, Math.min(D.world.width - 35, e.x)); e.y = Math.max(35, Math.min(D.world.height - 35, e.y));
       if (distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
     }
-    for (const d of D.dungeons) if (distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
+    for (const d of D.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
     return contact;
   }
   function nearby(run) {
-    const dungeon = D.dungeons.find(d => distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
-    const enemy = run.world.enemies.filter(e => e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];
+    const enemy = run.world.enemies.filter(e => (!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];
     return enemy ? { kind: 'enemy', entity: enemy } : null;
   }
   function interactObject(run, id) {
