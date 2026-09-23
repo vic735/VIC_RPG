@@ -44,6 +44,15 @@
    point.level=i<beginnerCount?map.recommendedLevelMin:i<beginnerCount+6?Math.min(map.recommendedLevelMax,map.recommendedLevelMin+1+Math.floor((i-beginnerCount)/2)):Math.round(map.recommendedLevelMin+span*Math.max(0,Math.min(1,progress*.96+(random()-.5)*.05)));
    if(i>=11&&i%12===11)point.elite=true;
   }
+  // Fill gaps without moving existing spawns or replacing their saved cooldowns.
+  const anchors=[...points],density={columns:18,rows:12,minimumSpacing:230};
+  map.encounterDensity=density;
+  for(let row=0;row<density.rows;row++)for(let col=0;col<density.columns;col++){
+   const x=Math.round(margin+(col+.3+random()*.4)*(D.world.width-margin*2)/density.columns),y=Math.round(margin+(row+.3+random()*.4)*(D.world.height-margin*2)/density.rows);
+   if(Math.hypot(x-map.entry.x,y-map.entry.y)<safeRadius||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150)||points.some(p=>Math.hypot(x-p.x,y-p.y)<density.minimumSpacing))continue;
+   const nearest=anchors.reduce((a,b)=>Math.hypot(x-a.x,y-a.y)<Math.hypot(x-b.x,y-b.y)?a:b);
+   points.push({x,y,elite:false,level:nearest.level});
+  }
   return points;
  }
  for(const map of maps){

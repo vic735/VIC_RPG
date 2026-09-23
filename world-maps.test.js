@@ -1,6 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data'),Maps=require('./world-maps'),P=require('./progression'),World=require('./world'),Save=require('./run-save');
 
+test('加密野怪補足地圖空隙，載入較稀疏的同版本存檔不重置既有怪物與玩家位置',()=>{
+ for(const map of Maps.maps){assert.ok(map.spawnPoints.length>=170,map.id);assert.ok(map.spawnPoints.filter(p=>p.elite).length<=5);}
+ const run=P.createRun(P.freshProgress(),undefined,()=>.5),map=D.maps[run.currentMapId];
+ run.world.enemies=run.world.enemies.filter(e=>!e.id.startsWith(map.id+'-patrol-')||Number(e.id.split('-patrol-')[1])<60);
+ const existing=run.world.enemies.find(e=>e.id===map.id+'-patrol-0');existing.defeatedUntil=123;run.position={x:4200,y:2600};const saved=JSON.stringify(existing);
+ Maps.ensureRun(run);assert.equal(JSON.stringify(existing),saved);assert.deepEqual(run.position,{x:4200,y:2600});assert.equal(run.world.enemies.filter(e=>e.id.startsWith(map.id+'-patrol-')).length,map.spawnPoints.length);
+});
+
 test('35 張地圖都有可接觸的野怪與附近地下城，重訪不重置刷新或增加副本',()=>{
  const run=P.createRun(P.freshProgress(),undefined,()=>.5),R=require('./world-rewards');
  for(const map of Maps.maps){
