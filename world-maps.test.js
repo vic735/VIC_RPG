@@ -5,7 +5,7 @@ test('35 張地圖都有可接觸的野怪與附近地下城，重訪不重置�
  const run=P.createRun(P.freshProgress(),undefined,()=>.5),R=require('./world-rewards');
  for(const map of Maps.maps){
   Maps.enter(run,map.id);assert.deepEqual(map.entry,{x:D.world.width/2,y:D.world.height/2});assert.ok(map.spawnPoints.length>=50,map.id);assert.equal(World.blocked(map.entry.x,map.entry.y),false,map.id);
-  assert.ok(map.spawnPoints.every(p=>World.distance(p,map.entry)>=720),map.id+' center safe zone');
+  assert.ok(map.spawnPoints.every(p=>World.distance(p,map.entry)>=Maps.safeRadius),map.id+' center safe zone');assert.ok(map.spawnPoints.filter(p=>p.level===map.recommendedLevelMin).length>=6,map.id+' minimum-level group');
   assert.ok(map.spawnPoints.filter(p=>p.elite).length>=4,map.id+' elites');assert.ok(map.spawnPoints.filter(p=>World.distance(p,map.entry)>1000).length>map.spawnPoints.length*.65,map.id+' distant spread');
   assert.ok(Math.min(...map.spawnPoints.map(p=>p.x))<D.world.width*.2&&Math.max(...map.spawnPoints.map(p=>p.x))>D.world.width*.8,map.id+' horizontal coverage');
   assert.ok(Math.min(...map.spawnPoints.map(p=>p.y))<D.world.height*.2&&Math.max(...map.spawnPoints.map(p=>p.y))>D.world.height*.8,map.id+' vertical coverage');
@@ -42,4 +42,10 @@ test('跨區切換保留同局成長、招式配置、必殺能量與每張地�
 test('舊版探索存檔能遷移到地圖結構，既有收藏與遊戲世界版本不變',()=>{
  const permanent=P.freshProgress(),run=P.createRun(permanent,undefined,()=>.5);const originalWorldVersion=D.worldContentVersion;delete run.currentMapId;delete run.mapPositions;delete run.mapLayoutVersion;delete run.availableMoves;delete run.availableSkills;run.position={x:350,y:350};for(const enemy of run.world.enemies)delete enemy.mapId;
  const game={scene:'explore',run,permanent,build:run.build};const storage=new Map([[Save.KEY,JSON.stringify(Save.pack(game))]]);const result=Save.load({getItem:key=>storage.get(key)});assert.equal(result.warning,undefined);assert.equal(result.snapshot.run.currentMapId,'north_plains_1');assert.deepEqual(result.snapshot.run.position,{x:D.world.width/2,y:D.world.height/2});assert.equal(result.snapshot.run.mapLayoutVersion,Maps.layoutVersion);assert.ok(result.snapshot.run.world.enemies.every(e=>D.maps[e.mapId]));assert.equal(D.worldContentVersion,originalWorldVersion);
+});
+
+test('七張起始地圖的第一批基礎怪從 Lv.1 開始，舊版巡邏資料會重建',()=>{
+ const run=P.createRun(P.freshProgress(),undefined,()=>.5);
+ for(const region of Maps.regions){const map=D.maps[region.mapIds[0]];assert.equal(map.recommendedLevelMin,1);assert.ok(map.spawnPoints.filter(p=>p.level===1).length>=6,map.id);}
+ run.world.enemies.push({id:'north_plains_1-patrol-obsolete',mapId:'north_plains_1',type:'greywind_0',level:9,x:1,y:1,homeX:1,homeY:1,defeatedUntil:99});run.mapLayoutVersion=Maps.layoutVersion-1;Maps.ensureRun(run);assert.ok(!run.world.enemies.some(e=>e.id.endsWith('obsolete')));assert.ok(run.world.enemies.filter(e=>e.id.startsWith('north_plains_1-patrol-')&&e.level===1).length>=6);
 });
