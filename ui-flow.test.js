@@ -140,6 +140,11 @@ test('世界地圖可跨七大區切換，局內已取得招式可重新配置�
  h.click('close');const second=harness(h.saved);assert.equal(second.game.run.currentMapId,'southern_kingdom_1');assert.equal(second.game.run.build.moves[0],'spark');assert.equal(second.game.run.level,18);
 });
 
+test('靠近右側邊界顯示下一區，互動後保留本局狀態並從另一側進場',()=>{
+ const h=harness();h.click('begin-run');h.click('world-map');h.click('world-region','north_plains');h.click('world-map-detail','north_plains_2');h.click('world-enter-map','north_plains_2');const run=h.game.run;run.level=31;run.ultimateCharge=44;run.position={x:h.ctx.GameData.world.width-40,y:1800};h.step(2);
+ assert.equal(h.elements.get('interact').hidden,false);assert.match(h.elements.get('interact').textContent,/前往下一區.*地圖 3/);h.click('interact');assert.equal(run.currentMapId,'north_plains_3');assert.equal(run.position.x,180);assert.equal(run.position.y,1800);assert.equal(run.level,31);assert.equal(run.ultimateCharge,44);
+});
+
 test('v0.2 HUD 最終消耗、液面、需求線、MP/SP 分色與容器充能',()=>{
  const h=harness();h.click('begin-run');const b=h.ctx.GameDebug.build({talents:['economy'],moves:['fireball','heavy_slash'],rng:()=>.99});h.game.battle=b;h.game.run.build=b.build;h.game.scene='battle';h.game.transition=0;h.game.encounter={type:'boss',level:1};
  vm.runInContext('rebuildSkills();renderUI()',h.ctx);
@@ -183,7 +188,7 @@ test('世界測試 UI：查看敵人／獎勵池、指定組合／池、等級�
  const h=harness();h.click('settings');h.click('world-debug');const set=(id,value)=>h.elements.get('world-'+id).value=value;
  set('region','obsidian');set('dungeon','terminal_structure');set('level','190');set('enemy',h.game.run.world.enemies[0].id);set('enemy-level','99');set('samples','100');set('combination','rare');set('pool','');
  const saved=JSON.stringify(h.game.permanent);h.click('world-enemies');assert.ok(h.elements.get('world-output').textContent.includes('黑曜禁域'));h.click('world-inspect');assert.ok(h.elements.get('world-output').textContent.includes('terminal_structure_primary'));h.click('world-sample');assert.equal(JSON.parse(h.elements.get('world-output').textContent).combinations.rare,100);
- set('pool','abandoned_mine_secondary');h.click('world-sample');assert.equal(JSON.parse(h.elements.get('world-output').textContent).count,100);assert.equal(JSON.stringify(h.game.permanent),saved);h.click('world-level');assert.equal(h.game.run.level,190);h.click('world-enemy-level');assert.equal(h.game.run.world.enemies[0].level,99);h.click('world-teleport');assert.equal(h.game.scene,'explore');assert.equal(h.ctx.Progression.regionAt(h.game.run.position.x,h.game.run.position.y).id,'obsidian');
+ set('pool','abandoned_mine_secondary');h.click('world-sample');assert.equal(JSON.parse(h.elements.get('world-output').textContent).count,100);assert.equal(JSON.stringify(h.game.permanent),saved);h.click('world-level');assert.equal(h.game.run.level,190);h.click('world-enemy-level');assert.equal(h.game.run.world.enemies[0].level,99);h.click('world-teleport');assert.equal(h.game.scene,'explore');assert.equal(h.game.run.currentMapId,'dark_empire_5');
 });
 
 test('十一座地下城可經 UI 入口、連戰、領獎、返回探索；Lv.1 無進入硬鎖',()=>{

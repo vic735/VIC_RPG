@@ -182,7 +182,16 @@ function currentDungeon() { return D.dungeons.find(d=>d.id===game.run?.dungeon?.
 function showDungeon(d) {
   openModal('dungeon', `<div class="eyebrow">DUNGEON · ${d.dungeonType.toUpperCase()}</div><h2 id="modal-title">${d.name}</h2><p>推薦 Lv.${d.recommendedLevel} · 自由進入</p><p>${d.features.join(' ／ ')}</p><div class="dungeon-stages">${d.enemyWaves.map((wave,i)=>`<div><small>${i+1} · ${{normal:'普通',elite:'精英',boss:'首領'}[wave.role]||wave.role}</small><strong>Lv.${wave.level}</strong></div>`).join('')}</div><p>可能獲得：${d.rewardTypes.map(k=>({moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'}[k]||k)).join('、')}<br>通關後依獎勵池抽取；波間不回復資源；通關離開後回滿。</p><div class="modal-footer">${U.button('稍後再來','close')}${U.button('進入地下城 →','enter-dungeon',{id:d.id,primary:true})}</div>`, 'result-modal');
 }
-function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if (target.kind === 'dungeon') showDungeon(target.entity);
+function travelMapExit(exit){
+ const run=game.run,old={...run.position},map=Maps.enter(run,exit.id);if(!map)return;
+ const pad=180,xRatio=Math.max(.05,Math.min(.95,old.x/D.world.width)),yRatio=Math.max(.05,Math.min(.95,old.y/D.world.height));
+ if(exit.edge==='right')run.position={x:pad,y:Math.round(yRatio*D.world.height)};
+ else if(exit.edge==='left')run.position={x:D.world.width-pad,y:Math.round(yRatio*D.world.height)};
+ else if(exit.edge==='bottom')run.position={x:Math.round(xRatio*D.world.width),y:pad};
+ else run.position={x:Math.round(xRatio*D.world.width),y:D.world.height-pad};
+ run.mapPositions[map.id]={...run.position};game.lastRegion=map.id;renderer.fx=[];renderer.hits={};renderer.attacks={};saveSession();toast((exit.forward?'前往 ':'返回 ')+map.name+' · Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);
+}
+function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
   else if (target.kind === 'enemy') startEncounter(target.entity);
   else { const result = World.interactObject(game.run, target.entity.id); if (!result) return;
     if (result.reward) Audio.emit('itemGain');
@@ -307,7 +316,7 @@ function renderUI() {
     $('player-status').textContent=Object.values(b.player.statuses).map(s=>s.name).join(' · ')+(b.player.shield>0?' · 護盾 '+Math.ceil(b.player.shield):'');
   }
   const nearby = fighting ? null : World.nearby(run); $('interact').hidden = !nearby || !!game.modal || !!game.screen;
-  if (nearby) $('interact').textContent = nearby.kind === 'dungeon' ? '◇ 進入 · ' + nearby.entity.name : nearby.kind === 'enemy' ? `Lv.${nearby.entity.level} · 挑戰` : nearby.entity.action + ' · ' + nearby.entity.name;
+  if (nearby) $('interact').textContent = nearby.kind === 'map-exit' ? `${nearby.entity.forward?'→ 前往下一區':'← 返回上一區'} · ${nearby.entity.name}` : nearby.kind === 'dungeon' ? '◇ 進入 · ' + nearby.entity.name : nearby.kind === 'enemy' ? `Lv.${nearby.entity.level} · 挑戰` : nearby.entity.action + ' · ' + nearby.entity.name;
   for (const [index, button] of [...$('skillbar').querySelectorAll('[data-action="move"]')].entries()) {
     const id = button.dataset.id, move = fighting ? game.battle.getMove(id) : D.moves[id], ultimate = index === 4;
     if (!move) { button.setAttribute('aria-disabled', 'true'); continue; }

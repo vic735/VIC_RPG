@@ -46,10 +46,17 @@
     for (const d of D.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
     return contact;
   }
+  function edgeExit(run,threshold=150) {
+    const map=D.maps?.[run.currentMapId],region=map&&D.regionById?.[map.regionId];if(!map||!region)return null;
+    const edges=[['left',run.position.x],['right',D.world.width-run.position.x],['top',run.position.y],['bottom',D.world.height-run.position.y]].sort((a,b)=>a[1]-b[1]),index=region.mapIds.indexOf(map.id);
+    for(const [edge,proximity] of edges){if(proximity>threshold)break;const forward=edge==='right'||edge==='bottom',targetId=region.mapIds[index+(forward?1:-1)],target=D.maps[targetId];if(target)return {kind:'map-exit',entity:{id:target.id,name:target.name,edge,forward,fromMapId:map.id},proximity};}
+    return null;
+  }
   function nearby(run) {
     const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
+    const exit=edgeExit(run);if(exit)return exit;
     const enemy = run.world.enemies.filter(e => (!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];
     return enemy ? { kind: 'enemy', entity: enemy } : null;
   }
@@ -61,6 +68,6 @@
     return { text: object.text, reward: object.reward || null };
   }
   function threat(playerLevel, enemyLevel) { const gap = enemyLevel - playerLevel; return gap >= 6 ? { color: '#ff7374', label: '☠ 極度危險' } : gap >= 3 ? { color: '#ee8a77', label: '危險' } : gap >= -1 ? { color: '#edcf8d', label: '勢均力敵' } : { color: '#e4e8d7', label: '較弱' }; }
-  const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, interactObject, threat, distance };
+  const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, edgeExit, interactObject, threat, distance };
   if (typeof module !== 'undefined') module.exports = api; else root.World = api;
 })(globalThis);

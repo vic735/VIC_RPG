@@ -12,6 +12,7 @@
  ];
  const dungeonMap={abandoned_mine:1,old_lab:1,root_cave:2,sunken_temple:2,lava_vein:3,giant_ruins:4,frozen_tower:4,thunder_workshop:4,blacklight_chapel:5,element_abyss:5,terminal_structure:5};
  const legacyToRegion={greywind:'north_plains',verdant:'mirewood',redrift:'central_mines',froststorm:'northern_kingdom',obsidian:'dark_empire'};
+ const layoutVersion=2,sharedEntry={x:Math.round(D.world.width/2),y:Math.round(D.world.height/2)};D.world.camp={...sharedEntry};
  const regions=[],maps=[];
  for(const [sortOrder,row] of rows.entries()){
   const [id,name,description,legacyId,environmentId,color,themeTags,elementTendencies,levels,dungeonIds]=row;
@@ -21,16 +22,27 @@
    const mapId=id+'_'+(index+1),assigned=dungeonIds.filter(d=>dungeonMap[d]===index+1),rewardPoolId=mapId+'_field';
    const source=D.rewardPools[legacyId+'_field'];
    D.rewardPools[rewardPoolId]={id:rewardPoolId,entries:JSON.parse(JSON.stringify(source?.entries||[]))};
-   const map={id:mapId,regionId:id,name:index===0?name+'・起始地圖':name+'・地圖 '+(index+1),description:index===0?description:description+'，可依目前實力選擇挑戰。',recommendedLevelMin,recommendedLevelMax,dangerTier:index+1,enemyPoolIds:[...legacy.enemyPools],elitePoolIds:[...legacy.elitePools],dungeonIds:assigned,rewardPoolIds:[rewardPoolId],elementTendencies:[...elementTendencies],gameplayTags:[...themeTags],environmentId,isAvailable:true,sortOrder:index,entry:{x:legacy.x,y:legacy.y},color};
+   const map={id:mapId,regionId:id,name:index===0?name+'・起始地圖':name+'・地圖 '+(index+1),description:index===0?description:description+'，可依目前實力選擇挑戰。',recommendedLevelMin,recommendedLevelMax,dangerTier:index+1,enemyPoolIds:[...legacy.enemyPools],elitePoolIds:[...legacy.elitePools],dungeonIds:assigned,rewardPoolIds:[rewardPoolId],elementTendencies:[...elementTendencies],gameplayTags:[...themeTags],environmentId,isAvailable:true,sortOrder:index,entry:{...sharedEntry},color};
    region.mapIds.push(mapId);maps.push(map);
   }
   regions.push(region);
  }
  // Each map has a local encounter layout and a reachable dungeon entrance.
  const routes={north_plains:['abandoned_mine','荒原哨站'],northern_kingdom:['frozen_tower','霜雷哨塔'],mirewood:['root_cave','幽根密窟'],central_mines:['giant_ruins','深岩試煉所'],dark_empire:['blacklight_chapel','暮影祭壇'],southern_kingdom:['old_lab','餘燼法陣'],southern_forest:['root_cave','獵風古穴']};
+ function spawnLayout(map){
+  let seed=[...map.id].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917),random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  const points=[],cols=9,rows=7,margin=130,cellW=(D.world.width-margin*2)/cols,cellH=(D.world.height-margin*2)/rows,dungeons=map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)).filter(Boolean),maxDistance=Math.max(...[[margin,margin],[D.world.width-margin,margin],[margin,D.world.height-margin],[D.world.width-margin,D.world.height-margin]].map(([x,y])=>Math.hypot(x-map.entry.x,y-map.entry.y)));
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+   const x=Math.round(margin+(col+.18+random()*.64)*cellW),y=Math.round(margin+(row+.18+random()*.64)*cellH),distance=Math.hypot(x-map.entry.x,y-map.entry.y);
+   if(distance<720||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150))continue;
+   const danger=Math.min(1,distance/maxDistance),level=Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*Math.min(1,danger*.82+random()*.18));
+   points.push({x,y,elite:false,level});
+  }
+  points.sort((a,b)=>Math.hypot(a.x-map.entry.x,a.y-map.entry.y)-Math.hypot(b.x-map.entry.x,b.y-map.entry.y));
+  for(let i=11;i<points.length;i+=12)points[i].elite=true;
+  return points;
+ }
  for(const map of maps){
-  if(map.id==='north_plains_1')map.entry={...D.world.camp};
-  map.spawnPoints=Array.from({length:18},(_,i)=>{const ring=Math.floor(i/6),angle=(i%6)*Math.PI/3+ring*.3,radius=210+ring*230;return {x:Math.round(map.entry.x+Math.cos(angle)*radius),y:Math.round(map.entry.y+Math.sin(angle)*radius),elite:i===17,level:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*i/17)};}).filter(p=>p.x>50&&p.y>50&&p.x<D.world.width-50&&p.y<D.world.height-50);
   if(!map.dungeonIds.length){
    const [themeTemplate,name]=routes[map.regionId],level=map.sortOrder===0?12:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);
    const template=D.dungeons.find(d=>d.id===(level<25?(map.regionId==='southern_kingdom'?'old_lab':'abandoned_mine'):themeTemplate));
@@ -39,6 +51,7 @@
    D.dungeons.push(dungeon);map.dungeonIds.push(dungeon.id);
   }
   map.dungeonIds.forEach((id,index)=>{const d=D.dungeons.find(d=>d.id===id);d.mapId=map.id;d.regionId=regions.find(r=>r.id===map.regionId).legacyRegionId;d.x=map.entry.x+260+index*220;d.y=map.entry.y-200;});
+  map.spawnPoints=spawnLayout(map);
  }
  D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
  function inferLegacy(run){
@@ -48,6 +61,7 @@
  }
  function ensureRun(run){
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
+  if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.mapLayoutVersion=layoutVersion;}
   run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
   run.availableMoves=[...new Set([...(run.availableMoves||[]),...run.build.moves,run.build.ultimate,...Object.values(run.loot||{}).filter(r=>r.kind==='moves').map(r=>r.id)].filter(id=>D.moves[id]))];
   run.availableSkills=[...new Set([...(run.availableSkills||[]),...run.build.talents,...Object.values(run.loot||{}).filter(r=>r.kind==='talents').map(r=>r.id)].filter(id=>D.skills[id]))];
@@ -75,6 +89,6 @@
   populate(run,map);
   return map;
  }
- const api={regions,maps,byId:D.maps,ensureRun,enter,inferLegacy};
+ const api={regions,maps,byId:D.maps,layoutVersion,ensureRun,enter,inferLegacy};
  if(typeof module!=='undefined')module.exports=api;else root.WorldMaps=api;
 })(globalThis);

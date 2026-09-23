@@ -4,13 +4,25 @@ const D=require('./data'),Maps=require('./world-maps'),P=require('./progression'
 test('35 張地圖都有可接觸的野怪與附近地下城，重訪不重置刷新或增加副本',()=>{
  const run=P.createRun(P.freshProgress(),undefined,()=>.5),R=require('./world-rewards');
  for(const map of Maps.maps){
-  Maps.enter(run,map.id);assert.ok(map.spawnPoints.length>=8,map.id);assert.equal(World.blocked(map.entry.x,map.entry.y),false,map.id);
+  Maps.enter(run,map.id);assert.deepEqual(map.entry,{x:D.world.width/2,y:D.world.height/2});assert.ok(map.spawnPoints.length>=50,map.id);assert.equal(World.blocked(map.entry.x,map.entry.y),false,map.id);
+  assert.ok(map.spawnPoints.every(p=>World.distance(p,map.entry)>=720),map.id+' center safe zone');
+  assert.ok(map.spawnPoints.filter(p=>p.elite).length>=4,map.id+' elites');assert.ok(map.spawnPoints.filter(p=>World.distance(p,map.entry)>1000).length>map.spawnPoints.length*.65,map.id+' distant spread');
+  assert.ok(Math.min(...map.spawnPoints.map(p=>p.x))<D.world.width*.2&&Math.max(...map.spawnPoints.map(p=>p.x))>D.world.width*.8,map.id+' horizontal coverage');
+  assert.ok(Math.min(...map.spawnPoints.map(p=>p.y))<D.world.height*.2&&Math.max(...map.spawnPoints.map(p=>p.y))>D.world.height*.8,map.id+' vertical coverage');
   for(const point of map.spawnPoints)assert.equal(World.blocked(point.x,point.y),false,map.id+' spawn');
   const enemies=run.world.enemies.filter(e=>e.id.startsWith(map.id+'-patrol-'));assert.equal(enemies.length,map.spawnPoints.length);assert.ok(enemies.every(e=>e.level>=map.recommendedLevelMin&&e.level<=map.recommendedLevelMax));
   const count=run.world.enemies.length;enemies[0].defeatedUntil=99;Maps.enter(run,map.id);assert.equal(run.world.enemies.length,count);assert.equal(enemies[0].defeatedUntil,99);
   assert.ok(map.dungeonIds.length);
   for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);assert.ok(World.distance(d,map.entry)<850);run.position={x:d.x,y:d.y+65};assert.equal(World.blocked(run.position.x,run.position.y),false);assert.equal(World.nearby(run).entity.id,id);run.dungeon={id,stage:0};const encounter=P.dungeonEncounter(run);assert.ok(P.battleFor(run,encounter,()=>.9).enemy.hp>0);assert.ok(R.dungeon(id,()=>.5).rewards.length);run.dungeon=null;}
  }
+});
+
+test('靠近地圖邊緣會指出相鄰地圖，首尾不會越出同一大區',()=>{
+ const run=P.createRun(P.freshProgress(),undefined,()=>.5);Maps.enter(run,'north_plains_2');
+ run.position={x:D.world.width-40,y:2000};let exit=World.edgeExit(run);assert.equal(exit.entity.id,'north_plains_3');assert.equal(exit.entity.forward,true);assert.equal(World.nearby(run).kind,'map-exit');
+ run.position={x:40,y:2000};exit=World.edgeExit(run);assert.equal(exit.entity.id,'north_plains_1');assert.equal(exit.entity.forward,false);
+ Maps.enter(run,'north_plains_1');run.position={x:40,y:2000};assert.equal(World.edgeExit(run),null);
+ Maps.enter(run,'north_plains_5');run.position={x:D.world.width-40,y:2000};assert.equal(World.edgeExit(run),null);
 });
 
 test('七大區各有五張地圖，起始圖皆為 Lv.1～20，地下城均有唯一歸屬',()=>{
@@ -28,6 +40,6 @@ test('跨區切換保留同局成長、招式配置、必殺能量與每張地�
 });
 
 test('舊版探索存檔能遷移到地圖結構，既有收藏與遊戲世界版本不變',()=>{
- const permanent=P.freshProgress(),run=P.createRun(permanent,undefined,()=>.5);const originalWorldVersion=D.worldContentVersion;delete run.currentMapId;delete run.mapPositions;delete run.availableMoves;delete run.availableSkills;for(const enemy of run.world.enemies)delete enemy.mapId;
- const game={scene:'explore',run,permanent,build:run.build};const storage=new Map([[Save.KEY,JSON.stringify(Save.pack(game))]]);const result=Save.load({getItem:key=>storage.get(key)});assert.equal(result.warning,undefined);assert.equal(result.snapshot.run.currentMapId,'north_plains_1');assert.ok(result.snapshot.run.world.enemies.every(e=>D.maps[e.mapId]));assert.equal(D.worldContentVersion,originalWorldVersion);
+ const permanent=P.freshProgress(),run=P.createRun(permanent,undefined,()=>.5);const originalWorldVersion=D.worldContentVersion;delete run.currentMapId;delete run.mapPositions;delete run.mapLayoutVersion;delete run.availableMoves;delete run.availableSkills;run.position={x:350,y:350};for(const enemy of run.world.enemies)delete enemy.mapId;
+ const game={scene:'explore',run,permanent,build:run.build};const storage=new Map([[Save.KEY,JSON.stringify(Save.pack(game))]]);const result=Save.load({getItem:key=>storage.get(key)});assert.equal(result.warning,undefined);assert.equal(result.snapshot.run.currentMapId,'north_plains_1');assert.deepEqual(result.snapshot.run.position,{x:D.world.width/2,y:D.world.height/2});assert.equal(result.snapshot.run.mapLayoutVersion,Maps.layoutVersion);assert.ok(result.snapshot.run.world.enemies.every(e=>D.maps[e.mapId]));assert.equal(D.worldContentVersion,originalWorldVersion);
 });
