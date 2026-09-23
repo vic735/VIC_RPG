@@ -3,7 +3,7 @@ const D=require('./data'),P=require('./progression'),W=require('./world'),R=requ
 const make=()=>P.createRun(P.freshProgress(),P.defaultBuild(),()=>.5);
 const sources={moves:D.moves,talents:D.skills,books:D.books,equipment:D.equipment};
 test('世界內容：五區十一城、指定等級、無 NPC、所有引用有效',()=>{
- assert.equal(D.world.regions.length,5);assert.equal(D.dungeons.length,11);assert.equal(D.explorationObjects.length,0);assert.deepEqual(D.world.regions.map(r=>r.dungeonIds.length),[2,2,2,2,3]);assert.deepEqual(D.dungeons.map(d=>d.level),[12,20,38,50,70,85,110,130,160,175,190]);
+ assert.equal(D.world.regions.length,5);assert.equal(D.dungeons.filter(d=>!d.generatedMapDungeon).length,11);assert.equal(D.explorationObjects.length,0);assert.deepEqual(D.dungeons.filter(d=>!d.generatedMapDungeon).map(d=>d.level),[12,20,38,50,70,85,110,130,160,175,190]);assert.ok(D.mapData.every(m=>m.dungeonIds.length));
  for(const pool of Object.values(D.rewardPools))for(const e of pool.entries){assert.ok(e.weight>0);assert.ok(e.rewardIds.length);for(const id of e.rewardIds)assert.ok(sources[e.rewardType][id],`${pool.id} references ${id}`);}
  for(const e of D.enemySpawnData){const m=D.monsters[e.type];assert.ok(m);assert.ok(D.world.regions.some(r=>r.id===e.regionId));for(const id of m.moves)assert.ok(D.moves[id]);for(const id of m.skills)assert.ok(D.skills[id]);assert.ok(D.rewardPools[m.dropPool]);}
  for(const d of D.dungeons){assert.deepEqual(d.enemyWaves.map(w=>w.role),D.dungeonTemplates[d.dungeonType]);assert.equal(d.enemyWaves.at(-1).type,d.bossId);for(const wave of d.enemyWaves){const m=D.monsters[wave.type];for(const id of m.moves)assert.ok(D.moves[id]);for(const id of m.skills)assert.ok(D.skills[id]);}}

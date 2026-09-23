@@ -16,7 +16,7 @@
     const rng = seeded(), items = [];
     for (let i = 0; i < 2200; i++) {
       const x = 65 + rng() * (D.world.width - 130), y = 65 + rng() * (D.world.height - 130), region = P.regionAt(x, y);
-      if ((D.explorationObjects || []).some(o => distance({x, y}, o) < 65) || roadDistance(x,y) < 65 || distance({ x, y }, D.world.camp) < 125 || D.dungeons.some(d => distance({ x, y }, d) < 115) || D.world.spawns.some(([mx, my]) => Math.hypot(x - mx, y - my) < 50)) continue;
+      if ((D.mapData||[]).some(m=>distance({x,y},m.entry)<125||m.spawnPoints.some(p=>distance({x,y},p)<50)) || (D.explorationObjects || []).some(o => distance({x, y}, o) < 65) || roadDistance(x,y) < 65 || distance({ x, y }, D.world.camp) < 125 || D.dungeons.some(d => distance({ x, y }, d) < 115) || D.world.spawns.some(([mx, my]) => Math.hypot(x - mx, y - my) < 50)) continue;
       items.push({ x, y, kind: ['redrift','obsidian'].includes(region.id) ? (rng() < .7 ? 'rock' : 'deadTree') : rng() < .8 ? 'tree' : 'rock', size: .6 + rng() * .7, variant: rng() });
     }
     return items;

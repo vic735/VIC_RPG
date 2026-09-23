@@ -1,6 +1,18 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data'),Maps=require('./world-maps'),P=require('./progression'),World=require('./world'),Save=require('./run-save');
 
+test('35 張地圖都有可接觸的野怪與附近地下城，重訪不重置刷新或增加副本',()=>{
+ const run=P.createRun(P.freshProgress(),undefined,()=>.5),R=require('./world-rewards');
+ for(const map of Maps.maps){
+  Maps.enter(run,map.id);assert.ok(map.spawnPoints.length>=8,map.id);assert.equal(World.blocked(map.entry.x,map.entry.y),false,map.id);
+  for(const point of map.spawnPoints)assert.equal(World.blocked(point.x,point.y),false,map.id+' spawn');
+  const enemies=run.world.enemies.filter(e=>e.id.startsWith(map.id+'-patrol-'));assert.equal(enemies.length,map.spawnPoints.length);assert.ok(enemies.every(e=>e.level>=map.recommendedLevelMin&&e.level<=map.recommendedLevelMax));
+  const count=run.world.enemies.length;enemies[0].defeatedUntil=99;Maps.enter(run,map.id);assert.equal(run.world.enemies.length,count);assert.equal(enemies[0].defeatedUntil,99);
+  assert.ok(map.dungeonIds.length);
+  for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);assert.ok(World.distance(d,map.entry)<850);run.position={x:d.x,y:d.y+65};assert.equal(World.blocked(run.position.x,run.position.y),false);assert.equal(World.nearby(run).entity.id,id);run.dungeon={id,stage:0};const encounter=P.dungeonEncounter(run);assert.ok(P.battleFor(run,encounter,()=>.9).enemy.hp>0);assert.ok(R.dungeon(id,()=>.5).rewards.length);run.dungeon=null;}
+ }
+});
+
 test('七大區各有五張地圖，起始圖皆為 Lv.1～20，地下城均有唯一歸屬',()=>{
  assert.equal(Maps.regions.length,7);assert.equal(Maps.maps.length,35);
  for(const region of Maps.regions){assert.equal(region.mapIds.length,5);const first=D.maps[region.mapIds[0]];assert.equal(first.recommendedLevelMin,1);assert.equal(first.recommendedLevelMax,20);for(const id of region.mapIds){const map=D.maps[id];assert.ok(map.enemyPoolIds.length);assert.ok(D.rewardPools[map.rewardPoolIds[0]]);}}

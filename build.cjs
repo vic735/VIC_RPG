@@ -5,7 +5,7 @@ const read = name => fs.readFileSync(path.join(__dirname, name), 'utf8');
 let html = read('index.html');
 // New feature modules travel in the page so an already-running LAN server
 // with the older static-file allowlist can deliver this release without a restart.
-for (const file of ['meta.js','meta-screens.js','encounters.js']) {
+for (const file of ['meta.js','meta-screens.js','encounters.js','world-maps.js']) {
   const marker=`<!-- inline-module:${file} -->`,end='<!-- /inline-module -->';
   const escaped=file.replaceAll('.', '\\.');
   const pattern=new RegExp(`<!-- inline-module:${escaped} -->[\\s\\S]*?<!-- /inline-module -->|<script src="${escaped}"><\\/script>`);

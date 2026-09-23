@@ -26,7 +26,20 @@
   }
   regions.push(region);
  }
- for(const dungeon of D.dungeons){const map=maps.find(m=>m.dungeonIds.includes(dungeon.id));if(map)dungeon.mapId=map.id;}
+ // Each map has a local encounter layout and a reachable dungeon entrance.
+ const routes={north_plains:['abandoned_mine','荒原哨站'],northern_kingdom:['frozen_tower','霜雷哨塔'],mirewood:['root_cave','幽根密窟'],central_mines:['giant_ruins','深岩試煉所'],dark_empire:['blacklight_chapel','暮影祭壇'],southern_kingdom:['old_lab','餘燼法陣'],southern_forest:['root_cave','獵風古穴']};
+ for(const map of maps){
+  if(map.id==='north_plains_1')map.entry={...D.world.camp};
+  map.spawnPoints=Array.from({length:18},(_,i)=>{const ring=Math.floor(i/6),angle=(i%6)*Math.PI/3+ring*.3,radius=210+ring*230;return {x:Math.round(map.entry.x+Math.cos(angle)*radius),y:Math.round(map.entry.y+Math.sin(angle)*radius),elite:i===17,level:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*i/17)};}).filter(p=>p.x>50&&p.y>50&&p.x<D.world.width-50&&p.y<D.world.height-50);
+  if(!map.dungeonIds.length){
+   const [themeTemplate,name]=routes[map.regionId],level=map.sortOrder===0?12:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);
+   const template=D.dungeons.find(d=>d.id===(level<25?(map.regionId==='southern_kingdom'?'old_lab':'abandoned_mine'):themeTemplate));
+   const dungeon=JSON.parse(JSON.stringify(template));dungeon.id=map.id+'_dungeon';dungeon.name=name+'・'+(map.sortOrder+1);dungeon.level=dungeon.recommendedLevel=level;dungeon.generatedMapDungeon=true;dungeon.templateId=template.id;dungeon.features=[...map.gameplayTags];dungeon.description=map.name+'的區域試煉。';
+   dungeon.enemyWaves=dungeon.enemyWaves.map((w,i)=>({...w,type:w.role==='normal'?map.enemyPoolIds[i%map.enemyPoolIds.length]:w.role==='elite'?map.elitePoolIds[0]:w.type,level:Math.max(1,level+(w.role==='boss'?1:w.role==='normal'?-2:0))}));dungeon.encounters=dungeon.enemyWaves.map(w=>w.type);
+   D.dungeons.push(dungeon);map.dungeonIds.push(dungeon.id);
+  }
+  map.dungeonIds.forEach((id,index)=>{const d=D.dungeons.find(d=>d.id===id);d.mapId=map.id;d.regionId=regions.find(r=>r.id===map.regionId).legacyRegionId;d.x=map.entry.x+260+index*220;d.y=map.entry.y-200;});
+ }
  D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
  function inferLegacy(run){
   const dungeon=D.dungeons.find(d=>d.id===run.dungeon?.id);if(dungeon?.mapId)return dungeon.mapId;
@@ -45,22 +58,21 @@
    const nearest=region.mapIds.map(id=>D.maps[id]).sort((a,b)=>Math.max(a.recommendedLevelMin-enemy.level,enemy.level-a.recommendedLevelMax,0)-Math.max(b.recommendedLevelMin-enemy.level,enemy.level-b.recommendedLevelMax,0))[0];
    enemy.mapId=nearest.id;
   }
+  populate(run,D.maps[run.currentMapId]);
   return run;
+ }
+ function populate(run,map){
+  for(const [i,point] of map.spawnPoints.entries()){
+   const id=map.id+'-patrol-'+i;if(run.world.enemies.some(e=>e.id===id))continue;
+   const pool=point.elite?map.elitePoolIds:map.enemyPoolIds,type=pool[i%pool.length];if(!type)continue;
+   run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,discovered:false,defeatedUntil:0});
+  }
  }
  function enter(run,id){
   const map=D.maps[id];if(!map||!map.isAvailable||run.dungeon)return false;
   ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
   run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
-  const existing=run.world.enemies.filter(e=>e.mapId===id).length;
-  if(existing<8){
-   const pool=[...map.enemyPoolIds],elite=map.elitePoolIds[0];
-   for(let i=existing;i<8;i++){
-    const angle=i*2.399,radius=190+(i%4)*105,type=i===7&&elite?elite:pool[i%pool.length];
-    if(!type)continue;
-    const x=Math.max(50,Math.min(D.world.width-50,Math.round(map.entry.x+Math.cos(angle)*radius))),y=Math.max(50,Math.min(D.world.height-50,Math.round(map.entry.y+Math.sin(angle)*radius)));
-    run.world.enemies.push({id:id+'-enemy-'+i,mapId:id,regionId:map.regionId,x,y,homeX:x,homeY:y,type,level:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*i/9),elite:i===7,discovered:false,defeatedUntil:0});
-   }
-  }
+  populate(run,map);
   return map;
  }
  const api={regions,maps,byId:D.maps,ensureRun,enter,inferLegacy};
