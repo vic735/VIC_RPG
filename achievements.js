@@ -24,5 +24,32 @@
  function battleEnd(p,run,b){if(!run||!b||run.achievementBattleHandled)return [];run.achievementBattleHandled=false;const t=run.runAchievementTemporaryState||{};const events=b.events||[];for(const e of events){if(e.actorId==='player'&&e.type==='damage'){const m=D.moves[e.moveId];if(!swordMove(m))t.usedOnlySwordDamage=false;}if(e.targetId==='player'&&e.type==='damage')t.damageTaken+=e.damage||0;if(e.actorId==='player'&&e.type==='interrupt')t.interrupts++;}const q=[];const warrior=run.activeClassId==='WARRIOR',sword=run.build.equipment.weapon==='sword';if(b.phase==='victory'&&t.weaponStayedSword&&t.usedOnlySwordDamage)add(p,'ACH_UNLOCK_WARRIOR',1,q);if(warrior&&sword&&b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_01',1,q);if(warrior&&sword){for(const e of events)if(e.actorId==='player'&&e.type==='cast'&&swordMove(D.moves[e.moveId])&&(D.moves[e.moveId].attackTimeBase||D.moves[e.moveId].attackTime)>=150)add(p,'ACH_WARRIOR_MASTERY_02',1,q);if(b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_04',t.damageTaken,q);add(p,'ACH_WARRIOR_MASTERY_05',t.interrupts,q);}run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
  function trackBattle(p,run,b){const q=battleEnd(p,run,b),t=run.runAchievementTemporaryState||{},events=b.events||[];t.uniqueMagicMoveIds||=[];let mpKill=false,arrowKill=false,healOrProtect=false;for(const e of events)if(e.actorId==='player'){const m=D.moves[e.moveId];if(e.type==='cast'&&m?.damageType==='magic')t.uniqueMagicMoveIds=[...new Set([...t.uniqueMagicMoveIds,m.id])];if(e.type==='damage'&&m){mpKill||=m.damageType==='magic'&&!!m.cost?.mana;arrowKill||=(m.tags||[]).includes('arrow');}if(e.type==='cast'&&m&&['heal','defense'].includes(m.kind))healOrProtect=true;}if(b.phase==='victory'&&mpKill&&t.uniqueMagicMoveIds.length>=4)add(p,'ACH_UNLOCK_MAGE',1,q);if(b.phase==='victory'&&arrowKill)add(p,'ACH_UNLOCK_RANGER',1,q);if(b.phase==='victory'&&healOrProtect)add(p,'ACH_UNLOCK_CLERIC',1,q);for(const d of Object.values(defs))if(d.category==='職業精通'&&classOf(d.id)===run.activeClassId&&b.phase==='victory')add(p,d.id,1,q);return q;}
  function dungeonClear(p,run,dungeonId){if(!p.unlockedClassIds.includes('WARRIOR')||!p.unlockedClassIds.includes('MAGE'))return [];const ids=run.build.moves.map(id=>D.moves[id]);const mp=ids.filter(m=>m?.damageType==='magic'&&m.cost?.mana).length,physical=ids.filter(m=>m?.damageType==='physical').length;if(mp<2||physical<2)return [];const seen=run.runAchievementTemporaryState?.uniqueDungeonIdsCountedForSpellsword||[];if(seen.includes(dungeonId))return [];run.runAchievementTemporaryState||={};run.runAchievementTemporaryState.uniqueDungeonIdsCountedForSpellsword=[...seen,dungeonId];const q=[];add(p,'ACH_UNLOCK_SPELLSWORD',1,q);run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
- const api={defs,add,start,battleEnd:trackBattle,dungeonClear,swordMove};if(typeof module!=='undefined')module.exports=api;else root.Achievements=api;
+ const journeyTasks=[
+  {id:'RUN_HUNT',name:'戰鬥歷練',metric:'kills',target:20,marks:15},
+  {id:'RUN_CLEAR',name:'遺跡突破',metric:'dungeons',target:1,marks:25},
+  {id:'RUN_LEVEL',name:'逐漸成長',metric:'level',target:10,marks:20},
+  ...[3,6,9,12,15].map((i,n)=>({id:'RUN_RANK_'+i,name:D.runRating.ranks[i]+' 評級挑戰',metric:'score',target:D.runRating.thresholds[i],marks:[20,30,40,60,90][n]}))
+ ];
+ const rankRewards={3:['moves','spark'],6:['skills','economy'],9:['moves','double_slash'],12:['skills','fast_cast'],15:['moves','lightning_whip'],17:['skills','mana_cycle']};
+ const journeyAchievements=[
+  ...D.runRating.ranks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'score',target:D.runRating.thresholds[i],marks:10+i*5,ability:rankRewards[i]})),
+  {id:'ACH_JOURNEY_HUNT',name:'百戰旅人',metric:'kills',target:100,marks:60,ability:['moves','heavy']},
+  {id:'ACH_JOURNEY_CLEAR',name:'遺跡征服者',metric:'dungeons',target:3,marks:80,ability:['skills','counter']},
+  {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:30,marks:60,ability:['skills','swift']}
+ ];
+ function journeyStats(run){const E=typeof module!=='undefined'?require('./encounters'):root.EncounterFlow,s=E.summary(run);return {kills:s.kills,dungeons:s.dungeons,level:s.level,score:s.rating.score};}
+ function journeyDescription(d){return d.metric==='score'?(d.target?'單局結算評分達到 '+d.target+' 分。':'完成一次冒險結算。'):'單局'+({kills:'擊敗 ',dungeons:'通關不同地下城 ',level:'達到 Lv.'}[d.metric])+d.target+({kills:' 隻敵人（含壓制）。',dungeons:' 座。',level:'。'}[d.metric]);}
+ function journeyReward(d){const a=d.ability,content=a&&(a[0]==='moves'?D.moves:D.skills)[a[1]];return d.marks+' 旅者徽記'+(content?' ＋ '+(a[0]==='moves'?'招式':'技能')+'「'+content.name+'」':'');}
+ function settleJourney(p,run){
+  if(!run||run.status!=='failed')return null;if(run.journeySettlement)return run.journeySettlement;
+  C.normalize(p);const M=typeof module!=='undefined'?require('./meta'):root.GameMeta,m=M.normalize(p),stats=journeyStats(run),receipts=[];
+  function reward(d,kind){let marks=d.marks,ability=null,duplicate=false;
+   if(d.ability){const [type,id]=d.ability,content=(type==='moves'?D.moves:D.skills)[id];if(!content||content.contentScope==='classExclusive')throw Error('旅途獎勵必須是有效的通用能力');duplicate=type==='moves'?!!p.moves[id]:p.skills.includes(id);if(duplicate)marks+=25;else if(type==='moves')p.moves[id]=1;else p.skills.push(id);ability={type,id,name:content.name};}
+   receipts.push({id:d.id,name:d.name,kind,marks,ability,duplicate});
+  }
+  for(const d of journeyTasks)if(stats[d.metric]>=d.target)reward(d,'task');
+  for(const d of journeyAchievements){p.achievementProgress[d.id]=Math.max(p.achievementProgress[d.id]||0,Math.min(d.target,stats[d.metric]));if(!p.completedAchievementIds.includes(d.id)&&stats[d.metric]>=d.target){reward(d,'achievement');p.completedAchievementIds.push(d.id);}}
+  const total=receipts.reduce((n,r)=>n+r.marks,0);m.marks+=total;m.earned+=total;m.revision++;run.journeySettlement={stats,receipts,total};return run.journeySettlement;
+ }
+ const api={defs,add,start,battleEnd:trackBattle,dungeonClear,swordMove,journeyTasks,journeyAchievements,journeyStats,journeyDescription,journeyReward,settleJourney};if(typeof module!=='undefined')module.exports=api;else root.Achievements=api;
 })(globalThis);

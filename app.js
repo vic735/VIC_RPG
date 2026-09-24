@@ -46,12 +46,16 @@ function openModal(kind, content, className = '') {
   $('modal').scrollTop = 0; $('modal').focus({ preventScroll: true });
 }
 function closeModal() { game.modal = null; $('modal-backdrop').hidden = true; hideTooltip(); }
+function journeyRewardHTML(run){
+ const s=run.journeySettlement;if(!s)return '';
+ return `<section class="run-loot"><h3>任務與成就獎勵</h3><p>額外獲得 ◇ ${s.total} 旅者徽記</p>${s.receipts.map(r=>`<p><strong>${U.escape(r.name)}</strong> · ＋${r.marks} 徽記${r.ability?'<br>'+ (r.duplicate?'已擁有「'+U.escape(r.ability.name)+'」，含折換 25 徽記':'新解鎖'+(r.ability.type==='moves'?'招式':'技能')+'：'+U.escape(r.ability.name)):''}</p>`).join('')}<p class="quiet-note">已自動存入商店錢包與永久收藏；獎勵不增加本局評分。</p></section>`;
+}
 function achievementScreen(){
   const p=game.permanent;Classes.normalize(p);
-  const tabs=[['classes','職業解鎖'],['skills','技能解鎖'],['moves','招式解鎖']];
+  const tabs=[['classes','職業解鎖'],['skills','技能解鎖'],['moves','招式解鎖'],['tasks','每局任務'],['journey','旅途成就']];
   const tab=tabs.some(([id])=>id===game.achievementTab)?game.achievementTab:'classes';
   const kind={classes:'UnlockClass',skills:'UnlockSkill',moves:'UnlockMove'}[tab];
-  const rows=Object.values(Ach.defs).filter(a=>a.rewardType===kind).map(a=>{
+  let rows=Object.values(Ach.defs).filter(a=>a.rewardType===kind).map(a=>{
     const content=tab==='skills'?D.skills[a.rewardId]:tab==='moves'?D.moves[a.rewardId]:null;
     const owners=content?.allowedClassIds||[];
     const missing=owners.length&&!owners.some(id=>p.unlockedClassIds.includes(id));
@@ -62,7 +66,16 @@ function achievementScreen(){
     const reward=content?.name||Classes.classes[a.rewardId]?.className||a.rewardId;
     return `<article class="codex-entry achievement-card ${locked?'unknown':'known'}"><div><small>${locked?'🔒 尚未開放':done?'✓ 已完成':'進行中'}</small><strong>${U.escape(reward)}</strong><p>${U.escape(a.name)} · ${p.achievementProgress[a.id]||0} / ${a.progressTarget}</p><p>${locked?'先解鎖職業：'+U.escape(required):U.escape(a.description)}</p></div></article>`;
   }).join('');
-  return `<header class="screen-header"><div><div class="eyebrow">ACHIEVEMENTS</div><h1>成就</h1></div>${U.button('返回','screen-back')}</header><div class="meta-scroll"><nav class="codex-tabs achievement-tabs" aria-label="成就分類">${tabs.map(([id,name])=>`<button data-action="achievement-tab" data-id="${id}" class="${tab===id?'selected':''}">${name}</button>`).join('')}</nav><p class="quiet-note">職業解鎖後，才會開放對應的專屬技能與招式成就。</p><div class="codex-grid">${rows||'<p>這個分類尚無成就。</p>'}</div></div>`;
+  if(tab==='tasks'||tab==='journey'){
+    const stats=game.run?Ach.journeyStats(game.run):null;
+    rows=(tab==='tasks'?Ach.journeyTasks:Ach.journeyAchievements).map(d=>{
+      const claimed=tab==='tasks'?!!game.run?.journeySettlement?.receipts.some(r=>r.id===d.id):p.completedAchievementIds.includes(d.id);
+      const value=tab==='tasks'?(stats?.[d.metric]||0):Math.max(p.achievementProgress[d.id]||0,stats?.[d.metric]||0);
+      const ready=!!stats&&value>=d.target;
+      return `<article class="codex-entry achievement-card known"><div><small>${claimed?'✓ 已領取':ready?'已達標 · 結算領取':'進行中'}</small><strong>${U.escape(d.name)}</strong><p>${U.escape(Ach.journeyDescription(d))}</p><p>${d.target?Math.min(value,d.target)+' / '+d.target:'首次結算解鎖'}</p><p>獎勵：${U.escape(Ach.journeyReward(d))}</p></div></article>`;
+    }).join('');
+  }
+  return `<header class="screen-header"><div><div class="eyebrow">ACHIEVEMENTS</div><h1>成就</h1></div>${U.button('返回','screen-back')}</header><div class="meta-scroll"><nav class="codex-tabs achievement-tabs" aria-label="成就分類">${tabs.map(([id,name])=>`<button data-action="achievement-tab" data-id="${id}" class="${tab===id?'selected':''}">${name}</button>`).join('')}</nav><p class="quiet-note">職業解鎖後，才會開放對應的專屬技能與招式成就。每局任務可重複完成；旅途成就永久限領一次。整局結算自動發獎，已擁有的獎勵能力折換 25 徽記。</p><div class="codex-grid">${rows||'<p>這個分類尚無成就。</p>'}</div></div>`;
 }
 function renderScreen() {
   if (!game.screen) return;
@@ -72,7 +85,7 @@ function renderScreen() {
   $('screen').hidden = false; $('title-screen').hidden = true; $('hud').hidden = true;
 }
 function openScreen(name) {
-  if (game.run && name !== 'settings') { toast('能力庫只在出發前開放。新能力可在取得時選擇裝備。'); return false; }
+  if (game.run && !['settings','achievements'].includes(name)) { toast('能力庫只在出發前開放。新能力可在取得時選擇裝備。'); return false; }
   if(name==='shop'){Meta.stock(game.permanent);persist();saveSession();}
   closeModal(); game.screen = name; game.keys.clear(); game.touch.clear(); resetJoystick(); renderScreen(); return true;
 }
@@ -174,9 +187,10 @@ function completeSuppression(){
   game.fieldRewards=result.rewards;game.encounter={...result.enemies[0]};game.result={won:true,exp:result.exp,beforeLevel:result.exp.beforeLevel,quick:true,countsForCombatChallenges:false,enemyNames:result.enemies.map(e=>D.monsters[e.type].name).join('、')};game.resultHandled=true;
   showResult();saveSession();persist();
 }
+function ratingHTML(r,partial){return `<section class="run-rating" data-tier="${r.tier}" aria-label="本局評級 ${r.rank}"><small>本局評級</small><strong class="rating-rank">${r.rank}</strong><b>${r.score.toLocaleString('zh-TW')} 分</b><div class="rating-parts"><span>擊敗敵人 <b>+${r.parts.kills}</b></span><span>通關地下城 <b>+${r.parts.dungeons}</b></span><span>等級成長 <b>+${r.parts.levels}</b></span></div><p>${r.nextRank?'距離 '+r.nextRank+' 還差 '+r.remaining+' 分':'已達最高評級'}</p><details><summary>評分規則</summary><p>每隻敵人 ${D.runRating.kills.points} 分（含壓制，上限 ${D.runRating.kills.cap}）。每座不同地下城 ${D.runRating.dungeons.points} 分（同局重複通關不累加，上限 ${D.runRating.dungeons.cap}）。每升一級 ${D.runRating.levels.points} 分（Lv.1 起算，上限 ${D.runRating.levels.cap}）。</p></details>${partial?'<p>舊存檔評級僅依已記錄戰績計算。</p>':''}</section>`;}
 function runSummaryHTML(run){
   const s=Enc.summary(run,game.permanent),near=s.lastDefeat;
-  return `<section class="journey-summary"><div class="journey-level"><small>本局到達</small><strong>Lv.${s.level}</strong></div><div class="journey-counts"><div><strong>${s.kills}</strong><small>擊敗敵人</small></div><div><strong>${s.dungeons}</strong><small>通過地下城</small></div></div><p class="quiet-note">實戰 ${s.normalKills} 隻 · 壓制 ${s.quickKills} 隻${run.battleStatsPartial?' · 舊存檔僅統計更新後戰績':''}</p>${near?`<div class="near-miss"><small>${near.remainingPercent<=25?'就差最後一步':'最後未完成的挑戰'}</small><strong>${U.escape(near.name)}</strong><p>${near.remainingPercent<=25?'還差':'剩餘'} <b>${near.remainingPercent}%</b> HP${near.remainingPercent<=25?' 就能擊敗':''}</p><div class="near-miss-track"><i style="width:${100-near.remainingPercent}%"></i></div></div>`:'<p class="quiet-note">這段旅途的收穫，將陪你再次出發。</p>'}<div class="hit-record"><small>${s.newHitRecord?'新紀錄 · 最高單擊':'本局最高單擊'}</small><strong>${Math.floor(s.highestHit).toLocaleString('zh-TW')}</strong></div></section>`;
+return ratingHTML(s.rating,run.battleStatsPartial)+`<section class="journey-summary"><div class="journey-level"><small>本局到達</small><strong>Lv.${s.level}</strong></div><div class="journey-counts"><div><strong>${s.kills}</strong><small>擊敗敵人</small></div><div><strong>${s.dungeons}</strong><small>通過地下城</small></div></div><p class="quiet-note">實戰 ${s.normalKills} 隻 · 壓制 ${s.quickKills} 隻${run.battleStatsPartial?' · 舊存檔僅統計更新後戰績':''}</p>${near?`<div class="near-miss"><small>${near.remainingPercent<=25?'就差最後一步':'最後未完成的挑戰'}</small><strong>${U.escape(near.name)}</strong><p>${near.remainingPercent<=25?'還差':'剩餘'} <b>${near.remainingPercent}%</b> HP${near.remainingPercent<=25?' 就能擊敗':''}</p><div class="near-miss-track"><i style="width:${100-near.remainingPercent}%"></i></div></div>`:'<p class="quiet-note">這段旅途的收穫，將陪你再次出發。</p>'}<div class="hit-record"><small>${s.newHitRecord?'新紀錄 · 最高單擊':'本局最高單擊'}</small><strong>${Math.floor(s.highestHit).toLocaleString('zh-TW')}</strong></div></section>`;
 }
 function currentDungeon() { return D.dungeons.find(d=>d.id===game.run?.dungeon?.id); }
 function showDungeon(d) {
@@ -205,7 +219,7 @@ function chooseMove(id, asUltimate = false) {
 function showJournal() {
   if (!game.run || game.scene === 'battle') return;
   const run = game.run, stats = P.statsFor(run);
-  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('任務／成就','achievements')}${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
 }
 function showRunLoadout(){
  if(!game.run||game.scene==='battle')return;
@@ -248,10 +262,10 @@ function runLootHTML(run){
 }
 function showResult() {
   const r = game.result, run = game.run, dead = run.status === 'failed';
-  if(dead&&!game.debugBattle){Meta.settle(game.permanent,run);saveSession();persist();}
+  if(dead&&!game.debugBattle){Meta.settle(game.permanent,run);Ach.settleJourney(game.permanent,run);saveSession();persist();}
   if(dead&&!game.debugBattle&&!game.permanent.ultimateUnlocked){game.permanent.ultimateUnlocked=true;persist();}
   game.recoveryCountdown=!r.won&&!dead?D.balance.recoverySeconds:null;
-  openModal('result', `<div class="eyebrow">${r.won ? 'THE JOURNEY CONTINUES' : dead ? 'THE LAST LIGHT FADES' : 'REST, THEN RISE'}</div><div class="result-seal">${U.icon(r.won ? 'star' : 'hood', 60)}</div><h2 id="modal-title" class="result-title">${r.won ? r.exp?.levels ? '等級提升' : r.quick?'壓制成功':'戰鬥勝利' : dead ? '冒險結算' : '休養之後'}</h2>${r.won&&r.exp?.levels?LevelUp.html(r.exp):''}${r.won ? `<div class="exp-reward">＋${r.exp.amount} <small>EXP</small></div>` : ''}<p>${r.won ? `${r.quick?'壓制':'擊敗'} ${U.escape(r.enemyNames||D.monsters[game.encounter.type].name)}<br>${run.dungeon?'保留 HP／MP／SP，繼續深入。':'HP、MP、SP 已完全恢復。'}` : dead ? `${run.endedVoluntarily?'這段旅途暫告一段落。':'第三次倒下，你的腳步終於停下。'}<br>必殺槽已永久解鎖。<br>下次出發前，可指定已學會招式為必殺。` : `第 ${run.deaths} 次倒下，你回營地休養。<br>留下【${D.debuffs.find(d => d.id === run.debuffIds.at(-1)).name}】<br>休養後恢復至新的能力上限。`}</p>${!r.won&&!dead?'<p class="recovery-countdown">約 <strong id="recovery-countdown">3.0</strong> 秒後返回探索</p>':''}${dead?runSummaryHTML(run)+MetaScreens.settlement(run)+runLootHTML(run):''}${r.won && run.dungeon ? `<p>${currentDungeon().name} ${run.dungeon.stage + 1} / ${currentDungeon().enemyWaves.length} 場完成</p>` : ''}<div class="modal-footer">${U.button(dead ? '返回主選單' : !r.won ? '立即返回探索' : run.dungeon ? run.dungeon.stage === currentDungeon().enemyWaves.length-1 ? '查看封存的獎勵' : '走向下一間石室 →' : '繼續探索 →', 'result-next', { primary: true })}</div>`, r.won&&r.exp?.levels?'result-modal growth-result':dead?'result-modal journey-result':'result-modal');
+  openModal('result', `<div class="eyebrow">${r.won ? 'THE JOURNEY CONTINUES' : dead ? 'THE LAST LIGHT FADES' : 'REST, THEN RISE'}</div><div class="result-seal">${U.icon(r.won ? 'star' : 'hood', 60)}</div><h2 id="modal-title" class="result-title">${r.won ? r.exp?.levels ? '等級提升' : r.quick?'壓制成功':'戰鬥勝利' : dead ? '冒險結算' : '休養之後'}</h2>${r.won&&r.exp?.levels?LevelUp.html(r.exp):''}${r.won ? `<div class="exp-reward">＋${r.exp.amount} <small>EXP</small></div>` : ''}<p>${r.won ? `${r.quick?'壓制':'擊敗'} ${U.escape(r.enemyNames||D.monsters[game.encounter.type].name)}<br>${run.dungeon?'保留 HP／MP／SP，繼續深入。':'HP、MP、SP 已完全恢復。'}` : dead ? `${run.endedVoluntarily?'這段旅途暫告一段落。':'第三次倒下，你的腳步終於停下。'}<br>必殺槽已永久解鎖。<br>下次出發前，可指定已學會招式為必殺。` : `第 ${run.deaths} 次倒下，你回營地休養。<br>留下【${D.debuffs.find(d => d.id === run.debuffIds.at(-1)).name}】<br>休養後恢復至新的能力上限。`}</p>${!r.won&&!dead?'<p class="recovery-countdown">約 <strong id="recovery-countdown">3.0</strong> 秒後返回探索</p>':''}${dead?runSummaryHTML(run)+MetaScreens.settlement(run)+journeyRewardHTML(run)+runLootHTML(run):''}${r.won && run.dungeon ? `<p>${currentDungeon().name} ${run.dungeon.stage + 1} / ${currentDungeon().enemyWaves.length} 場完成</p>` : ''}<div class="modal-footer">${U.button(dead ? '返回主選單' : !r.won ? '立即返回探索' : run.dungeon ? run.dungeon.stage === currentDungeon().enemyWaves.length-1 ? '查看封存的獎勵' : '走向下一間石室 →' : '繼續探索 →', 'result-next', { primary: true })}</div>`, r.won&&r.exp?.levels?'result-modal growth-result':dead?'result-modal journey-result':'result-modal');
   game.growthAnimation=r.won&&r.exp?.levels?{elapsed:0,exp:r.exp}:null;if(game.growthAnimation)Audio.emit('levelUp',{level:run.level});saveSession();
 }
 function continueResult() {
@@ -401,7 +415,7 @@ function handleAction(action, id, element) {
   else if(action==='full-reset')openModal('full-reset',`<h2 id="modal-title">完全重置遊戲？</h2><p>將永久刪除這個瀏覽器內的所有收藏、招式熟練度、通關紀錄、本局冒險、配置與設定。</p><p>此操作無法復原。離線遊戲檔案會保留。</p><div class="modal-footer">${U.button('取消','close')}${U.button('確認完全重置','full-reset-confirm',{primary:true})}</div>`);
   else if(action==='full-reset-confirm'&&game.modal==='full-reset')resetAllProgress();
   else if(action==='restart-basic')openModal('restart-basic',`<h2 id="modal-title">基礎配置重新出發</h2><p>結束目前冒險，以 Lv.1、快速斬擊與火球術、空白被動技能欄重新出發。</p><p>永久收藏與已累積的招式熟練度都會保留。</p>${game.run?runLootHTML(game.run):''}<div class="modal-footer">${U.button('取消','close')}${U.button('重新出發','restart-basic-confirm',{primary:true})}</div>`);
-  else if(action==='restart-basic-confirm'&&game.modal==='restart-basic'){if(game.run&&!game.debugBattle){Meta.settle(game.permanent,game.run);saveSession();persist();}game.run=null;game.battle=null;game.result=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.noRandom=false;game.build=P.defaultBuild();game.lastRegion=null;saveBuild();beginRun();}
+  else if(action==='restart-basic-confirm'&&game.modal==='restart-basic'){if(game.run&&!game.debugBattle){game.run.status='failed';Meta.settle(game.permanent,game.run);Ach.settleJourney(game.permanent,game.run);saveSession();persist();}game.run=null;game.battle=null;game.result=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.noRandom=false;game.build=P.defaultBuild();game.lastRegion=null;saveBuild();beginRun();}
   else if(action.startsWith('world-'))worldDebugAction(action,id);
   else if (action === 'interact') interact();
   else if (action === 'move') chooseMove(id, element.dataset.ultimate === 'true');

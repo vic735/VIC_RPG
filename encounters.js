@@ -27,6 +27,12 @@
   const result={exp:{amount,beforeLevel,beforeStats,afterLevel:run.level,afterStats:P.statsFor(run),levels:run.level-beforeLevel},enemies:pending.enemies,rewards,quick:true,countsForCombatChallenges:false};
   delete run.quickBattle;run.lastEncounterResult={mode:'quick',countsForCombatChallenges:false};return result;
  }
- function summary(run,p){const s=records(run,p);return {...s,level:run.level,dungeons:s.clearedDungeonIds.length,newHitRecord:s.highestHit>0&&s.highestHit>s.previousBestHit};}
- const api={members,records,eligible,defeatSpawn,victory,hit,loss,clear,startQuick,finishQuick,summary};if(typeof module!=='undefined')module.exports=api;else root.EncounterFlow=api;
+ function rating(stats){
+  const cfg=D.runRating,safe=n=>Number.isFinite(n)?Math.max(0,Math.floor(n)):0;
+  const parts={kills:Math.min(cfg.kills.cap,safe(stats.kills)*cfg.kills.points),dungeons:Math.min(cfg.dungeons.cap,safe(stats.dungeons)*cfg.dungeons.points),levels:Math.min(cfg.levels.cap,Math.max(0,safe(stats.level)-1)*cfg.levels.points)};
+  const score=parts.kills+parts.dungeons+parts.levels,index=cfg.thresholds.findLastIndex(n=>score>=n);
+  return {score,parts,rank:cfg.ranks[index],tier:['D','C','B','A','S','SS'][Math.floor(index/3)],nextRank:cfg.ranks[index+1]||null,remaining:cfg.thresholds[index+1]===undefined?0:cfg.thresholds[index+1]-score};
+ }
+ function summary(run,p){const s=records(run,p),result={...s,level:run.level,dungeons:s.clearedDungeonIds.length,newHitRecord:s.highestHit>0&&s.highestHit>s.previousBestHit};return {...result,rating:rating(result)};}
+ const api={members,records,eligible,defeatSpawn,victory,hit,loss,clear,startQuick,finishQuick,summary,rating};if(typeof module!=='undefined')module.exports=api;else root.EncounterFlow=api;
 })(globalThis);

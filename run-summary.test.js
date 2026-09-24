@@ -1,5 +1,16 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('./progression'),Save=require('./run-save');
+test('結算評級涵蓋18階、門檻準確，單靠刷怪不能取得最高評級',()=>{
+ const E=require('./encounters'),D=require('./data');assert.equal(D.runRating.ranks.length,18);
+ for(let score=0;score<=3000;score++){const kills=Math.min(300,Math.floor(score/3));const r=E.rating({kills,level:1,dungeons:0});assert.equal(r.rank,D.runRating.ranks[D.runRating.thresholds.findLastIndex(t=>r.score>=t)]);}
+ assert.equal(E.rating({kills:0,dungeons:0,level:1}).rank,'D−');assert.equal(E.rating({kills:100000,dungeons:0,level:1}).rank,'A−');
+ const best=E.rating({kills:1000,dungeons:39,level:190});assert.equal(best.rank,'SS＋');assert.equal(best.score,3000);assert.equal(best.nextRank,null);
+ assert.deepEqual(E.rating({kills:73,dungeons:2,level:27}).parts,{kills:219,dungeons:300,levels:260});assert.equal(E.rating({kills:73,dungeons:2,level:27}).rank,'B＋');
+});
+test('結算重整維持同一評級，同局重複通關不重複計分',()=>{
+ const E=require('./encounters'),p=P.freshProgress(),run=P.createRun(p);run.level=27;run.battleStats.kills=73;E.clear(p,run,'abandoned_mine');E.clear(p,run,'abandoned_mine');E.clear(p,run,'old_lab');const before=E.summary(run,p).rating;
+ let raw;const storage={getItem:()=>raw,setItem:(k,v)=>raw=v};Save.save(storage,{scene:'explore',run,permanent:p,build:run.build});const loaded=Save.load(storage).snapshot;assert.deepEqual(E.summary(loaded.run,loaded.permanent).rating,before);
+});
 function fixture(){const p=P.freshProgress();p.ultimateUnlocked=true;const run=P.createRun(p,{...P.defaultBuild(),ultimate:'nova'});return {p,run};}
 test('全局收穫分類合併、記錄新解鎖及重複取得，初始收藏不算收穫',()=>{const {p,run}=fixture();assert.deepEqual(run.loot,{});P.grantRewards(p,run,[{kind:'moves',id:'fire'},{kind:'moves',id:'spark'},{kind:'talents',id:'economy'},{kind:'equipment',id:'windboots'},{kind:'books',id:'inferno'}]);P.grantRewards(p,run,[{kind:'moves',id:'fire'},{kind:'talents',id:'economy'},{kind:'equipment',id:'windboots'}]);assert.equal(Object.keys(run.loot).length,5);assert.equal(run.loot['moves:fire'].count,2);assert.equal(run.loot['moves:fire'].before,1);assert.equal(run.loot['moves:fire'].after,3);assert.equal(run.loot['moves:fire'].isNew,false);assert.equal(run.loot['moves:spark'].isNew,true);assert.equal(run.loot['talents:economy'].count,2);assert.equal(run.loot['equipment:windboots'].count,2);assert.equal(run.loot['books:inferno'].count,1);P.resolveAcquisition(run,'moves','spark');assert.equal(run.loot['moves:spark'].count,1);});
 test('地下城重複領獎被拒絕，收穫不重記；新局清空清單',()=>{const {p,run}=fixture();run.dungeon={id:'abandoned_mine',stage:3};P.dungeonReward(p,run,()=>0);const before=JSON.stringify(run.loot);P.dungeonReward(p,run,()=>0);assert.equal(JSON.stringify(run.loot),before);assert.deepEqual(P.createRun(p).loot,{});});

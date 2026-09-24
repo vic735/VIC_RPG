@@ -1,7 +1,12 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.9.6', date: '2026-09-24' },
+    release: { version: '0.9.8', date: '2026-09-24' },
+    runRating: {
+      kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
+      ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
+      thresholds: [0,50,100,180,260,350,450,560,680,820,970,1130,1320,1530,1760,2020,2320,2700]
+    },
     player: { hp: 240, stamina: 100, mana: 80, agility: 40, luck: 10 },
     growth: { hp: 2, stamina: 2, mana: 2, agility: 1, luck: 1 },
     enemy: { hp: 360, stamina: 80, mana: 0, agility: 10, luck: 0 },

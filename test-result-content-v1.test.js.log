@@ -1,0 +1,13 @@
+✔ AFTERLIGHT v1 登錄 100 招式與 72 技能 (0.6712ms)
+✔ 招式欄位、七屬性與必殺資料完整 (2.6356ms)
+✔ 第一局 eligibility 精確為 20 招與 14 技能，商店不出售 book-only (0.2426ms)
+✔ 魔法文字為主標、中文名稱為副標，特殊內容定位保留 (0.1909ms)
+✔ 正式編號作為相容別名，不在能力庫重複列出 (0.1901ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.1328

@@ -1,0 +1,86 @@
+✔ 主動結束冒險顯示18階評級、分數明細與下一階差距 (897.5022ms)
+✔ 任務成就可於探索查看，結算發獎與重整不重複 (1790.2989ms)
+✔ 獨立成就入口分開職業技能招式，未解鎖職業的專屬成就上鎖 (837.798ms)
+✔ 新遊戲鎖定必殺，只有正式第三次倒下永久解鎖；地下城資源跨波及升級保存 (2587.2756ms)
+✔ 四個主選單入口、分頁、技能槽、必殺、紙娃娃、能力庫與設定 (927.2861ms)
+✔ 新 UI 完整流程：四方向戰鬥、充能警告、四場地下城、替換確認、重複升级、死亡與永久學習 (3365.4891ms)
+✔ 中央搖桿的類比移動、第二指隔離、放手與選單停止移動 (1673.6329ms)
+✔ 正式探索 HUD 僅鄰近入口顯示互動，七大區地圖可查看且無 NPC (1686.5773ms)
+✔ 世界地圖可跨七大區切換，局內已取得招式可重新配置且重整保留 (3341.1589ms)
+✔ 靠近右側邊界顯示下一區，互動後保留本局狀態並從另一側進場 (1622.983ms)
+✔ v0.2 HUD 最終消耗、液面、需求線、MP/SP 分色與容器充能 (1659.8233ms)
+✔ 設定頁可開啟測試工作台、修改資源／大絕／屬性並開始獨立戰鬥 (1676.4426ms)
+✔ 招式介紹延遲、移出取消、觸控短按不開啟、長按才顯示 (1656.7312ms)
+✔ 戰鬥與殘影效果不繪製玩家本體 (1672.791ms)
+✔ 世界測試 UI：查看敵人／獎勵池、指定組合／池、等級修改與跨區傳送 (1685.4022ms)
+✔ 十一座地下城可經 UI 入口、連戰、領獎、返回探索；Lv.1 無進入硬鎖 (19894.0002ms)
+✔ 重新整理接續探索位置、戰鬥讀條，並暫停等待玩家操作 (4950.5432ms)
+✔ 從網頁版開始冒險時請求全螢幕，已安裝 App 不重複請求 (3297.8903ms)
+✔ 重整領獎畫面不重複發放，取得新能力選擇可繼續 (4974.9689ms)
+✔ 全新開局兩招無技能，升級畫面五項跳字落在實際值並可跳過 (5133.6891ms)
+✖ 基礎配置重開需確認，取消不改本局，確認保留收藏 (1710.8347ms)
+✔ 整局結算呈現本局所有收穫，重整後清單仍在且不重發 (3385.4275ms)
+✔ 實際戰鬥結果流程將充能带往下一場 (1685.6986ms)
+✔ Lv.18 大型石頭人在營地附近保持中立，只有點擊互動才進戰鬥 (1671.5765ms)
+✔ 完全重置：取消保留、確認清除所有遊戲進度與設定、不動其他網站資料 (3271.2896ms)
+✔ 重置存取遭拒時不清空目前記憶體進度，舊存檔補石頭人且不重複 (4989.0079ms)
+✔ 商店購買永久解鎖、圖鑑分頁與下一局配置，魔法名稱維持大字上排中文小字下排 (3350.182ms)
+✖ 主動結算徽記後可返回商店，重整結果不重領 (1667.1546ms)
+✔ 本局正常擊敗後觸發0.55秒壓制，不進戰鬥HUD，重整演出與結算不重發 (5053.2359ms)
+✔ 關閉自動壓制後即使符合門檻仍正常戰鬥，設定跨重整保留 (3314.5232ms)
+✔ 多敵人任一不合格時整組正常戰鬥，不部分壓制或遺漏剩餘敵人 (1685.4787ms)
+✔ 整局結算呈現真實戰績與差8%回饋，最高單擊新紀錄保留 (3304.3662ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 30
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100444.5765
+
+✖ failing tests:
+
+test at ui-flow.test.js:231:1
+✖ 基礎配置重開需確認，取消不改本局，確認保留收藏 (1710.8347ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '{"schemaVersion":2,"ultimateUnlocked":true,"skills":["vigor","control","agility","lucky"],"moves":{"quick":1,"fire":1,"heavy":1,"interrupt":1},"ultimates":["nova"],"books":[],"equipment":["hood","coat","wraps","boots","sword","greatsword"],"completions":0,"unlockedClassIds":["ADVENTURER"],"achievementProgress":{"ACH_JOURNEY_RANK_0":0,"ACH_JOURNEY_RANK_1":50,"ACH_JOURNEY_RANK_2":70,"ACH_JOURNEY_RANK_3":70,"ACH_JOURNEY_RANK_4":70,"ACH_JOURNEY_RANK_5":70,"ACH_JOURNEY_RANK_6":70,"ACH_JOURNEY_RANK_7":70,"ACH_JOURNEY_RANK_8":70,"ACH_JOURNEY_RANK_9":70,"ACH_JOURNEY_RANK_10":70,"ACH_JOURNEY_RANK_11":70,"ACH_JOURNEY_RANK_12":70,"ACH_JOURNEY_RANK_13":70,"ACH_JOURNEY_RANK_14":70,"ACH_JOURNEY_RANK_15":70,"ACH_JOURNEY_RANK_16":70,"ACH_JOURNEY_RANK_17":70,"ACH_JOURNEY_HUNT":0,"ACH_JOURNEY_CLEAR":0,"ACH_JOURNEY_LEVEL":8},"completedAchievementIds":["ACH_JOURNEY_RANK_0","ACH_JOURNEY_RANK_1"],"unlockedClassExclusiveMoveIds":[],"unlockedClassExclusiveSkillIds":[],"meta":{"revision":2,"marks":25,"earned":25,"runs":1,"seenMonsters":[],"defeatedMonsters":[],"foundDungeons":[],"enteredDungeons":[]},"dungeonCompletions":{}}'
+  - '{"schemaVersion":2,"ultimateUnlocked":true,"skills":["vigor","control","agility","lucky"],"moves":{"quick":1,"fire":1,"heavy":1,"interrupt":1},"ultimates":["nova"],"books":[],"equipment":["hood","coat","wraps","boots","sword","greatsword"],"completions":0,"unlockedClassIds":["ADVENTURER"],"achievementProgress":{},"completedAchievementIds":[],"unlockedClassExclusiveMoveIds":[],"unlockedClassExclusiveSkillIds":[],"meta":{"revision":1,"marks":0,"earned":0,"runs":1,"seenMonsters":[],"defeatedMonsters":[],"foundDungeons":[],"enteredDungeons":[]},"dungeonCompletions":{}}'
+  
+      at TestContext.<anonymous> (C:\Users\vic73\Documents\Codex\2026-09-17\new-chat\outputs\battle-prototype\ui-flow.test.js:231:520)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'RNEY_RANK_8":70,"ACH_JOURNEY_RANK_9":70,"ACH_JOURNEY_RANK_10":70,"ACH_JOURNEY_RANK_11":70,"ACH_JOURNEY_RANK_12":70,"ACH_JOURNEY_RANK_13":70,"ACH_JOURNEY_RANK_14":70,"ACH_JOURNEY_RANK_15":70,"ACH_JOURNEY_RANK_16":70,"ACH_JOURNEY_RANK_17":70,"ACH_JOURNEY_HUNT":0,"ACH_JOURNEY_CLEAR":0,"ACH_JOURNEY_LEVEL":8},"completedAchievementIds":["ACH_JOURNEY_RANK_0","ACH_JOURNEY_RANK_1"],"unlockedClassExclusiveMoveIds":[],"unlockedClassExclusiveSkillIds":[],"meta":{"revision":2,"marks":25,"earned":25,"runs":1,"seenMonsters":[],"defeatedMonsters":[],"foundDungeons":[],"enteredDungeons":[]},"dungeonCompletions":{}}...',
+    expected: 'Dungeons":[],"enteredDungeons":[]},"dungeonCompletions":{}}...',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ui-flow.test.js:242:1
+✖ 主動結算徽記後可返回商店，重整結果不重領 (1667.1546ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  12 !== 2
+  
+      at TestContext.<anonymous> (C:\Users\vic73\Documents\Codex\2026-09-17\new-chat\outputs\battle-prototype\ui-flow.test.js:242:335)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 12,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
