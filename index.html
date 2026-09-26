@@ -8,6 +8,7 @@
 <section class="player-hud game-panel"><div class="portrait" id="portrait"></div><div class="vitals"><div class="player-name"><span>漂泊者</span><b id="level"></b></div><div id="resources"></div><div id="player-status"></div><div class="exp-line"><span>EXP</span><div><i id="xp-fill"></i></div><small id="xp-label"></small></div></div></section>
 <section class="map-hud"><div class="map-label"><span id="region-name"></span><small>Ｎ ↑</small></div><canvas id="minimap" width="250" height="164" aria-label="小地圖"></canvas><div class="map-legend"><span>◇ 遺跡</span><span>● 旅人</span></div></section>
 <nav class="menu-buttons"><button data-action="journal" aria-label="查看局內角色狀態">角色狀態 <kbd>B</kbd></button><button data-action="pause" aria-label="暫停">Ⅱ</button></nav>
+<button id="adventure-rank" data-action="adventure-rank" aria-label="查看本局冒險者階級與晉階任務" hidden></button>
 <div id="quest" hidden></div>
 <div id="battle-heading" hidden><span class="eyebrow">ENCOUNTER</span><h2 id="battle-location"></h2><p id="battle-subtitle"></p></div>
 <section id="enemy-battle" class="enemy-battle" hidden></section><section id="player-cast" class="player-cast" hidden></section>
@@ -225,10 +226,10 @@
   return list.length>0&&list.every(e=>{const d=D.monsters[e.type],world=run.world.enemies.find(x=>x.id===e.id);if(ids.has(e.id))return false;ids.add(e.id);return !!d&&!!world&&!special(e)&&!special(d)&&!special(world)&&world.type===e.type&&world.level===e.level&&world.defeatedUntil<=run.world.time&&seen.has(e.type)&&Number.isFinite(e.level)&&run.level>=e.level+D.balance.quickBattleLevelGap;});
  }
  function defeatSpawn(run,e){const world=run.world.enemies.find(x=>x.id===e.id);if(world){world.defeatedUntil=run.world.time+D.balance.respawnSeconds;world.x=world.homeX;world.y=world.homeY;}}
- function victory(p,run,e,quick=false){const s=records(run,p);s.kills++;s[quick?'quickKills':'normalKills']++;if(!quick&&!run.defeatedEnemyTypesThisRun.includes(e.type))run.defeatedEnemyTypesThisRun.push(e.type);if(s.lastDefeat?.type===e.type)s.lastDefeat=null;M.encounter(p,e.type,true,run);}
+ function victory(p,run,e,quick=false){rankState(run);const s=records(run,p);s.kills++;s[quick?'quickKills':'normalKills']++;if(!quick&&!run.defeatedEnemyTypesThisRun.includes(e.type))run.defeatedEnemyTypesThisRun.push(e.type);if(s.lastDefeat?.type===e.type)s.lastDefeat=null;M.encounter(p,e.type,true,run);advanceRank(run,{enemy:e,quick});}
  function hit(p,run,event){if(event.type!=='damage'||event.actorId!=='player'||event.targetId!=='enemy'||event.secondary||event.moveId?.startsWith('status:')||!Number.isFinite(event.damage))return;const s=records(run,p);s.highestHit=Math.max(s.highestHit,event.damage);const m=M.normalize(p);if(s.highestHit>(m.bestHit||0)){m.bestHit=s.highestHit;m.revision++;}}
  function loss(p,run,e,battle){const s=records(run,p),end=battle.lastOutcome;const hp=end?.enemyHP??battle.enemy.hp,max=end?.enemyMaxHP??battle.enemy.stats.hp;if(max>0&&hp>0)s.lastDefeat={type:e.type,name:D.monsters[e.type].name,remainingPercent:Math.max(1,Math.min(100,Math.ceil(hp/max*100))),hp,max};}
- function clear(p,run,id){const s=records(run,p);if(!s.clearedDungeonIds.includes(id))s.clearedDungeonIds.push(id);}
+ function clear(p,run,id){rankState(run);const s=records(run,p);if(!s.clearedDungeonIds.includes(id))s.clearedDungeonIds.push(id);advanceRank(run);}
  function startQuick(run,e,enabled=true){if(run.quickBattle||!eligible(run,e,enabled))return false;run.quickBattle={enemies:members(e).map(x=>({...x})),remaining:D.balance.quickBattleSeconds};return true;}
  function finishQuick(p,run,rng=Math.random){
   const pending=run.quickBattle;if(!pending)return null;
@@ -245,8 +246,42 @@
   const score=parts.kills+parts.dungeons+parts.levels,index=cfg.thresholds.findLastIndex(n=>score>=n);
   return {score,parts,rank:cfg.ranks[index],tier:['D','C','B','A','S','SS'][Math.floor(index/3)],nextRank:cfg.ranks[index+1]||null,remaining:cfg.thresholds[index+1]===undefined?0:cfg.thresholds[index+1]-score};
  }
- function summary(run,p){const s=records(run,p),result={...s,level:run.level,dungeons:s.clearedDungeonIds.length,newHitRecord:s.highestHit>0&&s.highestHit>s.previousBestHit};return {...result,rating:rating(result)};}
- const api={members,records,eligible,defeatSpawn,victory,hit,loss,clear,startQuick,finishQuick,summary,rating};if(typeof module!=='undefined')module.exports=api;else root.EncounterFlow=api;
+ function rankMetrics(run){const s=records(run);return {kills:s.kills,dungeons:s.clearedDungeonIds.length,level:run.level};}
+ function rankState(run){
+  if(!run.adventurerRank){
+   // Migration: retain an old run's already earned grade, but carry no points.
+   // Historical kills cannot be replayed as new promotion tasks.
+   const metrics=rankMetrics(run),old=rating(metrics);
+   run.adventurerRank={version:1,index:D.runRating.ranks.indexOf(old.rank),progress:0,last:metrics,normalKills:0,challengeKills:0,history:[],migrated:true};
+  }
+  return run.adventurerRank;
+ }
+ function rankView(run){
+  const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
+  const active=!!cfg&&s.progress>=cfg.points;
+  const normal=cfg&&active?[
+   {label:'任務出現後討伐魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
+   ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
+  ]:[];
+  return {index:s.index,rank:D.runRating.ranks[s.index],tier:['D','C','B','A','S','SS'][Math.floor(s.index/3)],nextRank:D.runRating.ranks[s.index+1]||null,progress:s.progress,required:cfg?.points||0,remaining:cfg?Math.max(0,cfg.points-s.progress):0,active,normal,
+   challenge:cfg?{label:'本階正常擊敗 Lv.'+cfg.challenge.enemyLevel+' 以上魔物（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
+ }
+ function advanceRank(run,event={}){
+  const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run),previous=s.last;
+  s.last=metrics;if(!cfg||run.status!=='active')return null;
+  const wasActive=s.progress>=cfg.points;
+  // A triggering kill belongs to exactly one rank. The kill filling the bar
+  // does not count as a newly revealed ordinary mission's first kill.
+  if(event.enemy){if(wasActive)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
+  if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
+  const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
+  if(!direct&&!normal)return null;
+  const promotion={from:view.rank,to:view.nextRank,route:direct?'challenge':'normal'};
+  s.index++;s.progress=0;s.normalKills=0;s.challengeKills=0;s.history.push(promotion);return promotion;
+ }
+ function summary(run,p){const s=records(run,p),result={...s,level:run.level,dungeons:s.clearedDungeonIds.length,newHitRecord:s.highestHit>0&&s.highestHit>s.previousBestHit};return {...result,rating:{...rating(result),...rankView(run)}};}
+ const api={members,records,eligible,defeatSpawn,victory,hit,loss,clear,startQuick,finishQuick,summary,rating,rankState,rankView,advanceRank};if(typeof module!=='undefined')module.exports=api;else root.EncounterFlow=api;
 })(globalThis);
 
 </script><!-- /inline-module --><script src="app.js"></script><script src="offline.js"></script><script src="pwa-install.js"></script></body></html>

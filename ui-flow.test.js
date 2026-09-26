@@ -1,15 +1,24 @@
 // Production UI-event integration through a small DOM adapter. Not a browser/layout test.
 // Achievement navigation is checked through the same production event handler.
 const test = require('node:test'), assert = require('node:assert/strict'), vm = require('node:vm'), fs = require('node:fs'), path = require('node:path');
-test('主動結束冒險顯示18階評級、分數明細與下一階差距',()=>{
- const h=harness();h.click('begin-run');const run=h.game.run;run.level=27;run.battleStats.kills=73;run.battleStats.clearedDungeonIds=['abandoned_mine','old_lab'];h.click('journal');h.click('end-run');h.click('end-run-confirm');
- const html=h.elements.get('modal').innerHTML;assert.match(html,/rating-rank">B＋/);assert.match(html,/779 分/);assert.match(html,/還差 41 分/);assert.match(html,/擊敗敵人 <b>\+219/);assert.match(html,/通關地下城 <b>\+300/);assert.match(html,/等級成長 <b>\+260/);
+test('结算按實際晉階結果，不按累計分數越過任務',()=>{
+ const h=harness();h.click('begin-run');const run=h.game.run;run.level=27;run.battleStats.kills=73;run.battleStats.clearedDungeonIds=['abandoned_mine','old_lab'];h.ctx.EncounterFlow.advanceRank(run);h.click('journal');h.click('end-run');h.click('end-run-confirm');
+ const html=h.elements.get('modal').innerHTML;assert.match(html,/rating-rank">D−/);assert.match(html,/50 \/ 50 晉階進度/);assert.match(html,/晉階任務尚未完成/);
 });
 test('任務成就可於探索查看，結算發獎與重整不重複',()=>{
- const h=harness();h.click('begin-run');h.game.run.level=27;h.game.run.battleStats.kills=73;h.game.run.battleStats.clearedDungeonIds=['abandoned_mine','old_lab'];
+ const h=harness();h.click('begin-run');h.game.run.adventurerRank.index=8;h.game.run.level=27;h.game.run.battleStats.kills=73;h.game.run.battleStats.clearedDungeonIds=['abandoned_mine','old_lab'];
  h.click('journal');h.click('achievements');h.click('achievement-tab','tasks');assert.match(h.elements.get('screen').innerHTML,/已達標 · 結算領取/);h.click('achievement-tab','journey');assert.match(h.elements.get('screen').innerHTML,/雷電術/);h.click('screen-back');
  h.click('journal');h.click('end-run');h.click('end-run-confirm');assert.match(h.elements.get('modal').innerHTML,/任務與成就獎勵/);assert.ok(h.game.permanent.moves.spark);assert.ok(h.game.permanent.skills.includes('economy'));
  const balance=h.game.permanent.meta.marks,next=harness(h.saved);assert.equal(next.game.permanent.meta.marks,balance);assert.match(next.elements.get('modal').innerHTML,/任務與成就獎勵/);
+});
+test('探索HUD僅滿分顯示任務，直接挑戰升階後歸零且存檔保留',()=>{
+ const h=harness();h.click('begin-run');const E=h.ctx.EncounterFlow,g=h.game;
+ assert.equal(h.elements.get('adventure-rank').hidden,false);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
+ h.click('adventure-rank');assert.match(h.elements.get('modal').innerHTML,/直接晉階挑戰/);assert.doesNotMatch(h.elements.get('modal').innerHTML,/任務出現後討伐/);h.click('close');
+ for(let i=0;i<17;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:1});vm.runInContext('renderUI()',h.ctx);assert.match(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
+ h.click('adventure-rank');assert.match(h.elements.get('modal').innerHTML,/任務出現後討伐/);h.click('close');
+ for(let i=0;i<2;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:3});vm.runInContext('renderUI();saveSession()',h.ctx);assert.equal(g.run.adventurerRank.index,1);assert.equal(g.run.adventurerRank.progress,0);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
+ const next=harness(h.saved);assert.equal(next.game.run.adventurerRank.index,1);assert.equal(next.game.run.adventurerRank.progress,0);
 });
 function harness(initialSave=[]) {
   const elements = new Map(), events = {}, windowEvents = {}, saved = new Map(initialSave); let now = 0, raf; const timers=new Map();let timerClock=0,timerId=0;
@@ -228,7 +237,7 @@ test('全新開局兩招無技能，升級畫面五項跳字落在實際值並�
  const h=harness();h.click('begin-run');assert.equal(h.game.run.build.moves.length,2);assert.equal(h.game.run.build.talents.length,0);const run=h.game.run;run.exp=h.ctx.Progression.levelCost(1)+h.ctx.Progression.levelCost(2);const exp=h.ctx.Progression.grantExp(run,2);h.game.result={won:true,exp,beforeLevel:exp.beforeLevel};h.game.encounter={type:'greywind_0',level:2};vm.runInContext('showResult();saveSession()',h.ctx);assert.ok(h.elements.get('modal').innerHTML.includes('等級提升'));assert.ok(!h.elements.get('modal').innerHTML.includes('data-action="allocate"'));const before=JSON.stringify(h.ctx.Progression.statsFor(run));h.step(40);for(const k of ['hp','mana','stamina','agility','luck'])assert.equal(h.elements.get('growth-'+k).textContent,Number(exp.afterStats[k].toFixed(1)).toLocaleString('zh-TW'));assert.equal(JSON.stringify(h.ctx.Progression.statsFor(run)),before);const reload=harness(h.saved);assert.equal(reload.game.modal,'result');assert.equal(reload.game.run.level,run.level);reload.click('result-next');assert.equal(reload.game.scene,'explore');
  const quick=harness();quick.click('begin-run');quick.game.run.exp=100;const e=quick.ctx.Progression.grantExp(quick.game.run,2);quick.game.result={won:true,exp:e};quick.game.encounter={type:'greywind_0',level:2};vm.runInContext('showResult()',quick.ctx);quick.click('result-next');assert.equal(quick.game.scene,'explore');
 });
-test('基礎配置重開需確認，取消不改本局，確認保留收藏',()=>{const h=legacyHarness();h.click('begin-run');h.game.run.level=8;const permanent=JSON.stringify(h.game.permanent);h.click('settings');h.click('restart-basic');h.click('close');assert.equal(h.game.run.level,8);h.click('restart-basic');h.click('restart-basic-confirm');assert.equal(h.game.run.level,1);assert.equal(h.game.run.build.moves.length,2);assert.equal(h.game.run.build.talents.length,0);const expected=JSON.parse(permanent);expected.meta.runs++;expected.meta.revision++;assert.equal(JSON.stringify(h.game.permanent),JSON.stringify(expected));});
+test('基礎配置重開需確認，取消不改本局，確認保留收藏',()=>{const h=legacyHarness();h.click('begin-run');h.game.run.level=8;const permanent=JSON.stringify(h.game.permanent);h.click('settings');h.click('restart-basic');h.click('close');assert.equal(h.game.run.level,8);h.click('restart-basic');h.click('restart-basic-confirm');assert.equal(h.game.run.level,1);assert.equal(h.game.run.build.moves.length,2);assert.equal(h.game.run.build.talents.length,0);const expected=JSON.parse(permanent);assert.equal(JSON.stringify(h.game.permanent.moves),JSON.stringify(expected.moves));assert.equal(JSON.stringify(h.game.permanent.skills),JSON.stringify(expected.skills));assert.equal(h.game.permanent.meta.runs,expected.meta.runs+1);assert.equal(h.game.permanent.meta.marks,expected.meta.marks+10);assert.ok(h.game.permanent.completedAchievementIds.includes('ACH_JOURNEY_RANK_0'));});
 
 
 test('整局結算呈現本局所有收穫，重整後清單仍在且不重發',()=>{const h=harness();h.click('begin-run');const g=h.game;h.ctx.Progression.grantRewards(g.permanent,g.run,[{kind:'moves',id:'spark'},{kind:'equipment',id:'windboots'},{kind:'books',id:'inferno'},{kind:'talents',id:'economy'}]);g.run.status='failed';g.run.deaths=3;g.result={won:false,exp:null};g.encounter={type:'greywind_0',level:2};vm.runInContext('showResult();saveSession()',h.ctx);const html=h.elements.get('modal').innerHTML;assert.ok(html.includes('冒險結算'));for(const text of ['雷電術','疾風靴','爆炎','節能施法'])assert.ok(html.includes(text));const next=harness(h.saved);assert.ok(next.elements.get('modal').innerHTML.includes('本局收穫'));assert.equal(Object.values(next.game.run.loot).reduce((n,r)=>n+r.count,0),4);next.click('result-next');assert.equal(next.game.scene,'title');next.click('begin-run');assert.equal(Object.keys(next.game.run.loot).length,0);});

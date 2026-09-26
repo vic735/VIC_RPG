@@ -70,7 +70,7 @@ function achievementScreen(){
     const stats=game.run?Ach.journeyStats(game.run):null;
     rows=(tab==='tasks'?Ach.journeyTasks:Ach.journeyAchievements).map(d=>{
       const claimed=tab==='tasks'?!!game.run?.journeySettlement?.receipts.some(r=>r.id===d.id):p.completedAchievementIds.includes(d.id);
-      const value=tab==='tasks'?(stats?.[d.metric]||0):Math.max(p.achievementProgress[d.id]||0,stats?.[d.metric]||0);
+      const value=tab==='tasks'?(stats?.[d.metric]||0):Math.max(p.achievementProgress[d.metric==='rank'?d.id+'_rank':d.id]||0,stats?.[d.metric]||0);
       const ready=!!stats&&value>=d.target;
       return `<article class="codex-entry achievement-card known"><div><small>${claimed?'✓ 已領取':ready?'已達標 · 結算領取':'進行中'}</small><strong>${U.escape(d.name)}</strong><p>${U.escape(Ach.journeyDescription(d))}</p><p>${d.target?Math.min(value,d.target)+' / '+d.target:'首次結算解鎖'}</p><p>獎勵：${U.escape(Ach.journeyReward(d))}</p></div></article>`;
     }).join('');
@@ -187,7 +187,14 @@ function completeSuppression(){
   game.fieldRewards=result.rewards;game.encounter={...result.enemies[0]};game.result={won:true,exp:result.exp,beforeLevel:result.exp.beforeLevel,quick:true,countsForCombatChallenges:false,enemyNames:result.enemies.map(e=>D.monsters[e.type].name).join('、')};game.resultHandled=true;
   showResult();saveSession();persist();
 }
-function ratingHTML(r,partial){return `<section class="run-rating" data-tier="${r.tier}" aria-label="本局評級 ${r.rank}"><small>本局評級</small><strong class="rating-rank">${r.rank}</strong><b>${r.score.toLocaleString('zh-TW')} 分</b><div class="rating-parts"><span>擊敗敵人 <b>+${r.parts.kills}</b></span><span>通關地下城 <b>+${r.parts.dungeons}</b></span><span>等級成長 <b>+${r.parts.levels}</b></span></div><p>${r.nextRank?'距離 '+r.nextRank+' 還差 '+r.remaining+' 分':'已達最高評級'}</p><details><summary>評分規則</summary><p>每隻敵人 ${D.runRating.kills.points} 分（含壓制，上限 ${D.runRating.kills.cap}）。每座不同地下城 ${D.runRating.dungeons.points} 分（同局重複通關不累加，上限 ${D.runRating.dungeons.cap}）。每升一級 ${D.runRating.levels.points} 分（Lv.1 起算，上限 ${D.runRating.levels.cap}）。</p></details>${partial?'<p>舊存檔評級僅依已記錄戰績計算。</p>':''}</section>`;}
+function ratingHTML(r,partial){return `<section class="run-rating" data-tier="${r.tier}" aria-label="本局評級 ${r.rank}"><small>本局冒險者階級</small><strong class="rating-rank">${r.rank}</strong><b>${r.nextRank?r.progress+' / '+r.required+' 晉階進度':'最高階級'}</b><p>${r.nextRank?r.active?'晉階任務尚未完成':'距離 '+r.nextRank+' 任務門檻還差 '+r.remaining+' 分':'已達最高評級'}</p><details><summary>晉階規則</summary><p>擊敗敵人 +${D.runRating.kills.points}、通關不同地下城 +${D.runRating.dungeons.points}、角色每升一級 +${D.runRating.levels.points}。分數滿後完成晉階任務，或直接完成較難挑戰，都可升一小階。滿分後不再累積，升階歸零，溢出不保留。</p></details>${partial?'<p>舊存檔僅依已記錄戰績計算。</p>':''}</section>`;}
+function rankTaskHTML(t){return `<p>${t.value>=t.target?'✓':'◇'} ${U.escape(t.label)} <b>${Math.min(t.value,t.target)} / ${t.target}</b></p>`;}
+function showRank(){
+ if(!game.run||game.scene!=='explore')return;
+ const r=Enc.rankView(game.run);
+ openModal('adventure-rank',`<div class="eyebrow">THIS RUN · ADVENTURER</div><h2 id="modal-title">冒險者 ${r.rank}</h2>${r.nextRank?`<p>下一階 ${r.nextRank} · ${r.progress} / ${r.required} 分</p><h3>一般晉階</h3>${r.active?r.normal.map(rankTaskHTML).join(''):'<p>達到分數門檻後，才會出現晉階任務。</p>'}<h3>直接晉階挑戰</h3>${rankTaskHTML(r.challenge)}<p class="quiet-note">不必累積滿分數，也不用完成一般晉階任務。達成即升至 ${r.nextRank}。</p>`:'<p>已達本局最高階級。</p>'}<p class="quiet-note">每局從 D− 開始。每升一小階，分數與討伐任務計數歸零；本局角色等級與地下城通關紀錄可追認。溢出分數不保留。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);
+}
+
 function runSummaryHTML(run){
   const s=Enc.summary(run,game.permanent),near=s.lastDefeat;
 return ratingHTML(s.rating,run.battleStatsPartial)+`<section class="journey-summary"><div class="journey-level"><small>本局到達</small><strong>Lv.${s.level}</strong></div><div class="journey-counts"><div><strong>${s.kills}</strong><small>擊敗敵人</small></div><div><strong>${s.dungeons}</strong><small>通過地下城</small></div></div><p class="quiet-note">實戰 ${s.normalKills} 隻 · 壓制 ${s.quickKills} 隻${run.battleStatsPartial?' · 舊存檔僅統計更新後戰績':''}</p>${near?`<div class="near-miss"><small>${near.remainingPercent<=25?'就差最後一步':'最後未完成的挑戰'}</small><strong>${U.escape(near.name)}</strong><p>${near.remainingPercent<=25?'還差':'剩餘'} <b>${near.remainingPercent}%</b> HP${near.remainingPercent<=25?' 就能擊敗':''}</p><div class="near-miss-track"><i style="width:${100-near.remainingPercent}%"></i></div></div>`:'<p class="quiet-note">這段旅途的收穫，將陪你再次出發。</p>'}<div class="hit-record"><small>${s.newHitRecord?'新紀錄 · 最高單擊':'本局最高單擊'}</small><strong>${Math.floor(s.highestHit).toLocaleString('zh-TW')}</strong></div></section>`;
@@ -314,6 +321,9 @@ function renderUI() {
   $('game').dataset.mode = game.scene; $('title-screen').hidden = game.scene !== 'title' || !!game.screen;
   $('hud').hidden = !game.run || !!game.screen; if (!game.run) return;
   if(renderer.time>(game.passiveUntil||0))$('passive-flash').textContent='';
+  const rank=Enc.rankView(game.run),rankHud=$('adventure-rank');rankHud.hidden=game.scene!=='explore'||!!game.debugBattle;
+  rankHud.innerHTML=`<span>冒險者 <b>${rank.rank}</b></span><span class="rank-hud-track"><i style="width:${rank.required?100*rank.progress/rank.required:100}%"></i></span><small>${rank.nextRank?rank.progress+' / '+rank.required:'最高階級'}</small>${rank.active?'<span class="rank-hud-task">晉階任務 · '+rank.normal.filter(t=>t.value>=t.target).length+'/'+rank.normal.length+'<br>'+U.escape(rank.normal.find(t=>t.value<t.target)?.label||'已完成')+'</span>':''}<small>查看直接晉階挑戰 ›</small>`;
+  const history=game.run.adventurerRank.history;if(game.rankNoticeRun===game.run&&history.length>(game.rankNoticeCount||0))toast('冒險者晉階 '+history.at(-1).from+' → '+history.at(-1).to+'！');game.rankNoticeRun=game.run;game.rankNoticeCount=history.length;
   const run = game.run, fighting = game.scene === 'battle', stats = P.statsFor(run), actor = fighting ? game.battle.player : { ...stats, stats };
   $('level').textContent = 'Lv.' + run.level; $('resources').innerHTML = U.statBar(actor.hp, actor.stats.hp, 'hp', 'HP') + U.statBar(actor.mana, actor.stats.mana, 'mp', 'MP') + U.statBar(actor.stamina, actor.stats.stamina, 'sp', 'SP');
   $('xp-fill').style.width = (run.exp / P.levelCost(run.level) * 100) + '%'; $('xp-label').textContent = `${run.exp}/${P.levelCost(run.level)}`;
@@ -371,6 +381,7 @@ function showTooltip(element) {
 }
 function handleAction(action, id, element) {
   if(action==='achievements'){openScreen('achievements');return;}
+  if(action==='adventure-rank'){showRank();return;}
   if(action==='achievement-tab'&&game.screen==='achievements'){game.achievementTab=id;renderScreen();return;}
   if (action === 'setup') { game.setupTab = 'stats'; openScreen('setup'); }
   else if (action === 'library') openScreen('library');

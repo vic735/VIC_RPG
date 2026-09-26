@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const A=require('./achievements'),P=require('./progression'),D=require('./data');
-function fixture(){const p=P.freshProgress(),run=P.createRun(p);run.status='failed';run.level=100;run.battleStats.kills=300;run.battleStats.clearedDungeonIds=D.dungeons.slice(0,8).map(d=>d.id);return {p,run};}
+function fixture(){const p=P.freshProgress(),run=P.createRun(p);run.adventurerRank.index=17;run.status='failed';run.level=100;run.battleStats.kills=300;run.battleStats.clearedDungeonIds=D.dungeons.slice(0,8).map(d=>d.id);return {p,run};}
 test('全部評級與任務自動發獎、能力有效且不繞過職業限制',()=>{
  const {p,run}=fixture(),s=A.settleJourney(p,run);assert.equal(s.receipts.length,29);assert.equal(p.meta.marks,s.total);
  for(const d of A.journeyAchievements)if(d.ability){const [kind,id]=d.ability;assert.ok(D[kind][id]);assert.notEqual(D[kind][id].contentScope,'classExclusive');assert.ok(kind==='moves'?p.moves[id]:p.skills.includes(id));}

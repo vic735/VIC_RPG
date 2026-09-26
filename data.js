@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.9.8', date: '2026-09-24' },
+    release: { version: '0.10.0', date: '2026-09-26' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -25,6 +25,13 @@
     ],
     defaultBuild: { talents: [], moves: ['quick', 'heavy', 'fire', 'interrupt'], ultimate: null, equipment: { head: null, chest: null, arms: null, feet: null, weapon: null } }
   };
+  // One fixed promotion contract for each adjacent rank. Points are per-stage,
+  // never carried forward. Late ranks add requirements instead of hidden gates.
+  data.rankPromotions = data.runRating.ranks.slice(0,-1).map((rank,i)=>({
+    points:data.runRating.thresholds[i+1]-data.runRating.thresholds[i],
+    normal:{kills:3+Math.floor(i/3)*2,level:i<3?0:[0,0,0,5,6,8,10,12,15,18,22,26,30,35,40,45,50][i],dungeons:i<6?0:1+Math.floor((i-6)/3)},
+    challenge:{enemyLevel:[3,5,7,10,13,16,20,24,28,33,38,43,49,55,61,68,75][i],kills:2+Math.floor(i/3)}
+  }));
   // Vertical-slice content. All provisional balance values live here, not in the UI.
   // Adventure tuning is separate from the combat engine's fixed sandbox defaults.
   data.adventure = { version: 2, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };

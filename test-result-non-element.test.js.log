@@ -1,9 +1,9 @@
-✔ neutral helpers use only damage type and an empty element list (0.736ms)
-✔ neutral physical specialization never buffs elemental physical attacks (0.4798ms)
-✔ neutral magic thresholds include exactly 80%, 25%, and 150 attack time (0.25ms)
-✔ general weapon and casting skills still work with elemental moves (0.1939ms)
-✔ neutral attacks stay at x1.0 and pure magic moves carry no free effects (0.6073ms)
-✔ all new neutral content participates in reward distribution (0.1591ms)
+✔ neutral helpers use only damage type and an empty element list (0.5617ms)
+✔ neutral physical specialization never buffs elemental physical attacks (0.3912ms)
+✔ neutral magic thresholds include exactly 80%, 25%, and 150 attack time (0.2ms)
+✔ general weapon and casting skills still work with elemental moves (0.1623ms)
+✔ neutral attacks stay at x1.0 and pure magic moves carry no free effects (0.5027ms)
+✔ all new neutral content participates in reward distribution (0.1168ms)
 ℹ tests 6
 ℹ suites 0
 ℹ pass 6
@@ -11,4 +11,4 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 7.0149
+ℹ duration_ms 5.8286

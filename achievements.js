@@ -28,17 +28,17 @@
   {id:'RUN_HUNT',name:'戰鬥歷練',metric:'kills',target:20,marks:15},
   {id:'RUN_CLEAR',name:'遺跡突破',metric:'dungeons',target:1,marks:25},
   {id:'RUN_LEVEL',name:'逐漸成長',metric:'level',target:10,marks:20},
-  ...[3,6,9,12,15].map((i,n)=>({id:'RUN_RANK_'+i,name:D.runRating.ranks[i]+' 評級挑戰',metric:'score',target:D.runRating.thresholds[i],marks:[20,30,40,60,90][n]}))
+  ...[3,6,9,12,15].map((i,n)=>({id:'RUN_RANK_'+i,name:D.runRating.ranks[i]+' 評級挑戰',metric:'rank',target:i,marks:[20,30,40,60,90][n]}))
  ];
  const rankRewards={3:['moves','spark'],6:['skills','economy'],9:['moves','double_slash'],12:['skills','fast_cast'],15:['moves','lightning_whip'],17:['skills','mana_cycle']};
  const journeyAchievements=[
-  ...D.runRating.ranks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'score',target:D.runRating.thresholds[i],marks:10+i*5,ability:rankRewards[i]})),
+  ...D.runRating.ranks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'rank',target:i,marks:10+i*5,ability:rankRewards[i]})),
   {id:'ACH_JOURNEY_HUNT',name:'百戰旅人',metric:'kills',target:100,marks:60,ability:['moves','heavy']},
   {id:'ACH_JOURNEY_CLEAR',name:'遺跡征服者',metric:'dungeons',target:3,marks:80,ability:['skills','counter']},
   {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:30,marks:60,ability:['skills','swift']}
  ];
- function journeyStats(run){const E=typeof module!=='undefined'?require('./encounters'):root.EncounterFlow,s=E.summary(run);return {kills:s.kills,dungeons:s.dungeons,level:s.level,score:s.rating.score};}
- function journeyDescription(d){return d.metric==='score'?(d.target?'單局結算評分達到 '+d.target+' 分。':'完成一次冒險結算。'):'單局'+({kills:'擊敗 ',dungeons:'通關不同地下城 ',level:'達到 Lv.'}[d.metric])+d.target+({kills:' 隻敵人（含壓制）。',dungeons:' 座。',level:'。'}[d.metric]);}
+ function journeyStats(run){const E=typeof module!=='undefined'?require('./encounters'):root.EncounterFlow,s=E.summary(run);return {kills:s.kills,dungeons:s.dungeons,level:s.level,score:s.rating.score,rank:s.rating.index};}
+ function journeyDescription(d){return d.metric==='rank'?'本局實際晉升至 '+D.runRating.ranks[d.target]+'（含更高階）。':d.metric==='score'?(d.target?'單局結算評分達到 '+d.target+' 分。':'完成一次冒險結算。'):'單局'+({kills:'擊敗 ',dungeons:'通關不同地下城 ',level:'達到 Lv.'}[d.metric])+d.target+({kills:' 隻敵人（含壓制）。',dungeons:' 座。',level:'。'}[d.metric]);}
  function journeyReward(d){const a=d.ability,content=a&&(a[0]==='moves'?D.moves:D.skills)[a[1]];return d.marks+' 旅者徽記'+(content?' ＋ '+(a[0]==='moves'?'招式':'技能')+'「'+content.name+'」':'');}
  function settleJourney(p,run){
   if(!run||run.status!=='failed')return null;if(run.journeySettlement)return run.journeySettlement;
@@ -48,7 +48,7 @@
    receipts.push({id:d.id,name:d.name,kind,marks,ability,duplicate});
   }
   for(const d of journeyTasks)if(stats[d.metric]>=d.target)reward(d,'task');
-  for(const d of journeyAchievements){p.achievementProgress[d.id]=Math.max(p.achievementProgress[d.id]||0,Math.min(d.target,stats[d.metric]));if(!p.completedAchievementIds.includes(d.id)&&stats[d.metric]>=d.target){reward(d,'achievement');p.completedAchievementIds.push(d.id);}}
+  for(const d of journeyAchievements){const key=d.metric==='rank'?d.id+'_rank':d.id;p.achievementProgress[key]=Math.max(p.achievementProgress[key]||0,Math.min(d.target,stats[d.metric]));if(!p.completedAchievementIds.includes(d.id)&&stats[d.metric]>=d.target){reward(d,'achievement');p.completedAchievementIds.push(d.id);}}
   const total=receipts.reduce((n,r)=>n+r.marks,0);m.marks+=total;m.earned+=total;m.revision++;run.journeySettlement={stats,receipts,total};return run.journeySettlement;
  }
  const api={defs,add,start,battleEnd:trackBattle,dungeonClear,swordMove,journeyTasks,journeyAchievements,journeyStats,journeyDescription,journeyReward,settleJourney};if(typeof module!=='undefined')module.exports=api;else root.Achievements=api;
