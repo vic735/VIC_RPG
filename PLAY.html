@@ -370,7 +370,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.10.0', date: '2026-09-26' },
+    release: { version: '0.11.0', date: '2026-09-28' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -396,12 +396,35 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   };
   // One fixed promotion contract for each adjacent rank. Points are per-stage,
   // never carried forward. Late ranks add requirements instead of hidden gates.
+  data.rankReferenceLevels=[1,5,10,20,25,30,40,50,60,75,90,105,120,135,150,165,180,190];
   data.rankPromotions = data.runRating.ranks.slice(0,-1).map((rank,i)=>({
     points:data.runRating.thresholds[i+1]-data.runRating.thresholds[i],
-    normal:{kills:3+Math.floor(i/3)*2,level:i<3?0:[0,0,0,5,6,8,10,12,15,18,22,26,30,35,40,45,50][i],dungeons:i<6?0:1+Math.floor((i-6)/3)},
-    challenge:{enemyLevel:[3,5,7,10,13,16,20,24,28,33,38,43,49,55,61,68,75][i],kills:2+Math.floor(i/3)}
+    normal:{kills:3+Math.floor(i/3)*2,level:0,enemyLevel:Math.max(1,Math.floor(data.rankReferenceLevels[i+1]*.75)),dungeons:i<6?0:1+Math.floor((i-6)/3)},
+    challenge:{enemyLevel:data.rankReferenceLevels[i+1],kills:2+Math.floor(i/3)}
   }));
   // Vertical-slice content. All provisional balance values live here, not in the UI.
+  // Shared by both the general and class-exclusive registries. Keep the original
+  // cost so aliases and repeated registration cannot compound the reduction.
+  data.resourceCostBalance={version:1,knots:[[0,0],[5,5],[8,6],[10,7],[12,8],[14,9],[16,10],[18,11],[20,12],[24,15],[26,16],[30,20],[34,23],[38,26],[42,30]]};
+  data.applyResourceCostBalance=function(){
+    const enemies=new Set(Object.values(data.monsters).flatMap(e=>e.moves||[]));
+    const rewards=new Set(Object.values(data.rewardPools||{}).flatMap(p=>p.entries.filter(e=>e.rewardType==='moves').flatMap(e=>e.rewardIds)).map(id=>data.moves[id]));
+    for(const move of new Set(Object.values(data.moves))){
+      const playerMove=rewards.has(move)||move.contentId||move.contentScope==='classExclusive'||data.catalogMoveIds?.includes(move.id)||data.startingMoves?.includes(move.id)||Object.values(data.books).some(b=>b.moveId===move.id);
+      if(enemies.has(move.id)&&!playerMove||!move.cost||!Object.values(move.cost).some(n=>n>0))continue;
+      move.originalResourceCost||={...move.cost};
+      const knots=data.resourceCostBalance.knots;
+      for(const [key,value]of Object.entries(move.originalResourceCost)){
+        if(!['mana','stamina'].includes(key)||value<=5)continue;
+        const hi=knots.findIndex(([x])=>x>=value);
+        const [a,av]=knots[hi>0?hi-1:knots.length-2],[b,bv]=knots[hi>0?hi:knots.length-1];
+        move.cost[key]=Math.max(1,Math.round(av+(value-a)/(b-a)*(bv-av)));
+      }
+      move.baseCost=Object.values(move.cost).reduce((n,v)=>n+v,0);
+      const label=Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+({mana:'MP',stamina:'SP'}[k]||k)).join('＋');
+      if(move.description)move.description=move.description.replace(/消耗[：:]\s*\d+(?:\.\d+)?\s*(?:MP|SP)(?:\s*[＋+]\s*\d+(?:\.\d+)?\s*(?:MP|SP))?/g,'消耗：'+label);
+    }
+  };
   // Adventure tuning is separate from the combat engine's fixed sandbox defaults.
   data.adventure = { version: 2, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
   data.adventure.balance50 = { resourceDamage: .7, castAgilityScale: 100, chargePerSecond: 1,
@@ -411,11 +434,20 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       { through: 40, hp: 16, stamina: 4, mana: 4, agility: .8, luck: .4 },
       { through: 50, hp: 18, stamina: 4.5, mana: 4.5, agility: .9, luck: .45 }
     ], mastery: [[1,1],[3,1.16],[10,1.45],[20,1.65],[50,1.9]] };
+  data.enemyBalance={version:1,
+    levels:[1,5,10,20,25,30,40,50,60,75,90,105,120,135,150,165,180,190],
+    hp:[90,110,160,250,315,405,545,740,970,1360,1820,2375,3050,3860,4810,5710,6710,7470],
+    attack:[18,24,31,48,56,66,85,107,121,143,164,186,207,229,251,272,294,308],
+    species:{slime:{hp:.9,damage:.9,exp:.7,cycle:1.1},goblin:{hp:1,damage:1,exp:1,cycle:1},wolf:{hp:.85,damage:.85,exp:1.1,cycle:.85},golem:{hp:1.2,damage:1.15,exp:1.2,cycle:1.2},default:{hp:1,damage:1,exp:1,cycle:1}},
+    roles:{normal:{hp:1,damage:1,exp:1},strong:{hp:1.5,damage:1.1,exp:1.5},dungeon:{hp:1.8,damage:.3,exp:1.8},elite:{hp:3.5,damage:.3,exp:4},boss:{hp:8,damage:.18,exp:8},importantBoss:{hp:11,damage:.15,exp:12}},
+    firstBoss:{hp:5,damage:.2,exp:8},castSeconds:3.2,defenseBase:6,defensePerLevel:.2,
+    gap:{free:10,linear:.06,quadratic:.004,enemyDamagePerLevel:.03,enemyDamageCap:2.5}
+  };
   data.balance = {
     critBase: .05, critPerLuck: .006, critCap: .55, critDamageBase: 1.4, critDamagePerLuck: .008,
     dodgePerAgility: .0015, dodgeCap: .3, expPerLuck: .008,
     expBase: 18, expPerLevel: 8, levelCost: 90, levelCostGrowth: 30,
-    expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
+    expGap: [[-20, .1], [-10, .35], [-5, .7], [0, 1], [3, 1.15], [5, 1.3], [10, 1.6], [20, 2]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
     enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 },
@@ -612,6 +644,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  D.contentV1={version:1,moves,skills,moveCount:100,skillCount:72,initialMoveIds:['M001','M002','M003','M004','M005','M006','M007','M008','M009','M014','M015','M020','M021','M022','M026','M027','M032','M038','M044','M072'],initialSkillIds:['S001','S002','S003','S004','S005','S012','S014','S018','S023','S025','S026','S043','S048','S050']};
  for(const m of Object.values(D.moves))if(m.standardElementMatrix&&(m.name.includes('強')||m.name.includes('重岩彈')))m.family='STRONG_BULLET';
  for(const [el,rootName] of Object.entries(roots)){const id='std_'+el+'_greater_orb';if(!D.moves[id])D.moves[id]={id,name:`森・${rootName}・烏`,subtitle:`${elementLabels[el]}屬性高階巨球`,description:`${elementLabels[el]}屬性高階巨球：高傷害的後期招式。`,icon:'orb',kind:'normal',damageType:'magic',elements:[el],multiplier:2.25,cost:{mana:38},attackTime:190,ultimateChargeCost:150,effects:[],family:'GREATER_ORB',standardElementMatrix:true,matrixElement:el};D.moves[id].ultimateChargeCost||=150;const dungeonId={metal:'thunder_workshop',wood:'root_cave',water:'frozen_tower',fire:'lava_vein',earth:'giant_ruins',light:'blacklight_chapel',dark:'element_abyss'}[el],d=D.dungeons.find(x=>x.id===dungeonId),entry=d&&D.rewardPools[d.primaryRewardPool].entries.find(x=>x.rewardType==='moves');if(entry&&!entry.rewardIds.includes(id))entry.rewardIds.push(id);}
+ D.applyResourceCostBalance();
  if(typeof module!=='undefined')module.exports=D.contentV1;else root.ContentV1=D.contentV1;
 })(globalThis);
 
@@ -764,6 +797,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
+ D.applyResourceCostBalance();
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;
 })(globalThis);
 
@@ -950,7 +984,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     getMove(id, actor = this.player) {
       const original = D.moves[id]; if (!original) return null;
       const physical=original.damageType==='physical', trace=new Set(), player=actor===this.player;
-      const move={...original,cost:{...original.cost},multiplier:original.multiplier*(player?this.moveScale(this.moveLevels[id]||1):1)*(player&&physical?this.equipmentEffects.physicalMultiplier||1:1),attackTime:original.attackTime+(player&&physical?this.equipmentEffects.physicalAttackTime||0:0)};
+      const move={...original,cost:{...(!player&&original.originalResourceCost?original.originalResourceCost:original.cost)},multiplier:original.multiplier*(player?this.moveScale(this.moveLevels[id]||1):1)*(player&&physical?this.equipmentEffects.physicalMultiplier||1:1),attackTime:original.attackTime+(player&&physical?this.equipmentEffects.physicalAttackTime||0:0)};
       if(player&&physical&&(this.equipmentEffects.physicalMultiplier||this.equipmentEffects.physicalAttackTime))trace.add(D.equipment[this.build.equipment.weapon]?.name||'裝備');
       const ctx={move};move.attackTime=actor.runtime.modify('attackTime',move.attackTime,ctx,trace);
       const elementRules=D.balance.elementSkills||{},elementTotals=actor.runtime.elementTotals(move.elements,trace),costFactor=Math.max(elementRules.minimumResourceCostMultiplier??.2,1-elementTotals.costReduction);
@@ -961,13 +995,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     }
     effectiveStat(actor,key){return actor.runtime.modify(key,actor.stats[key]);}
     rule(key,actor,ctx={}) { const value=this.rules[key], stats={...actor.stats,agility:this.effectiveStat(actor,'agility')};const base=typeof value==='function'?value(stats):value;return actor.runtime.modify(key,base,ctx); }
-    castDuration(move,actor){return this.options.balance50 ? Math.max(move.minCastTime??1.1,move.attackTime*.05/(1+this.effectiveStat(actor,'agility')/D.adventure.balance50.castAgilityScale)) : castSeconds(move.attackTime,this.effectiveStat(actor,'agility'));}
+    castDuration(move,actor){if(actor===this.enemy&&this.enemyDefinition.castCycle)return Math.max(1.1,this.enemyDefinition.castCycle*move.attackTime/this.enemyDefinition.averageCast);return this.options.balance50 ? Math.max(move.minCastTime??1.1,move.attackTime*.05/(1+this.effectiveStat(actor,'agility')/D.adventure.balance50.castAgilityScale)) : castSeconds(move.attackTime,this.effectiveStat(actor,'agility'));}
     preview(id){const move=this.getMove(id);if(!move)return null;const trace=new Set(move.modifications);const damage=this.damageValue(this.player,this.enemy,move,false,trace);return {...move,estimatedDamage:damage,castTime:this.castDuration(move,this.player),modifications:[...trace]};}
     damageValue(actor,target,move,critical=false,trace){
-      const maximum=actor.stats[move.damageType==='physical'?'stamina':'mana'];const ctx={actor,target,move,critical};
-      let gapFactor=1;if(this.options.balance50&&this.options.levelGap&&actor!==this.player){const gap=this.options.levelGap,rules=D.balance.levelGapCombat||{};gapFactor=Math.min(rules.enemyDamageCap??1.75,1+Math.max(0,gap)*(rules.enemyDamagePerLevel??.015));}let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1)*gapFactor,ctx,trace);damage*=1+actor.runtime.elementTotals(move.elements,trace).damageBonus;
+      const maximum=actor===this.enemy&&this.enemyDefinition.attackPower!==undefined?this.enemyDefinition.attackPower/this.enemyDefinition.averageMultiplier:actor.stats[move.damageType==='physical'?'stamina':'mana'];const ctx={actor,target,move,critical};
+      let gapFactor=1;if(this.options.balance50&&this.options.levelGap&&actor!==this.player){const gap=this.options.levelGap,rules=D.enemyBalance?.gap||D.balance.levelGapCombat||{};gapFactor=Math.min(rules.enemyDamageCap??1.75,1+Math.max(0,gap)*(rules.enemyDamagePerLevel??.015));}let damage=actor.runtime.modify('damage',maximum*move.multiplier*(actor===this.player&&this.options.balance50?D.adventure.balance50.resourceDamage:1)*gapFactor,ctx,trace);damage*=1+actor.runtime.elementTotals(move.elements,trace).damageBonus;
       for(const m of move.reservedModifiers||[])if(move.consumeReserved&&R.matches(m.conditions,{...ctx,battle:this}))damage=m.op==='add'?damage+m.value:damage*m.value;
-      damage*=R.elementMultiplier(move.elements,target.elements);if(actor===this.player&&target===this.enemy&&this.options.balance50){const rules=D.balance.enemyDefense||{},gap=Math.max(0,this.options.levelGap||0),base=move.damageType==='physical'?this.enemyDefinition.physicalDefense||0:this.enemyDefinition.magicResistance||0,defense=base+gap*(rules.levelGapPerLevel||0),constant=rules.formulaConstant||100,reduction=Math.min(rules.maximumReduction??.8,defense/(constant+defense));damage*=1-reduction;}if(critical)damage*=this.rule('critMultiplier',actor,ctx);
+      damage*=R.elementMultiplier(move.elements,target.elements);if(actor===this.player&&target===this.enemy&&this.options.balance50){const rules=D.balance.enemyDefense||{},gap=Math.max(0,this.options.levelGap||0),base=move.damageType==='physical'?this.enemyDefinition.physicalDefense||0:this.enemyDefinition.magicResistance||0,defense=base,constant=rules.formulaConstant||100,reduction=Math.min(rules.maximumReduction??.8,defense/(constant+defense)),g=D.enemyBalance.gap,excess=Math.max(0,gap-g.free);damage*=(1-reduction)/(1+g.linear*excess+g.quadratic*excess*excess);}if(critical)damage*=this.rule('critMultiplier',actor,ctx);
       damage=target.runtime.modify('incoming',damage,{move,target:actor,critical},trace);const resistance=target.runtime.elementTotals(move.elements,trace).incomingReduction,cap=D.balance.elementSkills?.maximumResistanceReduction??.95;return Math.max(0,damage*(1-Math.min(cap,resistance)));
     }
     recover(actor,resource,amount,ctx={}){const before=actor[resource];actor[resource]=Math.min(actor.stats[resource],actor[resource]+Math.max(0,amount));const recovered=actor[resource]-before;if(recovered>0){actor.runtime.emit('OnResourceRecovered',{...ctx,resource,recovered});if(resource==='hp')actor.runtime.emit('OnHPChanged',{...ctx});}return recovered;}
@@ -1206,12 +1240,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     return table.at(-1)[1];
   }
   const levelCost = level => D.balance.levelCost + (level - 1) * D.balance.levelCostGrowth;
-  function grantExp(run, enemyLevel, enemyType) {
+  function grantExp(run, enemyLevel, enemyType, encounter={}) {
     const beforeLevel=run.level,beforeStats=statsFor(run);
     const actor={stats:statsFor(run),statuses:{},hp:1,mana:1,stamina:1};const runtime=new R.Runtime({time:0,run,player:actor,log(){}},actor,run.build.talents.map(id=>D.skills[id]));
     const expFactor=runtime.modify('exp',1);
-    const opening=run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level);
-    const amount = Math.round((D.monsters[enemyType]?.expFactor||1)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
+    const opening=!run.dungeon&&run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level),profile=enemyProfile(enemyType,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id});
+    const amount = Math.round((profile.species.exp*profile.tuning.exp)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
     runtime.emit('OnEXPReceived',{amount}); run.exp += amount; let levels = 0;
     while (run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
     const afterStats=statsFor(run);if(run.dungeonResources)for(const k of ['hp','mana','stamina'])run.dungeonResources[k]=Math.min(afterStats[k],run.dungeonResources[k]+afterStats[k]-beforeStats[k]);
@@ -1263,10 +1297,26 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     if(run.dungeon.rewardClaimed)return [];
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
-  function enemyDefinition(type,level,options={}){const source=D.monsters[type];if(!source)throw Error('未知敵人');const stats={},pressure=D.balance.enemyLevelPressure||{start:5,perLevel:0,agilityPerLevel:0},pressureScale=options.overworld===false?1:1+Math.max(0,level-pressure.start)*pressure.perLevel,defense=D.balance.enemyDefense||{base:0,perLevel:0};for(const [k,v]of Object.entries(source.stats)){if(source.growth){stats[k]=k==='agility'||k==='luck'?v+(level-1)*source.growth[k]:v*(1+(level-1)*source.growth[k])*pressureScale;}else{stats[k]=v*(1+(level-1)*D.balance.enemyGrowth)*pressureScale;}if(k==='agility'&&options.overworld!==false)stats[k]+=Math.max(0,level-pressure.start)*pressure.agilityPerLevel;}return {...source,stats,level,physicalDefense:defense.base+level*defense.perLevel+(source.physicalDefenseBonus||0),magicResistance:defense.base+level*defense.perLevel+(source.magicResistanceBonus||0)};}
+  function enemyProfile(type,options={}){
+    const m=D.monsters[type]||{},cfg=D.enemyBalance;
+    const role=options.role==='boss'||m.boss||type==='boss'?(m.id?.startsWith('terminal_structure')||m.id?.startsWith('element_abyss')?'importantBoss':'boss'):options.role==='elite'||options.elite||m.elite?'elite':options.role==='strong'?'strong':options.overworld===false?'dungeon':'normal';
+    const species=cfg.species[m.sprite||type]||cfg.species.default;
+    return {role,species,tuning:role==='boss'&&(options.dungeonId==='abandoned_mine'||type==='opening_mine_boss_3')?cfg.firstBoss:cfg.roles[role]};
+  }
+  function enemyDefinition(type,level,options={}){
+    const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
+    const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
+    const attackPower=interpolate(cfg.attack)*species.damage*tuning.damage;
+    const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
+    const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
+    const averageCast=all.reduce((n,m)=>n+m.attackTime,0)/Math.max(1,all.length);
+    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:cfg.castSeconds*species.cycle,
+      stats:{...source.stats,hp:Math.round(interpolate(cfg.hp)*species.hp*tuning.hp),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
+      physicalDefense:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.physicalDefenseBonus||0),magicResistance:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.magicResistanceBonus||0)};
+  }
   function battleFor(run, encounter, rng = Math.random) {
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, balance50:true, levelGap:encounter.level-run.level, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{overworld:!run.dungeon}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, balance50:true, levelGap:encounter.level-run.level, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
@@ -1274,7 +1324,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?.enemyWaves[run.dungeon.stage];if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyDefinition, battleFor, dungeonEncounter };
+  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);
 
@@ -1802,7 +1852,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   // Revalidate restored saves; an invalid pending encounter must return to normal combat.
   if(!eligible(run,{enemies:pending.enemies},true)){delete run.quickBattle;return {fallback:pending.enemies};}
   const beforeLevel=run.level,beforeStats=P.statsFor(run);let amount=0;const rewards=[];
-  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng,run.currentMapId)));}
+  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type,e).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng,run.currentMapId)));}
   const result={exp:{amount,beforeLevel,beforeStats,afterLevel:run.level,afterStats:P.statsFor(run),levels:run.level-beforeLevel},enemies:pending.enemies,rewards,quick:true,countsForCombatChallenges:false};
   delete run.quickBattle;run.lastEncounterResult={mode:'quick',countsForCombatChallenges:false};return result;
  }
@@ -1826,7 +1876,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
-   {label:'任務出現後討伐魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   {label:'任務出現後討伐 Lv.'+cfg.normal.enemyLevel+' 以上魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
    ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
    ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
   ]:[];
@@ -1839,7 +1889,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const wasActive=s.progress>=cfg.points;
   // A triggering kill belongs to exactly one rank. The kill filling the bar
   // does not count as a newly revealed ordinary mission's first kill.
-  if(event.enemy){if(wasActive)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
+  if(event.enemy){if(wasActive&&event.enemy.level>=cfg.normal.enemyLevel)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
   if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
   const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
   if(!direct&&!normal)return null;
@@ -2109,7 +2159,7 @@ function finishEncounter() {
   run.deaths = b.run.deaths; run.debuffIds = [...b.run.debuffIds]; run.status = b.run.status;
   if(run.dungeon&&b.phase==='victory')run.dungeonResources=Object.fromEntries(['hp','mana','stamina'].map(k=>[k,b.player[k]]));
   if(run.status==='failed'&&!game.debugBattle&&!game.permanent.ultimateUnlocked){game.permanent.ultimateUnlocked=true;persist();}
-  if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type) : null;
+  if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type,game.encounter) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
   game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId)) : []; if(game.fieldRewards.length)persist();

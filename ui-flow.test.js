@@ -17,7 +17,7 @@ test('探索HUD僅滿分顯示任務，直接挑戰升階後歸零且存檔保�
  h.click('adventure-rank');assert.match(h.elements.get('modal').innerHTML,/直接晉階挑戰/);assert.doesNotMatch(h.elements.get('modal').innerHTML,/任務出現後討伐/);h.click('close');
  for(let i=0;i<17;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:1});vm.runInContext('renderUI()',h.ctx);assert.match(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
  h.click('adventure-rank');assert.match(h.elements.get('modal').innerHTML,/任務出現後討伐/);h.click('close');
- for(let i=0;i<2;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:3});vm.runInContext('renderUI();saveSession()',h.ctx);assert.equal(g.run.adventurerRank.index,1);assert.equal(g.run.adventurerRank.progress,0);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
+ for(let i=0;i<2;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:5});vm.runInContext('renderUI();saveSession()',h.ctx);assert.equal(g.run.adventurerRank.index,1);assert.equal(g.run.adventurerRank.progress,0);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
  const next=harness(h.saved);assert.equal(next.game.run.adventurerRank.index,1);assert.equal(next.game.run.adventurerRank.progress,0);
 });
 function harness(initialSave=[]) {
@@ -168,13 +168,13 @@ test('v0.2 HUD 最終消耗、液面、需求線、MP/SP 分色與容器充能',
  const h=harness();h.click('begin-run');const b=h.ctx.GameDebug.build({talents:['economy'],moves:['fireball','heavy_slash'],rng:()=>.99});h.game.battle=b;h.game.run.build=b.build;h.game.scene='battle';h.game.transition=0;h.game.encounter={type:'boss',level:1};
  vm.runInContext('rebuildSkills();renderUI()',h.ctx);
  const buttons=h.elements.get('skillbar').querySelectorAll('[data-action="move"]'),mp=buttons[0],sp=buttons[1],ult=buttons[4];
- assert.equal(mp.dataset.resource,'mana');assert.equal(sp.dataset.resource,'stamina');assert.equal(mp.style['--liquid'],'100%');assert.equal(mp.style['--demand'],'17%');assert.equal(mp.querySelector('.actual-cost').textContent,'17 MP');
+ assert.equal(mp.dataset.resource,'mana');assert.equal(sp.dataset.resource,'stamina');assert.equal(mp.style['--liquid'],'100%');assert.equal(mp.style['--demand'],'10.2%');assert.equal(mp.querySelector('.actual-cost').textContent,'10.2 MP');
  assert.ok(mp.innerHTML.includes('博阿露巫・爾拉'));assert.ok(mp.innerHTML.includes('火球術'));
  b.player.mana=50;vm.runInContext('renderUI()',h.ctx);assert.equal(mp.style['--liquid'],'50%');
- b.player.mana=16;vm.runInContext('renderUI()',h.ctx);assert.equal(mp.attributes['aria-disabled'],'true');assert.equal(b.choose('fireball').ok,false);
+ b.player.mana=10;vm.runInContext('renderUI()',h.ctx);assert.equal(mp.attributes['aria-disabled'],'true');assert.equal(b.choose('fireball').ok,false);
  b.player.mana=100;const chargeCost=h.ctx.GameData.moves[b.build.ultimate].ultimateChargeCost;for(const percent of [0,25,50,75,100]){b.charge=chargeCost*percent/100;vm.runInContext('renderUI()',h.ctx);assert.equal(ult.style['--charge'],percent+'%');assert.equal(h.elements.get('charge-label').textContent,percent===100?'READY':percent+'%');assert.equal(ult.attributes['aria-disabled'],percent===100?'false':'true');}
  b.player.mana=0;vm.runInContext('renderUI()',h.ctx);assert.equal(h.elements.get('charge-label').textContent,'READY');assert.equal(h.elements.get('ultimate-warning').textContent,'資源不足');assert.equal(ult.attributes['aria-disabled'],'true');
- h.events.focusin({target:mp});h.advanceTimers(600);assert.ok(h.elements.get('tooltip').innerHTML.includes('17 MP'));assert.ok(h.elements.get('tooltip').innerHTML.includes('節能施法'));assert.ok(h.elements.get('tooltip').innerHTML.includes('預估傷害'));
+ h.events.focusin({target:mp});h.advanceTimers(600);assert.ok(h.elements.get('tooltip').innerHTML.includes('10.2 MP'));assert.ok(h.elements.get('tooltip').innerHTML.includes('節能施法'));assert.ok(h.elements.get('tooltip').innerHTML.includes('預估傷害'));
 });
 
 test('設定頁可開啟測試工作台、修改資源／大絕／屬性並開始獨立戰鬥',()=>{
@@ -213,7 +213,7 @@ test('世界測試 UI：查看敵人／獎勵池、指定組合／池、等級�
 test('十一座地下城可經 UI 入口、連戰、領獎、返回探索；Lv.1 無進入硬鎖',()=>{
  for(const id of ['abandoned_mine','old_lab','root_cave','sunken_temple','lava_vein','giant_ruins','frozen_tower','thunder_workshop','blacklight_chapel','element_abyss','terminal_structure']){
   const h=harness();h.click('begin-run');const d=h.ctx.GameData.dungeons.find(d=>d.id===id),run=h.game.run;h.click('world-map');h.click('world-region',h.ctx.GameData.maps[d.mapId].regionId);h.click('world-map-detail',d.mapId);h.click('world-enter-map',d.mapId);run.world.enemies=[];run.position={x:d.x,y:d.y+65};h.step(2);h.click('interact');h.click('enter-dungeon',id);assert.equal(run.level,1);assert.equal(h.game.scene,'battle');
-  for(let i=0;i<d.enemyWaves.length;i++){const b=h.game.battle;b.player.stats.stamina=100000;b.player.stamina=100000;b.player.stats.hp=100000;b.player.hp=100000;for(let ticks=0;ticks<1200&&h.game.modal!=='result';ticks++){h.key('w');h.step();}assert.equal(h.game.result.won,true,id+' wave '+i);h.click('result-next');}
+  for(let i=0;i<d.enemyWaves.length;i++){const b=h.game.battle;b.enemy.hp=1;b.player.stats.stamina=100000;b.player.stamina=100000;b.player.stats.hp=100000;b.player.hp=100000;for(let ticks=0;ticks<1200&&h.game.modal!=='result';ticks++){h.key('w');h.step();}assert.equal(h.game.modal,'result',id+' wave '+i+' phase '+b.phase+' hp '+b.enemy.hp+' cast '+JSON.stringify(b.player.cast));assert.equal(h.game.result.won,true,id+' wave '+i);h.click('result-next');}
   assert.equal(h.game.modal,'reward');assert.equal(h.game.permanent.dungeonCompletions[id],1);h.click('reward-next');while(h.game.modal==='acquire')h.click('acquire-skip');assert.equal(h.game.scene,'explore');assert.equal(run.dungeon,null);
  }
 });

@@ -256,7 +256,7 @@ function finishEncounter() {
   run.deaths = b.run.deaths; run.debuffIds = [...b.run.debuffIds]; run.status = b.run.status;
   if(run.dungeon&&b.phase==='victory')run.dungeonResources=Object.fromEntries(['hp','mana','stamina'].map(k=>[k,b.player[k]]));
   if(run.status==='failed'&&!game.debugBattle&&!game.permanent.ultimateUnlocked){game.permanent.ultimateUnlocked=true;persist();}
-  if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type) : null;
+  if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type,game.encounter) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
   game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId)) : []; if(game.fieldRewards.length)persist();

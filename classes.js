@@ -37,5 +37,6 @@
  ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
+ D.applyResourceCostBalance();
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;
 })(globalThis);

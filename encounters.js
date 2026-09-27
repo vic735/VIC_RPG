@@ -23,7 +23,7 @@
   // Revalidate restored saves; an invalid pending encounter must return to normal combat.
   if(!eligible(run,{enemies:pending.enemies},true)){delete run.quickBattle;return {fallback:pending.enemies};}
   const beforeLevel=run.level,beforeStats=P.statsFor(run);let amount=0;const rewards=[];
-  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng,run.currentMapId)));}
+  for(const e of pending.enemies){amount+=P.grantExp(run,e.level,e.type,e).amount;victory(p,run,e,true);defeatSpawn(run,e);rewards.push(...P.grantRewards(p,run,Rewards.enemy(e.type,rng,run.currentMapId)));}
   const result={exp:{amount,beforeLevel,beforeStats,afterLevel:run.level,afterStats:P.statsFor(run),levels:run.level-beforeLevel},enemies:pending.enemies,rewards,quick:true,countsForCombatChallenges:false};
   delete run.quickBattle;run.lastEncounterResult={mode:'quick',countsForCombatChallenges:false};return result;
  }
@@ -47,7 +47,7 @@
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
-   {label:'任務出現後討伐魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   {label:'任務出現後討伐 Lv.'+cfg.normal.enemyLevel+' 以上魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
    ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
    ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
   ]:[];
@@ -60,7 +60,7 @@
   const wasActive=s.progress>=cfg.points;
   // A triggering kill belongs to exactly one rank. The kill filling the bar
   // does not count as a newly revealed ordinary mission's first kill.
-  if(event.enemy){if(wasActive)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
+  if(event.enemy){if(wasActive&&event.enemy.level>=cfg.normal.enemyLevel)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
   if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
   const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
   if(!direct&&!normal)return null;

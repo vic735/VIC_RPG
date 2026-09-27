@@ -75,12 +75,12 @@
     return table.at(-1)[1];
   }
   const levelCost = level => D.balance.levelCost + (level - 1) * D.balance.levelCostGrowth;
-  function grantExp(run, enemyLevel, enemyType) {
+  function grantExp(run, enemyLevel, enemyType, encounter={}) {
     const beforeLevel=run.level,beforeStats=statsFor(run);
     const actor={stats:statsFor(run),statuses:{},hp:1,mana:1,stamina:1};const runtime=new R.Runtime({time:0,run,player:actor,log(){}},actor,run.build.talents.map(id=>D.skills[id]));
     const expFactor=runtime.modify('exp',1);
-    const opening=run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level);
-    const amount = Math.round((D.monsters[enemyType]?.expFactor||1)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
+    const opening=!run.dungeon&&run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level),profile=enemyProfile(enemyType,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id});
+    const amount = Math.round((profile.species.exp*profile.tuning.exp)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
     runtime.emit('OnEXPReceived',{amount}); run.exp += amount; let levels = 0;
     while (run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
     const afterStats=statsFor(run);if(run.dungeonResources)for(const k of ['hp','mana','stamina'])run.dungeonResources[k]=Math.min(afterStats[k],run.dungeonResources[k]+afterStats[k]-beforeStats[k]);
@@ -132,10 +132,26 @@
     if(run.dungeon.rewardClaimed)return [];
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
-  function enemyDefinition(type,level,options={}){const source=D.monsters[type];if(!source)throw Error('未知敵人');const stats={},pressure=D.balance.enemyLevelPressure||{start:5,perLevel:0,agilityPerLevel:0},pressureScale=options.overworld===false?1:1+Math.max(0,level-pressure.start)*pressure.perLevel,defense=D.balance.enemyDefense||{base:0,perLevel:0};for(const [k,v]of Object.entries(source.stats)){if(source.growth){stats[k]=k==='agility'||k==='luck'?v+(level-1)*source.growth[k]:v*(1+(level-1)*source.growth[k])*pressureScale;}else{stats[k]=v*(1+(level-1)*D.balance.enemyGrowth)*pressureScale;}if(k==='agility'&&options.overworld!==false)stats[k]+=Math.max(0,level-pressure.start)*pressure.agilityPerLevel;}return {...source,stats,level,physicalDefense:defense.base+level*defense.perLevel+(source.physicalDefenseBonus||0),magicResistance:defense.base+level*defense.perLevel+(source.magicResistanceBonus||0)};}
+  function enemyProfile(type,options={}){
+    const m=D.monsters[type]||{},cfg=D.enemyBalance;
+    const role=options.role==='boss'||m.boss||type==='boss'?(m.id?.startsWith('terminal_structure')||m.id?.startsWith('element_abyss')?'importantBoss':'boss'):options.role==='elite'||options.elite||m.elite?'elite':options.role==='strong'?'strong':options.overworld===false?'dungeon':'normal';
+    const species=cfg.species[m.sprite||type]||cfg.species.default;
+    return {role,species,tuning:role==='boss'&&(options.dungeonId==='abandoned_mine'||type==='opening_mine_boss_3')?cfg.firstBoss:cfg.roles[role]};
+  }
+  function enemyDefinition(type,level,options={}){
+    const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
+    const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
+    const attackPower=interpolate(cfg.attack)*species.damage*tuning.damage;
+    const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
+    const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
+    const averageCast=all.reduce((n,m)=>n+m.attackTime,0)/Math.max(1,all.length);
+    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:cfg.castSeconds*species.cycle,
+      stats:{...source.stats,hp:Math.round(interpolate(cfg.hp)*species.hp*tuning.hp),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
+      physicalDefense:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.physicalDefenseBonus||0),magicResistance:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.magicResistanceBonus||0)};
+  }
   function battleFor(run, encounter, rng = Math.random) {
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, balance50:true, levelGap:encounter.level-run.level, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{overworld:!run.dungeon}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, balance50:true, levelGap:encounter.level-run.level, preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
@@ -143,6 +159,6 @@
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?.enemyWaves[run.dungeon.stage];if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyDefinition, battleFor, dungeonEncounter };
+  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);

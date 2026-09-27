@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.10.0', date: '2026-09-26' },
+    release: { version: '0.11.0', date: '2026-09-28' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -27,12 +27,35 @@
   };
   // One fixed promotion contract for each adjacent rank. Points are per-stage,
   // never carried forward. Late ranks add requirements instead of hidden gates.
+  data.rankReferenceLevels=[1,5,10,20,25,30,40,50,60,75,90,105,120,135,150,165,180,190];
   data.rankPromotions = data.runRating.ranks.slice(0,-1).map((rank,i)=>({
     points:data.runRating.thresholds[i+1]-data.runRating.thresholds[i],
-    normal:{kills:3+Math.floor(i/3)*2,level:i<3?0:[0,0,0,5,6,8,10,12,15,18,22,26,30,35,40,45,50][i],dungeons:i<6?0:1+Math.floor((i-6)/3)},
-    challenge:{enemyLevel:[3,5,7,10,13,16,20,24,28,33,38,43,49,55,61,68,75][i],kills:2+Math.floor(i/3)}
+    normal:{kills:3+Math.floor(i/3)*2,level:0,enemyLevel:Math.max(1,Math.floor(data.rankReferenceLevels[i+1]*.75)),dungeons:i<6?0:1+Math.floor((i-6)/3)},
+    challenge:{enemyLevel:data.rankReferenceLevels[i+1],kills:2+Math.floor(i/3)}
   }));
   // Vertical-slice content. All provisional balance values live here, not in the UI.
+  // Shared by both the general and class-exclusive registries. Keep the original
+  // cost so aliases and repeated registration cannot compound the reduction.
+  data.resourceCostBalance={version:1,knots:[[0,0],[5,5],[8,6],[10,7],[12,8],[14,9],[16,10],[18,11],[20,12],[24,15],[26,16],[30,20],[34,23],[38,26],[42,30]]};
+  data.applyResourceCostBalance=function(){
+    const enemies=new Set(Object.values(data.monsters).flatMap(e=>e.moves||[]));
+    const rewards=new Set(Object.values(data.rewardPools||{}).flatMap(p=>p.entries.filter(e=>e.rewardType==='moves').flatMap(e=>e.rewardIds)).map(id=>data.moves[id]));
+    for(const move of new Set(Object.values(data.moves))){
+      const playerMove=rewards.has(move)||move.contentId||move.contentScope==='classExclusive'||data.catalogMoveIds?.includes(move.id)||data.startingMoves?.includes(move.id)||Object.values(data.books).some(b=>b.moveId===move.id);
+      if(enemies.has(move.id)&&!playerMove||!move.cost||!Object.values(move.cost).some(n=>n>0))continue;
+      move.originalResourceCost||={...move.cost};
+      const knots=data.resourceCostBalance.knots;
+      for(const [key,value]of Object.entries(move.originalResourceCost)){
+        if(!['mana','stamina'].includes(key)||value<=5)continue;
+        const hi=knots.findIndex(([x])=>x>=value);
+        const [a,av]=knots[hi>0?hi-1:knots.length-2],[b,bv]=knots[hi>0?hi:knots.length-1];
+        move.cost[key]=Math.max(1,Math.round(av+(value-a)/(b-a)*(bv-av)));
+      }
+      move.baseCost=Object.values(move.cost).reduce((n,v)=>n+v,0);
+      const label=Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+({mana:'MP',stamina:'SP'}[k]||k)).join('＋');
+      if(move.description)move.description=move.description.replace(/消耗[：:]\s*\d+(?:\.\d+)?\s*(?:MP|SP)(?:\s*[＋+]\s*\d+(?:\.\d+)?\s*(?:MP|SP))?/g,'消耗：'+label);
+    }
+  };
   // Adventure tuning is separate from the combat engine's fixed sandbox defaults.
   data.adventure = { version: 2, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
   data.adventure.balance50 = { resourceDamage: .7, castAgilityScale: 100, chargePerSecond: 1,
@@ -42,11 +65,20 @@
       { through: 40, hp: 16, stamina: 4, mana: 4, agility: .8, luck: .4 },
       { through: 50, hp: 18, stamina: 4.5, mana: 4.5, agility: .9, luck: .45 }
     ], mastery: [[1,1],[3,1.16],[10,1.45],[20,1.65],[50,1.9]] };
+  data.enemyBalance={version:1,
+    levels:[1,5,10,20,25,30,40,50,60,75,90,105,120,135,150,165,180,190],
+    hp:[90,110,160,250,315,405,545,740,970,1360,1820,2375,3050,3860,4810,5710,6710,7470],
+    attack:[18,24,31,48,56,66,85,107,121,143,164,186,207,229,251,272,294,308],
+    species:{slime:{hp:.9,damage:.9,exp:.7,cycle:1.1},goblin:{hp:1,damage:1,exp:1,cycle:1},wolf:{hp:.85,damage:.85,exp:1.1,cycle:.85},golem:{hp:1.2,damage:1.15,exp:1.2,cycle:1.2},default:{hp:1,damage:1,exp:1,cycle:1}},
+    roles:{normal:{hp:1,damage:1,exp:1},strong:{hp:1.5,damage:1.1,exp:1.5},dungeon:{hp:1.8,damage:.3,exp:1.8},elite:{hp:3.5,damage:.3,exp:4},boss:{hp:8,damage:.18,exp:8},importantBoss:{hp:11,damage:.15,exp:12}},
+    firstBoss:{hp:5,damage:.2,exp:8},castSeconds:3.2,defenseBase:6,defensePerLevel:.2,
+    gap:{free:10,linear:.06,quadratic:.004,enemyDamagePerLevel:.03,enemyDamageCap:2.5}
+  };
   data.balance = {
     critBase: .05, critPerLuck: .006, critCap: .55, critDamageBase: 1.4, critDamagePerLuck: .008,
     dodgePerAgility: .0015, dodgeCap: .3, expPerLuck: .008,
     expBase: 18, expPerLevel: 8, levelCost: 90, levelCostGrowth: 30,
-    expGap: [[-15, .05], [-10, .3], [-5, .7], [0, 1], [5, 1.2], [10, 1.5]],
+    expGap: [[-20, .1], [-10, .35], [-5, .7], [0, 1], [3, 1.15], [5, 1.3], [10, 1.6], [20, 2]],
     moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
     enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 },
