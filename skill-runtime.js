@@ -14,6 +14,15 @@
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
+  if(c.kind&&move.specKind!==c.kind&&move.kind!==c.kind&&move.damageType!==c.kind)return false;
+  if(c.moveCostMana&&!move.cost?.mana)return false;
+  if(c.moveCostStamina&&!move.cost?.stamina)return false;
+  if(c.isUltimate!=null&&!!move.isUltimate!==c.isUltimate)return false;
+  if(c.hpRatioLt!=null&&!(actor.hp/actor.stats.hp<c.hpRatioLt))return false;
+  if(c.hpRatioLte!=null&&!(actor.hp/actor.stats.hp<=c.hpRatioLte))return false;
+  if(c.hpRatioGt!=null&&!(actor.hp/actor.stats.hp>c.hpRatioGt))return false;
+  if(c.hpRatioGte!=null&&!(actor.hp/actor.stats.hp>=c.hpRatioGte))return false;
+  if(c.chargeFull&&battle.charge<(D.moves[battle.build.ultimate]?.ultimateChargeCost||100))return false;
   if(c.originalTimeLt!=null&&!(originalTime<c.originalTimeLt))return false;
   if(c.originalTimeGte!=null&&!(originalTime>=c.originalTimeGte))return false;
   if(c.targetCasting&&!target?.cast)return false;
@@ -52,7 +61,7 @@
  }
  const effects={
   recover(b,c,e){b.recover(c.actor,e.resource,c.actor.stats[e.resource]*e.ratio,c);},
-  heal(b,c,e){const amount=c.actor.runtime.modify('healing',c.actor.stats.hp*e.ratio,c);b.recover(c.actor,'hp',amount,c);c.healing=true;c.successfulSupport=true;},
+  heal(b,c,e){const amount=c.actor.runtime.modify('healing',c.actor.stats.hp*e.ratio,c),healing=b.recover(c.actor,'hp',amount,c);if(healing>0)b.log('heal',`恢復 ${healing.toFixed(1)} HP`,{actorId:c.actor.id,targetId:c.actor.id,moveId:c.move.id,healing});c.healing=true;c.successfulSupport=true;},
   restore(b,c,e){b.recover(c.actor,e.resource,e.amount,c);},
   status(b,c,e){const target=e.status.target==='self'?c.actor:c.target;applyStatus(b,target,e.status,c.actor,c);c.successfulSupport=true;},
   refresh(b,c,e){const s=c.target.statuses[e.id];if(!s)return false;s.expiresAt=b.time+s.duration;},
@@ -61,6 +70,8 @@
   interrupt(b,c,e){if(!c.target.cast)return false;const chance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
   echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;return b.queueEcho(c,e.ratio);},
   shield(b,c,e){c.actor.shield=Math.max(c.actor.shield,c.actor.stats.hp*e.ratio);},
+  cleanse(b,c,e){const ids=Object.entries(c.actor.statuses).filter(([,s])=>s.polarity==='debuff').map(([id])=>id);for(const id of ids.slice(0,e.count||ids.length))delete c.actor.statuses[id];return ids.length>0;},
+  charge(b,c,e){const maximum=D.moves[b.build.ultimate]?.ultimateChargeCost||100;b.charge=Math.min(maximum,b.charge+(e.amount||maximum*(e.ratio||0)));return true;},
   survive(b,c,e){const chance=Math.min(e.cap,c.actor.stats.luck*e.luckRate);if(b.rng()<chance)c.prevented=true;}
  };
  const api={Runtime,matches,elementMultiplier,isNonElementPhysical,isNonElementMagic,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;

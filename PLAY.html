@@ -108,10 +108,13 @@
 .run-rating{text-align:center;margin:14px 0 22px;padding:20px 14px;border:1px solid #cbb78366;border-radius:14px;background:radial-gradient(ellipse at top,#53624866,#13252b);color:#d9cda4}.run-rating>small{display:block;letter-spacing:5px;font-size:12px}.run-rating .rating-rank{display:block;font:700 72px/1.2 Georgia,serif;margin:5px 0;text-shadow:0 0 20px #d5c18b44}.run-rating>b{font:600 19px system-ui}.run-rating[data-tier=S],.run-rating[data-tier=SS]{color:#ffe0a0;border-color:#e3bb69;background:radial-gradient(ellipse at top,#77543577,#142529)}.rating-parts{display:grid;gap:7px;margin:18px 0;font:13px system-ui}.rating-parts span{display:flex;justify-content:space-between;gap:12px;padding:6px;border-bottom:1px solid #bcb98722}.run-rating p{font:12px/1.7 system-ui;margin:9px 0}.run-rating details{text-align:left;color:#aebeb1;font:12px/1.7 system-ui}.run-rating summary{cursor:pointer;min-height:34px;padding:8px 0}
 
 .gear-rarity{display:block;margin:7px 0;color:#aeb8a6}.gear-rarity.rarity-epic{color:#c5a3e9}.gear-rarity.rarity-legendary{color:#e9c478;text-shadow:0 0 12px #d8a94655}
+
+.codex-all-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.codex-entry{width:100%;color:inherit;text-align:left;font:inherit}.codex-entry>span:last-child{min-width:0}.codex-entry.known:hover{border-color:#c6b275;background:#203c34}.codex-entry:focus-visible{outline-offset:2px}
+.content-grade{display:inline-flex;align-items:center;justify-content:center;min-width:1.85em;padding:.1em .38em;border:1px solid currentColor;border-radius:999px;font-size:.72em;font-weight:900;line-height:1.15;vertical-align:.12em;letter-spacing:.04em;background:#0b1118cc}.grade-C{color:#b8c0c5}.grade-B{color:#74d79a}.grade-A{color:#64bdf2}.grade-S{color:#d696ff}.grade-SS{color:#ffd36a;text-shadow:0 0 10px #ffbd4266}
 </style></head>
 <body><div id="viewport"><main id="game" data-mode="title" aria-label="餘光 RPG 遊戲">
 <canvas id="scene" aria-label="奇幻冒險遊戲場景"></canvas><div class="scene-grain"></div><div class="frame-corner corner-tl"></div><div class="frame-corner corner-br"></div>
-<div id="title-screen" class="title-screen"><div class="title-content"><span class="eyebrow">A LIGHT BEYOND THE RUINS</span><h1>餘光</h1><div class="english-title">AFTERLIGHT</div><p class="title-copy">夜色未盡，旅途未終。</p><nav class="main-menu" aria-label="主選單"><button class="menu-item highlighted" data-action="begin-run"><span>01</span>開始冒險<i>→</i></button><button class="menu-item" data-action="setup"><span>02</span>角色設定<i>→</i></button><button class="menu-item" data-action="library"><span>03</span>能力庫存<i>→</i></button><button class="menu-item" data-action="shop"><span>04</span>旅者商店<i>→</i></button><button class="menu-item" data-action="codex"><span>05</span>蒐集圖鑑<i>→</i></button><button class="menu-item" data-action="achievements"><span>06</span>成就<i>→</i></button><button class="menu-item" data-action="settings"><span>07</span>設定<i>→</i></button></nav><button id="pwa-install" class="pwa-install" hidden type="button">加入手機桌面</button><div class="title-caption">你只是一名旅人。<br>卻仍能決定，如何走過這片荒野。</div></div><div class="title-location"><span>THE OPEN WORLD</span><strong>七個大區 · 三十五張地圖</strong><i></i><small>跨過門扉，將未知帶回。</small></div><footer class="title-footer"><span>ROGUELITE · EXPLORATION · TIMELINE COMBAT</span><span id="offline-status" role="status">手機直式 · 自動存檔</span></footer></div>
+<div id="title-screen" class="title-screen"><div class="title-content"><span class="eyebrow">A LIGHT BEYOND THE RUINS</span><h1>餘光</h1><div class="english-title">AFTERLIGHT</div><p class="title-copy">夜色未盡，旅途未終。</p><nav class="main-menu" aria-label="主選單"><button class="menu-item highlighted" data-action="begin-run"><span>01</span>開始冒險<i>→</i></button><button class="menu-item" data-action="setup"><span>02</span>角色設定<i>→</i></button><button class="menu-item" data-action="library"><span>03</span>能力配置<i>→</i></button><button class="menu-item" data-action="shop"><span>04</span>旅者商店<i>→</i></button><button class="menu-item" data-action="codex"><span>05</span>旅途圖鑑<i>→</i></button><button class="menu-item" data-action="achievements"><span>06</span>成就<i>→</i></button><button class="menu-item" data-action="settings"><span>07</span>設定<i>→</i></button></nav><button id="pwa-install" class="pwa-install" hidden type="button">加入手機桌面</button><div class="title-caption">你只是一名旅人。<br>卻仍能決定，如何走過這片荒野。</div></div><div class="title-location"><span>THE OPEN WORLD</span><strong>七個大區 · 三十五張地圖</strong><i></i><small>跨過門扉，將未知帶回。</small></div><footer class="title-footer"><span>ROGUELITE · EXPLORATION · TIMELINE COMBAT</span><span id="offline-status" role="status">手機直式 · 自動存檔</span></footer></div>
 <section id="screen" class="full-screen" hidden aria-label="局外遊戲選單"></section>
 <div id="hud" hidden>
 <section class="player-hud game-panel"><div class="portrait" id="portrait"></div><div class="vitals"><div class="player-name"><span>漂泊者</span><b id="level"></b></div><div id="resources"></div><div id="player-status"></div><div class="exp-line"><span>EXP</span><div><i id="xp-fill"></i></div><small id="xp-label"></small></div></div></section>
@@ -181,9 +184,9 @@ function enrich(D){
  neutral.forEach(([id,name,m,c,t,e,h])=>add([id,name,name,'physical',[],m,c,t,e,h]));
  const ni=D.balance.nonElementIdentity,neutralMagic=[
   ['mana_bolt','魔力彈','純粹魔力凝成的低階飛彈',ni.moves.manaBoltRatio,ni.moves.manaBoltCost,ni.moves.manaBoltAttackTime,1,100,'old_lab'],
-  ['pure_mana_cannon','純粹魔力砲','捨棄屬性與附加效果的長詠唱砲擊',ni.moves.manaCannonRatio,ni.moves.manaCannonCost,ni.moves.manaCannonAttackTime,2,190,'frozen_tower']
+  ['pure_mana_cannon','純粹魔力砲','',ni.moves.manaCannonRatio,ni.moves.manaCannonCost,ni.moves.manaCannonAttackTime,2,190,'frozen_tower']
  ];
- neutralMagic.forEach(([id,name,subtitle,ratio,cost,time,tier,shopCost,preferredDungeon])=>{add([id,name,subtitle,'magic',[],ratio,cost,time]);Object.assign(D.moves[id],{contentId:id,shopEligible:true,shopTier:tier,shopCost,rarity:tier===1?'common':'uncommon',tags:['magic','non-element'],preferredDungeon});});
+ neutralMagic.forEach(([id,name,subtitle,ratio,cost,time,tier,shopCost,preferredDungeon])=>{add([id,name,subtitle,'magic',[],ratio,cost,time]);Object.assign(D.moves[id],{contentId:id,shopEligible:true,shopTier:tier,shopCost,rarity:tier===1?'common':'uncommon',tags:['magic','non-element'],preferredDungeon,...(id==='pure_mana_cannon'?{description:'無屬性魔法攻擊。'}:{})});});
  const sets={metal:['真・德','真・迪','參倫・德','參倫・陸','真・法','真・倫司吧'],wood:['艾・德','艾・迪','德魯・卡阿','帕咔申・尤','艾・法','德魯・倫司吧'],water:['雅・德','雅・烏','希・德','希・迪','雅・法','希・倫司吧'],fire:['伯・德','伯・烏','伯・迪','伯・陸','阿・伯・德','伯・法'],earth:['卓・德','卓・烏','卓・迪','卓・倫司吧','阿・卓・德','卓・法'],light:['麗・德','麗・烏','麗・陸','麗・倫司吧','麗・法','麗・艾妮司'],dark:['布・德','布・烏','布・迪','布・陸','布・法','布・倫司吧']};
  for(const [element,names] of Object.entries(sets)) names.forEach((name,i)=>{const support=name.includes('法')||name.includes('倫司吧')||name.includes('艾妮司');const effects=support?[name.includes('艾妮司')?{type:'heal',ratio:.25}:buff(element+'_ward',D.elements[element]+'之庇護',[mod('incoming',.88)],4)]:element==='fire'?[burn]:element==='water'?[slow]:[];add([element+'_'+i,name,D.elements[element]+(support?'屬性咒術':'屬性攻擊'),support?'spell':'magic',[element],support?0:1.05+i*.18,14+i*3,85+i*13,effects]);});
  for(const m of Object.values(D.moves)){m.elements ||= ({fire:['fire'],inferno:['fire'],spark:['metal'],nova:['light']}[m.id]||[]);m.tags ||= [m.damageType==='physical'?'slash':'magic'];m.hits ||=1;m.originalAttackTime=m.attackTime;}
@@ -414,7 +417,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.13.0', date: '2026-09-29' },
+    release: { version: '0.16.1', date: '2026-09-29' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -706,8 +709,163 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const dungeon=D.dungeons.find(x=>x.id===config.dungeonId);
   for(const poolId of [dungeon?.secondaryRewardPool,dungeon?.rareRewardPool]){const entry=D.rewardPools[poolId]?.entries.find(x=>x.rewardType==='books');if(entry&&!entry.rewardIds.includes(config.bookId))entry.rewardIds.push(config.bookId);}
  }
+ // Repair registry-only support moves and passive skills so every collectible
+ // entry changes battle state instead of existing as display text only.
+ const cm=(stage,value,conditions={},op='multiply')=>({stage,op,value,conditions}),hk=(event,conditions,effects)=>({event,conditions,effects}),status=(id,name,duration,target,polarity,modifiers)=>({type:'status',status:{id,name,duration,target,polarity,modifiers}});
+ const moveRepairs={
+  M074:{description:'磁力束縛敵人 5 秒，使敏捷降低 18%，並中斷目前讀條。',effects:[{type:'interrupt'},status('magnetic_bind','磁縛',5,'enemy','debuff',[cm('agility',.82)])]},
+  M076:{description:'引發金屬共鳴 6 秒，使自己的金屬性傷害提高 18%。',effects:[status('metal_resonance','金屬共鳴',6,'self','buff',[cm('damage',1.18,{element:'metal'})])]},
+  M079:{description:'踏入風步 6 秒，敏捷提高 22%，縮短之後的招式讀條。',effects:[status('wind_step','風步',6,'self','buff',[cm('agility',1.22)])]},
+  M080:{description:'森之生命力恢復最大 HP 的 22%。',effects:[{type:'heal',ratio:.22}]},
+  M082:{description:'散布霧幕 5 秒，使敵人命中率降低 25%。',effects:[status('mist_veil','霧幕',5,'enemy','debuff',[cm('accuracy',.75)])]},
+  M083:{description:'冰封敵人 5 秒，使敏捷降低 25%，並中斷目前讀條。',effects:[{type:'interrupt'},status('deep_freeze','冰封',5,'enemy','debuff',[cm('agility',.75)])]},
+  M086:{description:'灼熱護身持續 6 秒，受到的傷害降低 18%。',effects:[status('searing_guard','灼熱護身',6,'self','buff',[cm('incoming',.82)])]},
+  M091:{description:'凝成相當於最大 HP 20% 的晶體護盾。',effects:[{type:'shield',ratio:.2}]},
+  M092:{description:'以流砂束縛敵人 5 秒，使敏捷降低 22%，並中斷目前讀條。',effects:[{type:'interrupt'},status('sand_bind','砂縛',5,'enemy','debuff',[cm('agility',.78)])]},
+  M093:{description:'恢復最大 HP 的 12%，並移除目前所有戰鬥 Debuff。',effects:[{type:'heal',ratio:.12},{type:'cleanse'}]},
+  M094:{description:'刻下聖印 6 秒，使光屬性傷害與治療效果提高 18%。',effects:[status('holy_mark','聖印',6,'self','buff',[cm('damage',1.18,{element:'light'}),cm('healing',1.18,{element:'light'})])]},
+  M096:{description:'恢復最大 HP 的 38%。',effects:[{type:'heal',ratio:.38}]},
+  M100:{description:'以黑幕侵蝕敵人 6 秒，使其造成的傷害降低 12%。',effects:[status('black_curtain','黑幕侵蝕',6,'enemy','debuff',[cm('damage',.88)])]},
+  std_fire_protection:{description:'展開火焰防護 4 秒，使受到的傷害降低 12%。',effects:[status('fire_ward','火之庇護',4,'self','buff',[cm('incoming',.88)])]}
+ };
+ for(const [id,repair]of Object.entries(moveRepairs))if(D.moves[id])Object.assign(D.moves[id],repair);
+ const passiveRepairs={
+  S051:['蓄勢待發','必殺蓄能速度 +15%。',[cm('chargeRate',1.15)],[]],
+  S052:['必殺餘波','必殺技命中後，延遲追加本次傷害 20% 的餘波。',[],[hk('OnSkillCastFinished',{isUltimate:true,totalDamagePositive:true},[{type:'echo',ratio:.2}])]],
+  S053:['絕境蓄能','HP 低於 35% 時，必殺蓄能速度 +35%。',[cm('chargeRate',1.35,{hpRatioLt:.35})],[]],
+  S054:['滿盈守勢','必殺蓄能全滿時，受到的傷害 -10%。',[cm('incoming',.9,{chargeFull:true})],[]],
+  S055:['魔武交替','物理與魔法傷害各 +6%。',[cm('damage',1.06,{damageType:'physical'}),cm('damage',1.06,{damageType:'magic'})],[]],
+  S056:['交錯節奏','所有招式讀條 -6%。',[cm('attackTime',.94)],[]],
+  S057:['淬火','攻擊燃燒中的敵人時，火屬性傷害 +12%。',[cm('damage',1.12,{element:'fire',targetStatus:'burn'})],[]],
+  S058:['導流','金屬性招式的 MP／SP 消耗 -10%。',[cm('cost:mana',.9,{element:'metal'}),cm('cost:stamina',.9,{element:'metal'})],[]],
+  S059:['引燃生機','木屬性招式造成傷害後恢復最大 HP 3%，每次招式一次。',[],[hk('OnSkillCastFinished',{element:'wood',totalDamagePositive:true},[{type:'recover',resource:'hp',ratio:.03}])]],
+  S060:['泥濘牽制','水屬性攻擊命中束縛中的敵人時傷害 +12%。',[cm('damage',1.12,{element:'water',targetStatus:'root'})],[]],
+  S061:['光蝕循環','光與闇屬性招式的 MP／SP 消耗 -8%。',[cm('cost:mana',.92,{element:'light'}),cm('cost:stamina',.92,{element:'light'}),cm('cost:mana',.92,{element:'dark'}),cm('cost:stamina',.92,{element:'dark'})],[]],
+  S062:['明滅加速','光與闇屬性招式讀條 -10%。',[cm('attackTime',.9,{element:'light'}),cm('attackTime',.9,{element:'dark'})],[]],
+  S063:['破甲直覺','攻擊正在讀條的敵人時傷害 +10%。',[cm('damage',1.1,{targetCasting:true})],[]],
+  S064:['守勢轉攻','受到傷害後，下一次物理招式傷害 +12%。',[],[hk('OnDamageTaken',{primary:true},[status('guard_counter','守勢轉攻',60,'self','buff',[cm('damage',1.12,{damageType:'physical'})])])]],
+  S065:['魔力高漲','MP 高於 70% 時，魔法傷害 +10%。',[cm('damage',1.1,{damageType:'magic',resource:'mana',ratioGt:.7})],[]],
+  S066:['體力高漲','SP 高於 70% 時，物理傷害 +10%。',[cm('damage',1.1,{damageType:'physical',resource:'stamina',ratioGt:.7})],[]],
+  S067:['低耗專家','所有 MP／SP 消耗 -8%。',[cm('cost:mana',.92),cm('cost:stamina',.92)],[]],
+  S068:['長詠專家','原始讀條值至少 140 的魔法傷害 +15%。',[cm('damage',1.15,{damageType:'magic',originalTimeGte:140})],[]],
+  S069:['治癒轉化','所有治療量 +15%。',[cm('healing',1.15)],[]],
+  S070:['傷勢適應','HP 低於 40% 時，受到的傷害 -12%。',[cm('incoming',.88,{hpRatioLt:.4})],[]],
+  S071:['精準閃避','閃避率增加 6 個百分點。',[cm('dodgeChance',.06,{},'add')],[]],
+  S072:['幸運迴響','爆擊傷害倍率增加 0.15。',[cm('critMultiplier',.15,{},'add')],[]]
+ };
+ for(const [id,[name,description,combatModifiers,hooks]]of Object.entries(passiveRepairs)){const s=D.skills[id];if(s)Object.assign(s,{name,description,combatModifiers,hooks});}
+ if(D.skills.S064?.hooks?.[0]?.effects?.[0]?.status)D.skills.S064.hooks[0].effects[0].status.consume='physical';
+ const elementRepairs={
+  'std_metal_磁場干涉':{combatModifiers:[cm('interruptChance',1.25,{element:'metal',targetCasting:true})],description:'金屬性招式攻擊正在讀條的敵人時，中斷成功率 +25%。'},
+  'std_wood_根系共生':{hooks:[hk('OnSkillCastFinished',{element:'wood',successfulSupport:true},[status('root_symbiosis','根系共生',4,'self','buff',[cm('incoming',.92)])])]},
+  'std_water_凝霜':{combatModifiers:[cm('damage',1.08,{element:'water',targetStatus:'chill'})],description:'水屬性招式攻擊寒氣中的敵人時傷害 +8%。'},
+  'std_fire_灼熱核心':{combatModifiers:[cm('damage',1.1,{element:'fire',targetStatus:'burn'})]},
+  'std_earth_岩脈':{combatModifiers:[cm('cost:mana',.9,{element:'earth'}),cm('cost:stamina',.9,{element:'earth'})],description:'土屬性招式的 MP／SP 消耗 -10%。'},
+  'std_light_光_庇佑':{hooks:[hk('OnSkillCastFinished',{element:'light',successfulSupport:true},[{type:'shield',ratio:.05}])]},
+  'std_dark_黑幕侵蝕':{combatModifiers:[cm('damage',1.08,{element:'dark',targetDebuff:true})],description:'敵人有 Debuff 時，闇屬性傷害 +8%。'}
+ };
+ for(const [id,repair]of Object.entries(elementRepairs))if(D.skills[id])Object.assign(D.skills[id],repair);
  D.applyResourceCostBalance();
  if(typeof module!=='undefined')module.exports=D.contentV1;else root.ContentV1=D.contentV1;
+})(globalThis);
+
+</script><script>
+/* Unified C–SS content grades. Grades describe power/rarity; they do not add hidden stats. */
+(function(root){
+ const grades=['C','B','A','S','SS'],rarityGrade={common:'C',uncommon:'B',rare:'A',epic:'S',legendary:'SS'};
+ const rank=g=>Math.max(0,grades.indexOf(g));
+ function moveGrade(m,bookMoves){
+  if(m.powerGrade)return m.powerGrade;
+  let score=0,floor=rarityGrade[m.rarity]||'C';
+  if(m.shopTier)score+=(m.shopTier-1)*2;
+  if(m.shopEligible===false){const resourceCost=m.baseCost||Object.values(m.cost||{}).reduce((sum,value)=>sum+value,0);score+=2.5+resourceCost/9;if(resourceCost>=14)score=Math.max(score,5.5);if(resourceCost>=16&&((m.elements||[]).length>=2||(m.multiplier||0)>=1.8))score=Math.max(score,8);}
+  score+=Math.max(0,(m.multiplier||0)-1)*1.5;
+  score+=Math.max(0,(m.hits||1)-1)*.35;
+  score+=(m.effects||[]).length*.45;
+  score+=Math.max(0,(m.elements||[]).length-1)*1.2;
+  if(['heal','defense','control'].includes(m.specKind))score+=.8;
+  if(m.kind==='ultimate')score+=2;
+  if(m.contentScope==='classExclusive')score=Math.max(score,4);
+  if(bookMoves.has(m.id))score=Math.max(score,(m.elements||[]).length>=2||(m.multiplier||0)>=2?8:5.5);
+  const calculated=score>=8?'SS':score>=5.5?'S':score>=3.3?'A':score>=1.6?'B':'C';
+  return rank(calculated)>rank(floor)?calculated:floor;
+ }
+ function multis(m){return (m.elements||[]).length+(m.multiplier||0)/3;}
+ function skillGrade(s){
+  if(s.powerGrade)return s.powerGrade;
+  if(/^(metal|wood|water|fire|earth|light|dark)_affinity$/.test(s.id))return 'B';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_blessing$/.test(s.id))return 'A';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_grace$/.test(s.id))return 'S';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_authority$/.test(s.id))return 'SS';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_resistance$/.test(s.id))return 'B';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_immunity$/.test(s.id))return 'A';
+  if(/^element_(metal|wood|water|fire|earth|light|dark)_absorb$/.test(s.id))return 'S';
+  const floor=rarityGrade[s.rarity]||'C';
+  let score=(s.combatModifiers||[]).length*.8+(s.hooks||[]).length*1.2+Object.keys(s.modifiers||{}).length*.6+Object.keys(s.statRates||{}).length*.9+Object.keys(s.growthRates||{}).length*.8;
+  score+=(s.elementDamageBonusPct||0)*6+(s.incomingElementDamageReductionPct||0)*5+(s.damageToMpAbsorbPct||0)*8;
+  if(s.contentScope==='classExclusive')score=Math.max(score,3.5);
+  let calculated=score>=6.5?'SS':score>=4.5?'S':score>=2.8?'A':score>=1.4?'B':'C';
+  if(floor==='A'&&(s.damageToMpAbsorbPct||score>=3.2))calculated='S';
+  return rank(calculated)>rank(floor)?calculated:floor;
+ }
+ function equipmentGrade(e){
+  if(e.powerGrade)return e.powerGrade;
+  const fixed=rarityGrade[e.rarity];if(fixed&&fixed!=='C')return fixed;
+  let score=Object.values(e.modifiers||{}).reduce((n,v)=>n+Math.abs(v),0)/12+(e.physicalMultiplier?2:0)+(e.hooks||[]).length*1.5+(e.onDodgeShorten?1.5:0);
+  if(e.acquisitionTier==='easy')return 'C';
+  return score>=2.6?'A':'B';
+ }
+ function apply(D){
+  const bookMoves=new Set(Object.values(D.books||{}).map(b=>b.moveId));
+  for(const m of new Set(Object.values(D.moves||{})))m.powerGrade=moveGrade(m,bookMoves);
+  for(const s of new Set(Object.values(D.skills||{})))s.powerGrade=skillGrade(s);
+  for(const e of Object.values(D.equipment||{}))e.powerGrade=equipmentGrade(e);
+  D.contentGrades=grades;D.contentGradeRank=rank;return D;
+ }
+ if(typeof module!=='undefined')module.exports=apply;else root.ContentGrades=apply;
+})(globalThis);
+
+</script><script>
+/* Rebuild dungeon rewards by C–SS grade while preserving elemental identity and field scarcity. */
+(function(root){
+ const gradeRank={C:0,B:1,A:2,S:3,SS:4};
+ const allowed={C:[12,20,38],B:[20,38,50,70],A:[50,70,85,110],S:[85,110,130,160],SS:[160,175,190]};
+ const baseGrade=level=>level<=20?'C':level<=70?'B':level<=130?'A':'S';
+ const profiles={abandoned_mine:['earth'],old_lab:['fire','metal'],root_cave:['wood'],sunken_temple:['water','light'],lava_vein:['fire','earth'],giant_ruins:['earth'],frozen_tower:['water'],thunder_workshop:['metal'],blacklight_chapel:['light','dark'],element_abyss:['metal','wood','water','fire','earth','light','dark'],terminal_structure:[]};
+ const unique=o=>[...new Set(Object.values(o))],elements=x=>[...new Set(x?.targetElements||x?.elements||x?.specElements||[])];
+ const entry=(D,poolId,type)=>D.rewardPools[poolId]?.entries.find(e=>e.rewardType===type);
+ const flatten=o=>Object.values(o||{}).flat();
+ function chooseField(ids,source,total){return [...ids].sort((a,b)=>gradeRank[source[a].powerGrade]-gradeRank[source[b].powerGrade]||a.localeCompare(b)).slice(0,total);}
+ function allocate(D,ids,source){
+  const result=Object.fromEntries(D.dungeons.map(d=>[d.id,[]])),loads=Object.fromEntries(D.dungeons.map(d=>[d.id,0])),gradeLoads=Object.fromEntries(D.dungeons.map(d=>[d.id,Object.fromEntries(Object.keys(gradeRank).map(g=>[g,0]))]));
+  for(const id of [...ids].sort((a,b)=>gradeRank[source[b].powerGrade]-gradeRank[source[a].powerGrade]||a.localeCompare(b))){const item=source[id],levels=allowed[item.powerGrade],candidates=D.dungeons.filter(d=>levels.includes(d.recommendedLevel||d.level));candidates.sort((a,b)=>{const score=d=>(item.preferredDungeon===d.id?8:0)+elements(item).filter(e=>(profiles[d.id]||[]).includes(e)).length*4-gradeLoads[d.id][item.powerGrade]*12-loads[d.id]*.4-Math.abs((d.recommendedLevel||d.level)-levels[Math.floor(levels.length/2)])*.01;return score(b)-score(a)||a.id.localeCompare(b.id);});const chosen=candidates[0];result[chosen.id].push(id);loads[chosen.id]++;gradeLoads[chosen.id][item.powerGrade]++;}
+  return result;
+ }
+ function apply(D){
+  if(!D.contentDistribution||!D.contentGrades)return D;
+  const moveSource=Object.fromEntries(unique(D.moves).map(x=>[x.id,x])),skillSource=Object.fromEntries(unique(D.skills).map(x=>[x.id,x]));
+  const previousWildMoves=flatten(D.contentDistribution.wildMoves),previousWildSkills=flatten(D.contentDistribution.wildSkills);
+  const allMoves=[...new Set([...flatten(D.contentDistribution.dungeonMoves),...previousWildMoves])].filter(id=>moveSource[id]&&moveSource[id].contentScope!=='classExclusive');
+  const allSkills=[...new Set([...flatten(D.contentDistribution.dungeonSkills),...previousWildSkills])].filter(id=>skillSource[id]&&skillSource[id].contentScope!=='classExclusive');
+  const wildMoves=chooseField(allMoves,moveSource,previousWildMoves.length),wildSkills=chooseField(allSkills,skillSource,previousWildSkills.length),wildMoveSet=new Set(wildMoves),wildSkillSet=new Set(wildSkills);
+  const dungeonMoves=allocate(D,allMoves.filter(id=>!wildMoveSet.has(id)),moveSource),dungeonSkills=allocate(D,allSkills.filter(id=>!wildSkillSet.has(id)),skillSource);
+  for(const d of D.dungeons)for(const type of ['moves','talents']){entry(D,d.primaryRewardPool,type).rewardIds=[];entry(D,d.rareRewardPool,type).rewardIds=[];}
+  for(const d of D.dungeons)for(const [type,ids,source]of [['moves',dungeonMoves[d.id],moveSource],['talents',dungeonSkills[d.id],skillSource]]){const base=gradeRank[baseGrade(d.recommendedLevel||d.level)],primary=ids.filter(id=>gradeRank[source[id].powerGrade]<=base),rare=ids.filter(id=>gradeRank[source[id].powerGrade]>base);if(!primary.length&&rare.length)primary.push(rare[0]);if(!rare.length&&primary.length)rare.push(primary.at(-1));entry(D,d.primaryRewardPool,type).rewardIds.push(...primary);entry(D,d.rareRewardPool,type).rewardIds.push(...rare);}
+  const fieldIds=Object.keys(D.contentDistribution.wildMoves),fieldProfiles={greywind:['earth'],verdant:['wood','water'],redrift:['fire','earth'],froststorm:['water','metal'],obsidian:['light','dark']};
+  function fields(ids,source){const out=Object.fromEntries(fieldIds.map(id=>[id,[]]));for(const id of ids){const es=elements(source[id]);const choices=[...fieldIds].sort((a,b)=>es.filter(e=>(fieldProfiles[b.replace('_field','')]||[]).includes(e)).length-es.filter(e=>(fieldProfiles[a.replace('_field','')]||[]).includes(e)).length||out[a].length-out[b].length||a.localeCompare(b));out[choices[0]].push(id);}return out;}
+  const fieldMoves=fields(wildMoves,moveSource),fieldSkills=fields(wildSkills,skillSource);for(const poolId of fieldIds){entry(D,poolId,'moves').rewardIds=fieldMoves[poolId];entry(D,poolId,'talents').rewardIds=fieldSkills[poolId];}
+  const equipment=Object.values(D.equipment),equipmentAllocation=allocate(D,equipment.map(x=>x.id),D.equipment);for(const d of D.dungeons){entry(D,d.secondaryRewardPool,'equipment').rewardIds=[];entry(D,d.rareRewardPool,'equipment').rewardIds=entry(D,d.rareRewardPool,'equipment').rewardIds.filter(id=>!D.equipment[id]);for(const id of equipmentAllocation[d.id]){const item=D.equipment[id],rareOnly=item.acquisitionTier==='rare-only'||['epic','legendary'].includes(item.rarity);entry(D,rareOnly||gradeRank[item.powerGrade]>=3?d.rareRewardPool:d.secondaryRewardPool,'equipment').rewardIds.push(id);}}
+  const equipmentUses={};for(const d of D.dungeons){const normal=entry(D,d.secondaryRewardPool,'equipment');if(normal.rewardIds.length)for(const id of normal.rewardIds)equipmentUses[id]=(equipmentUses[id]||0)+1;else{const level=d.recommendedLevel||d.level,cap=gradeRank[baseGrade(level)],candidate=[...equipment].filter(x=>x.acquisitionTier!=='rare-only'&&!['epic','legendary'].includes(x.rarity)&&gradeRank[x.powerGrade]<=cap&&level>=allowed[x.powerGrade][0]).sort((a,b)=>(equipmentUses[a.id]||0)-(equipmentUses[b.id]||0)||gradeRank[b.powerGrade]-gradeRank[a.powerGrade]||a.id.localeCompare(b.id))[0];normal.rewardIds.push(candidate.id);equipmentUses[candidate.id]=(equipmentUses[candidate.id]||0)+1;}}
+  // Preserve the opening mine's guaranteed, readable first equipment reward.
+  const firstMine=D.dungeons.find(d=>d.id==='abandoned_mine');if(firstMine){const normal=entry(D,firstMine.secondaryRewardPool,'equipment');normal.rewardIds=normal.rewardIds.filter(id=>id!=='mining_guard');normal.rewardIds.unshift('mining_guard');}
+  for(const item of equipment){item.sourceDungeons=[];for(const d of D.dungeons)if([d.secondaryRewardPool,d.rareRewardPool].some(poolId=>entry(D,poolId,'equipment').rewardIds.includes(item.id)))item.sourceDungeons.push(d.id);}
+  const assignedElement={};for(const [dungeonId,ids]of Object.entries(dungeonSkills))for(const id of ids)if(D.skills[id]?.standardElementMatrix)(assignedElement[dungeonId]??=[]).push(id);D.elementSkillSystem.dungeonAllocation=assignedElement;
+  if(D.mapData)for(const map of D.mapData){const region=D.regionData?.find(r=>r.id===map.regionId),source=D.rewardPools[(region?.legacyRegionId||'greywind')+'_field'];for(const poolId of map.rewardPoolIds||[])if(source)D.rewardPools[poolId].entries=JSON.parse(JSON.stringify(source.entries));}
+  for(const pool of Object.values(D.rewardPools))pool.entries=pool.entries.filter(e=>e.rewardIds.length);
+  D.contentDistribution={...D.contentDistribution,version:2,dungeonMoves,dungeonSkills,wildMoves:fieldMoves,wildSkills:fieldSkills};
+  D.resourceDistributionRules={allowed,baseGrade,profiles};return D;
+ }
+ if(typeof module!=='undefined')module.exports=apply;else root.ResourceDistribution=apply;
 })(globalThis);
 
 </script><!-- inline-module:world-maps.js --><script>
@@ -859,11 +1017,93 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
+ const mod=(stage,value,conditions={},op='multiply')=>({stage,op,value,conditions}),hook=(event,conditions,effects)=>({event,conditions,effects}),buff=(id,name,duration,modifiers)=>({type:'status',status:{id,name,duration,target:'self',polarity:'buff',modifiers}});
+ Object.assign(D.moves.CLERIC_MOVE_001,{description:'施放大祝福，8 秒內所有傷害與治療量提高 12%。',effects:[buff('great_blessing','大祝福',8,[mod('damage',1.12),mod('healing',1.12)])]});
+ Object.assign(D.moves.CLERIC_MOVE_003,{description:'展開相當於最大 HP 25% 的神聖護盾。',effects:[{type:'shield',ratio:.25}]});
+ Object.assign(D.moves.SPELLSWORD_MOVE_002,{description:'附魔劍刃 8 秒，使物理傷害提高 18%。',effects:[buff('enchanted_sword','附魔劍',8,[mod('damage',1.18,{damageType:'physical'})])]});
+ const repairs={
+  WARRIOR_SKILL_001:['裝備劍時，物理傷害 +10%，物理招式讀條 -5%。',[mod('damage',1.1,{weapon:'sword',damageType:'physical'}),mod('attackTime',.95,{weapon:'sword',damageType:'physical'})],[]],
+  WARRIOR_SKILL_002:['HP 低於 30% 時，SP 消耗 -12%，劍類物理傷害 +10%。',[mod('cost:stamina',.88,{hpRatioLt:.3}),mod('damage',1.1,{hpRatioLt:.3,weapon:'sword',damageType:'physical'})],[]],
+  WARRIOR_SKILL_003:['HP 高於 50% 時受到傷害 -6%；HP 低於 30% 時再降低 8%。',[mod('incoming',.94,{hpRatioGt:.5}),mod('incoming',.92,{hpRatioLt:.3})],[]],
+  WARRIOR_SKILL_004:['受到傷害後，下一次物理招式傷害 +15%。',[],[hook('OnDamageTaken',{primary:true},[{type:'status',status:{id:'warrior_counter',name:'戰士反攻',duration:60,target:'self',polarity:'buff',consume:'physical',modifiers:[mod('damage',1.15,{damageType:'physical'})]}}])]],
+  MAGE_SKILL_001:['原始讀條值至少 140 的魔法傷害 +18%。',[mod('damage',1.18,{damageType:'magic',originalTimeGte:140})],[]],
+  MAGE_SKILL_002:['MP 高於 70% 時魔法傷害 +12%。',[mod('damage',1.12,{damageType:'magic',resource:'mana',ratioGt:.7})],[]],
+  MAGE_SKILL_003:['完成魔法招式後恢復最大 MP 4%。',[],[hook('OnMagicSkillFinished',{},[{type:'recover',resource:'mana',ratio:.04}])]],
+  MAGE_SKILL_004:['魔法 MP 消耗 -10%。',[mod('cost:mana',.9,{damageType:'magic'})],[]],
+  RANGER_SKILL_001:['裝備弓攻擊正在讀條的敵人時，物理傷害 +15%。',[mod('damage',1.15,{weapon:'bow',damageType:'physical',targetCasting:true})],[]],
+  RANGER_SKILL_002:['裝備弓時，箭類招式讀條 -12%。',[mod('attackTime',.88,{weapon:'bow',tag:'arrow'})],[]],
+  RANGER_SKILL_003:['裝備弓時，SP 消耗 -10%。',[mod('cost:stamina',.9,{weapon:'bow'})],[]],
+  RANGER_SKILL_004:['裝備弓時，爆擊率增加 8 個百分點。',[mod('critChance',.08,{weapon:'bow'},'add')],[]],
+  CLERIC_SKILL_001:['治療與防護招式讀條 -10%。',[mod('attackTime',.9,{kind:'heal'}),mod('attackTime',.9,{kind:'defense'})],[]],
+  CLERIC_SKILL_002:['完成治療或防護招式後恢復最大 MP 5%。',[],[hook('OnSkillCastFinished',{successfulSupport:true},[{type:'recover',resource:'mana',ratio:.05}])]],
+  CLERIC_SKILL_003:['治療量 +18%。',[mod('healing',1.18)],[]],
+  CLERIC_SKILL_004:['完成光屬性輔助招式後獲得最大 HP 8% 的護盾。',[],[hook('OnSkillCastFinished',{element:'light',successfulSupport:true},[{type:'shield',ratio:.08}])]],
+  SPELLSWORD_SKILL_001:['裝備劍時，消耗 MP 的物理招式傷害 +12%。',[mod('damage',1.12,{weapon:'sword',damageType:'physical',moveCostMana:true})],[]],
+  SPELLSWORD_SKILL_002:['同時消耗 MP 與 SP 的招式，兩種消耗各 -12%。',[mod('cost:mana',.88,{moveCostMana:true,moveCostStamina:true}),mod('cost:stamina',.88,{moveCostMana:true,moveCostStamina:true})],[]],
+  SPELLSWORD_SKILL_003:['裝備劍時，物理與魔法傷害各 +8%。',[mod('damage',1.08,{weapon:'sword',damageType:'physical'}),mod('damage',1.08,{weapon:'sword',damageType:'magic'})],[]],
+  SPELLSWORD_SKILL_004:['最大 HP、MP、SP 各 +5%。',[],[]]
+ };
+ for(const [id,[description,combatModifiers,hooks]]of Object.entries(repairs)){const s=D.skills[id];if(!s)continue;Object.assign(s,{description,combatModifiers,hooks});if(id==='SPELLSWORD_SKILL_004')s.statRates={hp:.05,mana:.05,stamina:.05};}
  D.applyResourceCostBalance();
+ if(typeof module!=='undefined'){require('./content-grades')(D);require('./resource-distribution')(D);require('./content-copy')(D);}
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;
 })(globalThis);
 
 </script><script>
+/* Player-facing names and descriptions. IDs and combat values remain unchanged. */
+(function(root){
+ const elementName={metal:'金',wood:'木',water:'水',fire:'火',earth:'土',light:'光',dark:'闇'};
+ const className={WARRIOR:'戰士',MAGE:'魔法師',RANGER:'遊俠',CLERIC:'聖職者',SPELLSWORD:'魔劍士'};
+ const unique=o=>[...new Set(Object.values(o||{}))];
+ const pct=n=>Math.round(Math.abs(n)*100);
+ const skillNames={vigor:'強健體魄',control:'魔力調律',agility:'輕身步法',lucky:'命運眷顧'};
+ const moveNames={lesser_heal:'初階治癒術'};
+ const subtitles={flame_enchant:'火焰附魔',std_metal_greater_orb:'雷霆巨球',std_wood_greater_orb:'森靈巨球',std_water_greater_orb:'冰海巨球',std_fire_greater_orb:'獄炎巨球',std_earth_greater_orb:'山嶽巨球',std_light_greater_orb:'輝耀巨球',std_dark_greater_orb:'幽冥巨球'};
+ const flavor={
+  quick:'以俐落的劍路搶先出手',heavy:'凝聚全身力道揮出沉重一擊',interrupt:'以震盪力道破壞敵人的架勢',spark:'喚下疾雷貫穿敵人',nova:'引爆殘留在戰場上的星光',inferno:'將壓縮烈焰在命中瞬間引爆',
+  double_slash:'快速交錯劍鋒，連續斬擊兩次',heavy_slash:'蓄勢後揮出足以破甲的重斬',break_stance:'瞄準架勢弱點發動破勢一擊',mana_bolt:'將純粹魔力壓縮成飛彈',pure_mana_cannon:'將大量純粹魔力匯聚成貫穿砲擊',
+  WARRIOR_MOVE_001:'以破軍之勢劈出威力與中斷力兼具的重斬',WARRIOR_MOVE_002:'將土之力灌入劍鋒，震裂腳下大地',WARRIOR_MOVE_003:'化作一道劍光瞬間斬過敵人',
+  MAGE_MOVE_001:'凝聚高密度魔力轟擊敵人',MAGE_MOVE_002:'瞬間釋放魔力，在近距離引發爆裂',MAGE_MOVE_003:'交織水火術式，掀起失控的元素洪流',
+  RANGER_MOVE_001:'鎖定要害，射出貫穿力極強的一箭',RANGER_MOVE_002:'借風勢在短時間內連續放箭',RANGER_MOVE_003:'捕捉敵人出手的瞬間，以箭矢截斷攻勢',
+  CLERIC_MOVE_002:'以聖光洗滌敵人，造成光屬性魔法傷害',SPELLSWORD_MOVE_001:'以魔力包覆劍刃，斬擊敵人',SPELLSWORD_MOVE_003:'同時引爆劍氣與魔力，造成猛烈衝擊'
+ };
+ function costText(move){const parts=[];if(move.cost?.stamina)parts.push(move.cost.stamina+' SP');if(move.cost?.mana)parts.push(move.cost.mana+' MP');return parts.length?parts.join(' + '):'無';}
+ function statusText(status){
+  if(!status)return'';const bits=[];
+  if(status.tick?.ratio)bits.push(`每 ${status.tick.interval||1} 秒造成最大 ${status.tick.stat==='mana'?'MP':'HP'} ${pct(status.tick.ratio)}% 的持續傷害`);
+  for(const m of status.modifiers||[]){const v=m.value,delta=(v>=1?pct(v-1):pct(1-v));if(m.stage==='agility')bits.push(`敏捷${v>=1?'提高':'降低'} ${delta}%`);else if(m.stage==='incoming')bits.push(`受到的傷害降低 ${delta}%`);else if(m.stage==='accuracy')bits.push(`命中率降低 ${delta}%`);else if(m.stage==='dodgeChance')bits.push(`閃避率提高 ${pct(v)} 個百分點`);else if(m.stage==='critChance')bits.push(`爆擊率提高 ${pct(v)} 個百分點`);else if(m.stage==='damage')bits.push(`${m.conditions?.element?elementName[m.conditions.element]+'屬性':m.conditions?.damageType==='physical'?'物理':''}傷害提高 ${delta}%`);else if(m.stage==='healing')bits.push(`治療量提高 ${delta}%`);}
+  return `${status.target==='self'?'自身獲得':'使敵人陷入'}「${status.name}」${status.duration?` ${status.duration} 秒`:''}${bits.length?`（${bits.join('、')}）`:''}`;
+ }
+ function effectText(effect){if(effect.type==='interrupt')return `中斷敵人讀條${effect.chance&&effect.chance<1?`（成功率 ${pct(effect.chance)}%）`:''}`;if(effect.type==='heal')return `恢復最大 HP 的 ${pct(effect.ratio)}%`;if(effect.type==='shield')return `獲得相當於最大 HP ${pct(effect.ratio)}% 的護盾`;if(effect.type==='restore')return `恢復 ${effect.amount||pct(effect.ratio)+'%'} ${effect.resource==='stamina'?'SP':'MP'}`;if(effect.type==='cleanse')return'移除自身全部負面狀態';if(effect.type==='status')return statusText(effect.status);return'';}
+ function damageDescription(move){
+  const element=(move.elements||[]).map(x=>elementName[x]).filter(Boolean).join('、');
+  const damageType=move.damageType==='physical'?'物理':'魔法';
+  const lead=flavor[move.id]||`對敵人施放「${move.subtitle||move.localizedName||move.name}」`;
+  const hits=move.hits>1?`，分為 ${move.hits} 段獨立命中` : '';
+  const effects=(move.effects||[]).map(effectText).filter(Boolean);
+  return `${lead}，造成${element?element+'屬性':''}${damageType}傷害（威力倍率 ×${Number(move.multiplier||0).toFixed(2)}${hits}）。消耗：${costText(move)}；讀條值：${move.attackTime}。${effects.length?`附加效果：${effects.join('；')}。`:''}`;
+ }
+ function polishMove(move){
+  if(moveNames[move.id])move.name=moveNames[move.id];
+  if(subtitles[move.id]){move.subtitle=subtitles[move.id];move.localizedName=subtitles[move.id];}
+  if((move.multiplier||0)>0)move.description=damageDescription(move);
+  else move.description=String(move.description||`${move.subtitle||move.name}。`).replace(/\s*·\s*(?:WARRIOR|MAGE|RANGER|CLERIC|SPELLSWORD)\s*專屬招式/g,'').replace(/詳細數值與實際觸發效果會依招式資料顯示。?/g,'');
+ }
+ function polishSkill(skill){
+  if(skillNames[skill.id])skill.name=skillNames[skill.id];
+  let text=String(skill.description||'').replace(/^舊版/,'').replace(/原型機率/g,'成功率').replace(/\s*效果：配置後自動生效。?/g,' 裝備此技能後持續生效。').replace(/\s*觸發時機：InterruptReceived。?/g,' 每場戰鬥第一次遭到中斷時觸發。').replace(/\s*·\s*(?:WARRIOR|MAGE|RANGER|CLERIC|SPELLSWORD)\s*專屬被動/g,'');
+  if(!text)text=`${className[skill.allowedClassIds?.[0]]||'冒險者'}的專精技能。`;
+  skill.description=text.trim();
+ }
+ function apply(D){
+  unique(D.moves).forEach(polishMove);unique(D.skills).forEach(polishSkill);
+  for(const book of Object.values(D.books||{})){const move=D.moves[book.moveId],req=D.moves[book.requirement?.moveId];if(move&&req)book.description=`將「${req.subtitle||req.name}」永久提升至 Lv.${book.requirement.level} 後即可理解，並學會「${move.subtitle||move.name}」。`;}
+  D.contentCopyVersion=1;return D;
+ }
+ if(typeof module!=='undefined')module.exports=apply;else root.ContentCopy=apply;
+})(globalThis);
+
+</script><script>ContentGrades(GameData);ResourceDistribution(GameData);ContentCopy(GameData);</script><script>
 /* Event-driven achievement tracker. Battle events are consumed once after combat. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
@@ -875,7 +1115,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   ACH_WARRIOR_MASTERY_03:{id:'ACH_WARRIOR_MASTERY_03',name:'不退之人',category:'職業精通',description:'戰士低血量時擊倒 30 名敵人。',progressTarget:30,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_002'},
   ACH_WARRIOR_MASTERY_04:{id:'ACH_WARRIOR_MASTERY_04',name:'鐵壁',category:'職業精通',description:'戰士在勝利戰鬥中累積承受 10,000 傷害。',progressTarget:10000,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_003'},
   ACH_WARRIOR_MASTERY_05:{id:'ACH_WARRIOR_MASTERY_05',name:'戰場支配者',category:'職業精通',description:'戰士成功中斷敵人 50 次。',progressTarget:50,rewardType:'UnlockMove',rewardId:'WARRIOR_MOVE_002'}
-  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'以 MP 傷害招式擊倒 50 名敵人，並在同一局用過 4 種不同魔法。',progressTarget:50,rewardType:'UnlockClass',rewardId:'MAGE'}
+  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'同時裝備 4 個魔法傷害招式，並以魔法招式完成一次擊殺。',progressTarget:1,rewardType:'UnlockClass',rewardId:'MAGE'}
   ,ACH_UNLOCK_RANGER:{id:'ACH_UNLOCK_RANGER',name:'獵人之眼',category:'職業解鎖',description:'以箭類招式擊倒 40 名敵人並命中讀條敵人 20 次。',progressTarget:40,rewardType:'UnlockClass',rewardId:'RANGER'}
   ,ACH_UNLOCK_CLERIC:{id:'ACH_UNLOCK_CLERIC',name:'聖光之誓',category:'職業解鎖',description:'累積有效治療 5000，並以治療或防護完成 30 場戰鬥。',progressTarget:5000,rewardType:'UnlockClass',rewardId:'CLERIC'}
   ,ACH_UNLOCK_SPELLSWORD:{id:'ACH_UNLOCK_SPELLSWORD',name:'術劍之門',category:'職業解鎖',description:'戰士與魔法師皆解鎖後，以混合配置通關 20 座不同地下城。',progressTarget:20,rewardType:'UnlockClass',rewardId:'SPELLSWORD',prerequisites:['WARRIOR','MAGE']}
@@ -888,7 +1128,29 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function add(p,id,value,queue){C.normalize(p);const d=defs[id];if(!d||p.completedAchievementIds.includes(id)||!available(p,d))return false;p.achievementProgress[id]=Math.min(d.progressTarget,(p.achievementProgress[id]||0)+value);if(p.achievementProgress[id]<d.progressTarget)return false;p.completedAchievementIds.push(id);if(d.rewardType==='UnlockClass'&&!p.unlockedClassIds.includes(d.rewardId))p.unlockedClassIds.push(d.rewardId);if(d.rewardType==='UnlockMove'){if(!p.unlockedClassExclusiveMoveIds.includes(d.rewardId))p.unlockedClassExclusiveMoveIds.push(d.rewardId);p.moves[d.rewardId]||=1;}if(d.rewardType==='UnlockSkill'){if(!p.unlockedClassExclusiveSkillIds.includes(d.rewardId))p.unlockedClassExclusiveSkillIds.push(d.rewardId);if(!p.skills.includes(d.rewardId))p.skills.push(d.rewardId);}queue?.push(d);return true;}
  function start(run){run.runAchievementTemporaryState={weaponStayedSword:run.build.equipment.weapon==='sword',usedOnlySwordDamage:true,damageTaken:0,lowHpKill:false,interrupts:0};}
  function battleEnd(p,run,b){if(!run||!b||run.achievementBattleHandled)return [];run.achievementBattleHandled=false;const t=run.runAchievementTemporaryState||{};const events=b.events||[];for(const e of events){if(e.actorId==='player'&&e.type==='damage'){const m=D.moves[e.moveId];if(!swordMove(m))t.usedOnlySwordDamage=false;}if(e.targetId==='player'&&e.type==='damage')t.damageTaken+=e.damage||0;if(e.actorId==='player'&&e.type==='interrupt')t.interrupts++;}const q=[];const warrior=run.activeClassId==='WARRIOR',sword=run.build.equipment.weapon==='sword';if(b.phase==='victory'&&t.weaponStayedSword&&t.usedOnlySwordDamage)add(p,'ACH_UNLOCK_WARRIOR',1,q);if(warrior&&sword&&b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_01',1,q);if(warrior&&sword){for(const e of events)if(e.actorId==='player'&&e.type==='cast'&&swordMove(D.moves[e.moveId])&&(D.moves[e.moveId].attackTimeBase||D.moves[e.moveId].attackTime)>=150)add(p,'ACH_WARRIOR_MASTERY_02',1,q);if(b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_04',t.damageTaken,q);add(p,'ACH_WARRIOR_MASTERY_05',t.interrupts,q);}run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
- function trackBattle(p,run,b){const q=battleEnd(p,run,b),t=run.runAchievementTemporaryState||{},events=b.events||[];t.uniqueMagicMoveIds||=[];let mpKill=false,arrowKill=false,healOrProtect=false;for(const e of events)if(e.actorId==='player'){const m=D.moves[e.moveId];if(e.type==='cast'&&m?.damageType==='magic')t.uniqueMagicMoveIds=[...new Set([...t.uniqueMagicMoveIds,m.id])];if(e.type==='damage'&&m){mpKill||=m.damageType==='magic'&&!!m.cost?.mana;arrowKill||=(m.tags||[]).includes('arrow');}if(e.type==='cast'&&m&&['heal','defense'].includes(m.kind))healOrProtect=true;}if(b.phase==='victory'&&mpKill&&t.uniqueMagicMoveIds.length>=4)add(p,'ACH_UNLOCK_MAGE',1,q);if(b.phase==='victory'&&arrowKill)add(p,'ACH_UNLOCK_RANGER',1,q);if(b.phase==='victory'&&healOrProtect)add(p,'ACH_UNLOCK_CLERIC',1,q);for(const d of Object.values(defs))if(d.category==='職業精通'&&classOf(d.id)===run.activeClassId&&b.phase==='victory')add(p,d.id,1,q);return q;}
+ function trackBattle(p,run,b){
+  const q=battleEnd(p,run,b),t=run.runAchievementTemporaryState||{},events=b.events||[],victory=b.phase==='victory';
+  const damaging=events.filter(e=>e.actorId==='player'&&e.targetId==='enemy'&&['damage','afterimage'].includes(e.type)&&(e.damage||0)>0&&D.moves[e.moveId]);
+  const finishingMove=D.moves[damaging.at(-1)?.moveId],equipped=(run.build?.moves||[]).map(id=>D.moves[id]).filter(Boolean);
+  const damagingMagic=m=>m?.damageType==='magic'&&(m.multiplier||0)>0;
+  if(victory&&equipped.length===4&&equipped.every(damagingMagic)&&damagingMagic(finishingMove))add(p,'ACH_UNLOCK_MAGE',1,q);
+
+  const rangerId='ACH_UNLOCK_RANGER',rangerHitsKey=rangerId+'_CASTING_HITS';
+  const arrowKills=victory&&(finishingMove?.tags||[]).includes('arrow')?1:0;
+  const castingHits=events.filter(e=>e.actorId==='player'&&e.targetId==='enemy'&&e.type==='damage'&&e.targetCasting&&(D.moves[e.moveId]?.tags||[]).includes('arrow')).length;
+  p.achievementProgress[rangerId]=Math.min(defs[rangerId].progressTarget,(p.achievementProgress[rangerId]||0)+arrowKills);
+  p.achievementProgress[rangerHitsKey]=(p.achievementProgress[rangerHitsKey]||0)+castingHits;
+  if(p.achievementProgress[rangerId]>=40&&p.achievementProgress[rangerHitsKey]>=20)add(p,rangerId,0,q);
+
+  const clericId='ACH_UNLOCK_CLERIC',clericBattlesKey=clericId+'_SUPPORT_BATTLES';
+  const actualHealing=events.filter(e=>e.actorId==='player'&&e.type==='heal').reduce((sum,e)=>sum+(e.healing||0),0);
+  const supportUsed=events.some(e=>e.actorId==='player'&&e.type==='cast'&&['heal','defense'].includes(D.moves[e.moveId]?.specKind||D.moves[e.moveId]?.kind));
+  p.achievementProgress[clericId]=Math.min(defs[clericId].progressTarget,(p.achievementProgress[clericId]||0)+actualHealing);
+  if(victory&&supportUsed)p.achievementProgress[clericBattlesKey]=(p.achievementProgress[clericBattlesKey]||0)+1;
+  if(p.achievementProgress[clericId]>=5000&&p.achievementProgress[clericBattlesKey]>=30)add(p,clericId,0,q);
+  for(const d of Object.values(defs))if(d.category==='職業精通'&&classOf(d.id)===run.activeClassId&&victory)add(p,d.id,1,q);
+  return q;
+ }
  function dungeonClear(p,run,dungeonId){if(!p.unlockedClassIds.includes('WARRIOR')||!p.unlockedClassIds.includes('MAGE'))return [];const ids=run.build.moves.map(id=>D.moves[id]);const mp=ids.filter(m=>m?.damageType==='magic'&&m.cost?.mana).length,physical=ids.filter(m=>m?.damageType==='physical').length;if(mp<2||physical<2)return [];const seen=run.runAchievementTemporaryState?.uniqueDungeonIdsCountedForSpellsword||[];if(seen.includes(dungeonId))return [];run.runAchievementTemporaryState||={};run.runAchievementTemporaryState.uniqueDungeonIdsCountedForSpellsword=[...seen,dungeonId];const q=[];add(p,'ACH_UNLOCK_SPELLSWORD',1,q);run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
  const journeyTasks=[
   {id:'RUN_HUNT',name:'戰鬥歷練',metric:'kills',target:20,marks:15},
@@ -937,6 +1199,15 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
+  if(c.kind&&move.specKind!==c.kind&&move.kind!==c.kind&&move.damageType!==c.kind)return false;
+  if(c.moveCostMana&&!move.cost?.mana)return false;
+  if(c.moveCostStamina&&!move.cost?.stamina)return false;
+  if(c.isUltimate!=null&&!!move.isUltimate!==c.isUltimate)return false;
+  if(c.hpRatioLt!=null&&!(actor.hp/actor.stats.hp<c.hpRatioLt))return false;
+  if(c.hpRatioLte!=null&&!(actor.hp/actor.stats.hp<=c.hpRatioLte))return false;
+  if(c.hpRatioGt!=null&&!(actor.hp/actor.stats.hp>c.hpRatioGt))return false;
+  if(c.hpRatioGte!=null&&!(actor.hp/actor.stats.hp>=c.hpRatioGte))return false;
+  if(c.chargeFull&&battle.charge<(D.moves[battle.build.ultimate]?.ultimateChargeCost||100))return false;
   if(c.originalTimeLt!=null&&!(originalTime<c.originalTimeLt))return false;
   if(c.originalTimeGte!=null&&!(originalTime>=c.originalTimeGte))return false;
   if(c.targetCasting&&!target?.cast)return false;
@@ -975,7 +1246,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  }
  const effects={
   recover(b,c,e){b.recover(c.actor,e.resource,c.actor.stats[e.resource]*e.ratio,c);},
-  heal(b,c,e){const amount=c.actor.runtime.modify('healing',c.actor.stats.hp*e.ratio,c);b.recover(c.actor,'hp',amount,c);c.healing=true;c.successfulSupport=true;},
+  heal(b,c,e){const amount=c.actor.runtime.modify('healing',c.actor.stats.hp*e.ratio,c),healing=b.recover(c.actor,'hp',amount,c);if(healing>0)b.log('heal',`恢復 ${healing.toFixed(1)} HP`,{actorId:c.actor.id,targetId:c.actor.id,moveId:c.move.id,healing});c.healing=true;c.successfulSupport=true;},
   restore(b,c,e){b.recover(c.actor,e.resource,e.amount,c);},
   status(b,c,e){const target=e.status.target==='self'?c.actor:c.target;applyStatus(b,target,e.status,c.actor,c);c.successfulSupport=true;},
   refresh(b,c,e){const s=c.target.statuses[e.id];if(!s)return false;s.expiresAt=b.time+s.duration;},
@@ -984,6 +1255,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   interrupt(b,c,e){if(!c.target.cast)return false;const chance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
   echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;return b.queueEcho(c,e.ratio);},
   shield(b,c,e){c.actor.shield=Math.max(c.actor.shield,c.actor.stats.hp*e.ratio);},
+  cleanse(b,c,e){const ids=Object.entries(c.actor.statuses).filter(([,s])=>s.polarity==='debuff').map(([id])=>id);for(const id of ids.slice(0,e.count||ids.length))delete c.actor.statuses[id];return ids.length>0;},
+  charge(b,c,e){const maximum=D.moves[b.build.ultimate]?.ultimateChargeCost||100;b.charge=Math.min(maximum,b.charge+(e.amount||maximum*(e.ratio||0)));return true;},
   survive(b,c,e){const chance=Math.min(e.cap,c.actor.stats.luck*e.luckRate);if(b.rng()<chance)c.prevented=true;}
  };
  const api={Runtime,matches,elementMultiplier,isNonElementPhysical,isNonElementMagic,applyStatus,effects};if(typeof module!=='undefined')module.exports=api;else root.SkillRuntime=api;
@@ -1075,7 +1348,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     }
     elapse(time) {
       const maximum = ultimateChargeCost(this.build.ultimate);
-      const accumulated = this.charge + (time - this.time);
+      const accumulated = this.charge + (time - this.time)*this.player.runtime.modify('chargeRate',1);
       this.charge = accumulated >= maximum - 1e-9 ? maximum : accumulated;
       this.time = time;
     }
@@ -1085,6 +1358,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       const move = this.getMove(id, actor);
       if (!move || (actor === this.player && !this.build.moves.includes(id) && this.build.ultimate !== id)) return { ok: false, reason: '未配置此招式' };
       const isUltimate = actor === this.player && this.build.ultimate === id && asUltimate;
+      move.isUltimate=isUltimate;
       if (isUltimate && this.charge < ultimateChargeCost(id)) return { ok: false, reason: '必殺技尚未充能完成' };
       for (const [resource, cost] of Object.entries(move.cost)) if (actor[resource] < cost) return { ok: false, reason: '資源不足' };
       for (const [resource, cost] of Object.entries(move.cost)) actor[resource] -= cost;
@@ -1107,7 +1381,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       if(sequence.hostile&&target.hp>0){
         if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move}))this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});
         else if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});}
-        else {sequence.connected=true;if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
+        else {sequence.connected=true;if(move.multiplier>0){const targetCasting=!!target.cast,critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits,targetCasting});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
       }
       sequence.index++;if(sequence.index<sequence.hits&&target.hp>0){sequence.nextAt=this.time+(move.hitInterval??.18);return;}
       actor.sequence=null;const ctx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:sequence.hitDamages,successfulSupport:false,healing:false};
@@ -1222,9 +1496,16 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function collection(p){const m=normalize(p),moves=new Set(D.startingMoves),skills=new Set(D.startingSkills);
   for(const pool of Object.values(D.rewardPools))for(const e of pool.entries){if(e.rewardType==='moves')e.rewardIds.forEach(id=>moves.add(id));if(e.rewardType==='talents')e.rewardIds.forEach(id=>skills.add(id));}
   for(const b of Object.values(D.books))moves.add(b.moveId);for(const c of catalog)(c.kind==='moves'?moves:skills).add(c.id);Object.keys(p.moves).forEach(id=>moves.add(id));for(const id of p.skills)skills.add(id);for(const id of p.ultimates||[])moves.add(id);
+  for(const x of Object.values(D.moves))if(x.contentScope==='classExclusive')moves.add(x.id);for(const x of Object.values(D.skills))if(x.contentScope==='classExclusive')skills.add(x.id);
   const enemyIds=new Set([...D.enemySpawnData.map(e=>monsterId(e.type)),...D.dungeons.flatMap(d=>d.enemyWaves.map(w=>monsterId(w.type)))]);
   function hint(kind,id){const c=catalog.find(c=>c.kind===kind&&c.id===id);if(c)return `旅者商店 · 通關 ${tiers[c.tier].clears} 座不同地下城後可能上架`;const d=D.dungeons.find(d=>d.rewardPoolIds?.some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardIds.includes(id))));return d?`探索 ${d.name}`:'探索世界與地下城、收集魔法書';}
-  return {moves:[...moves].filter(id=>D.moves[id]).map(id=>({id,data:D.moves[id],known:!!p.moves[id]||!!p.ultimateUnlocked&&(p.ultimates||[]).includes(id),hint:hint('moves',id)})),skills:[...skills].filter(id=>D.skills[id]).map(id=>({id,data:D.skills[id],known:p.skills.includes(id),hint:hint('skills',id)})),monsters:[...enemyIds].map(id=>({id,data:D.monsters[id],known:m.seenMonsters.includes(id),complete:m.defeatedMonsters.includes(id),hint:'探索各地野外與地下城'})),dungeons:D.dungeons.map(d=>({id:d.id,data:d,known:m.foundDungeons.includes(d.id)||m.enteredDungeons.includes(d.id)||(p.dungeonCompletions?.[d.id]||0)>0,complete:(p.dungeonCompletions?.[d.id]||0)>0,entered:m.enteredDungeons.includes(d.id),hint:'探索世界地圖，尋找未知入口'}))};
+  const moveRows=[...moves].filter(id=>D.moves[id]).map(id=>({id,data:D.moves[id],known:!!p.moves[id]||!!p.ultimateUnlocked&&(p.ultimates||[]).includes(id),hint:hint('moves',id)}));
+  const skillRows=[...skills].filter(id=>D.skills[id]).map(id=>({id,data:D.skills[id],known:p.skills.includes(id),hint:hint('skills',id)}));
+  const books=Object.values(D.books).map(data=>({id:data.id,data,known:p.books.includes(data.id),hint:'通關對應地下城，從魔法書獎勵池取得'}));
+  const equipment=Object.values(D.equipment).map(data=>({id:data.id,data,known:p.equipment.includes(data.id),hint:data.acquisitionTier==='easy'?'前期地下城或初始裝備':data.sourceDungeons?.length?'探索 '+data.sourceDungeons.map(id=>D.dungeons.find(d=>d.id===id)?.name).filter(Boolean).join('／'):'探索地下城裝備池'}));
+  const statusMap=new Map();for(const row of moveRows)for(const e of row.data.effects||[])if(e.status){const x=statusMap.get(e.status.id)||{data:e.status,sources:[],known:false};x.sources.push(row.data.name);x.known||=row.known;statusMap.set(e.status.id,x);}for(const row of skillRows)for(const h of row.data.hooks||[])for(const e of h.effects||[])if(e.status){const x=statusMap.get(e.status.id)||{data:e.status,sources:[],known:false};x.sources.push(row.data.name);x.known||=row.known;statusMap.set(e.status.id,x);}
+  const statuses=[...statusMap.entries()].map(([id,x])=>({id,data:{...x.data,description:(x.data.polarity==='buff'?'Buff':'Debuff')+' · 來源：'+[...new Set(x.sources)].join('、')},known:x.known,hint:'先取得能施加這個狀態的招式或技能'}));
+  return {moves:moveRows,skills:skillRows,books,equipment,statuses,monsters:[...enemyIds].map(id=>({id,data:D.monsters[id],known:m.seenMonsters.includes(id),complete:m.defeatedMonsters.includes(id),hint:'探索各地野外與地下城'})),dungeons:D.dungeons.map(d=>({id:d.id,data:d,known:m.foundDungeons.includes(d.id)||m.enteredDungeons.includes(d.id)||(p.dungeonCompletions?.[d.id]||0)>0,complete:(p.dungeonCompletions?.[d.id]||0)>0,entered:m.enteredDungeons.includes(d.id),hint:'探索世界地圖，尋找未知入口'}))};
  }
  const api={PERIOD,tiers,catalog,normalize,tier,stock,buy,ledger,encounter,discover,enter,clear,settle,collection};if(typeof module!=='undefined')module.exports=api;else root.GameMeta=api;
 })(globalThis);
@@ -1711,12 +1992,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const tone = id => ['fire', 'inferno'].includes(id) ? 'ember' : ['spark', 'control'].includes(id) ? 'arcane' : ['nova', 'lucky'].includes(id) ? 'gold' : ['interrupt'].includes(id) ? 'violet' : 'jade';
   const stars = level => `<span class="stars" aria-label="永久熟練度 ${level} 級">${'★'.repeat(Math.min(3, level))}<span>${'☆'.repeat(Math.max(0, 3 - level))}</span></span>`;
   const icon = (name, size = 32) => art.icon(name, size);
+  const gradeBadge = data => data?.powerGrade ? `<span class="content-grade grade-${data.powerGrade}">${data.powerGrade}</span>` : '';
   const button = (text, action, options = {}) => `<button class="${options.primary ? 'primary-button' : 'secondary-button'} ${options.className || ''}" data-action="${action}" ${options.id ? `data-id="${options.id}"` : ''} ${options.disabled ? 'disabled' : ''}>${text}</button>`;
   const tabs = (items, active, action) => `<nav class="tabs" aria-label="畫面分頁">${items.map(([id, text]) => `<button class="tab-button ${active === id ? 'selected' : ''}" data-action="${action}" data-id="${id}" aria-pressed="${active === id}">${text}</button>`).join('')}</nav>`;
   function card(id, kind, level, selected = false, action = 'catalog-select') {
     const data = kind === 'talents' ? D.skills[id] : kind === 'books' ? D.books[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id];
     const moveSubtitle=kind==='moves'&&data.subtitle?`<small class="move-card-subtitle">${escape(data.subtitle)}</small>`:'';
-    return `<button class="ability-card tone-${tone(id)} ${selected ? 'selected' : ''}" data-action="${action}" data-id="${id}" data-kind="${kind}" aria-pressed="${selected}"><span class="card-seal">${icon(data.icon || 'book', 43)}</span><strong>${escape(data.name)}</strong>${moveSubtitle}${kind==='talents'?`<small class="skill-card-category">${escape(data.description)}</small>`:''}${kind === 'moves' && data.kind !== 'ultimate' ? stars(level) : `<small>${kind === 'books' ? '永久知識' : data.kind === 'ultimate' ? '必殺技' : kind === 'equipment' ? '旅人裝備' : data.category + ' · Lv.1'}</small>`}</button>`;
+    return `<button class="ability-card tone-${tone(id)} ${selected ? 'selected' : ''}" data-action="${action}" data-id="${id}" data-kind="${kind}" aria-pressed="${selected}"><span class="card-seal">${icon(data.icon || 'book', 43)}</span><strong>${escape(data.name)} ${gradeBadge(data)}</strong>${moveSubtitle}${kind==='talents'?`<small class="skill-card-category">${escape(data.description)}</small>`:''}${kind === 'moves' && data.kind !== 'ultimate' ? stars(level) : `<small>${kind === 'books' ? '永久知識' : data.kind === 'ultimate' ? '必殺技' : kind === 'equipment' ? '旅人裝備' : data.category + ' · Lv.1'}</small>`}</button>`;
   }
   function slot(id, kind, index, action = 'slot-pick', level = 1) {
     const data = kind === 'talents' ? D.skills[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id];
@@ -1733,13 +2015,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function cost(move) { return Object.entries(move.cost || {}).map(([k, v]) => `${v} ${k === 'mana' ? 'MP' : 'SP'}`).join(' · ') || '無消耗'; }
   function ultimateChargeSpeed(id) { const value=D.moves[id]?.ultimateChargeCost||100; return value<=75?'快':value<=110?'普通':value<=145?'慢':'很慢'; }
-  function skillDetail(skill){return `<span class="eyebrow">${escape(skill.category)}</span><h3>${escape(skill.name)}</h3><p>${escape(skill.description)}</p><p>觸發：${escape(skill.triggerType)}。持續效果只刷新時間，較強者覆蓋較弱者，不會疊層。</p><p class="effect-note">名詞說明：讀條＝敵人準備招式的時間；中斷＝取消該次準備；Buff＝強化自己；Debuff＝削弱敵人；刷新＝重新計算持續時間；不疊加＝不會重複增加強度。</p>`;}
+  function skillDetail(skill){return `<span class="eyebrow">${escape(skill.category)} · ${gradeBadge(skill)}</span><h3>${escape(skill.name)}</h3><p>${escape(skill.description)}</p><p>觸發：${escape(skill.triggerType)}。持續效果只刷新時間，較強者覆蓋較弱者，不會疊層。</p><p class="effect-note">名詞說明：讀條＝敵人準備招式的時間；中斷＝取消該次準備；Buff＝強化自己；Debuff＝削弱敵人；刷新＝重新計算持續時間；不疊加＝不會重複增加強度。</p>`;}
   function effects(move) { return move.effects.map(e => e.type === 'interrupt' ? '中斷：命中時取消敵方目前讀條' : e.type === 'restore' ? `恢復：回復 ${e.amount} ${e.resource === 'stamina' ? 'SP' : 'MP'}` : e.type==='status'?`${e.status.name}：持續 ${e.status.duration} 秒（刷新時間，不重複疊加）`:e.type==='heal'?`治療：回復最大 HP ${e.ratio*100}%`:e.type).join('；') || '直接傷害：不會中斷敵方讀條'; }
   function compactMoveDetail(move){return `<h3>${escape(move.name)}</h3>${move.subtitle?`<p class="move-detail-subtitle">${escape(move.subtitle)}</p>`:''}<p class="compact-values">預估傷害 ${move.estimatedDamage?.toFixed(1)||'0'} · ${cost(move)}<br>攻擊時間 ${move.attackTime} · 讀條 ${move.castTime?.toFixed(2)||'—'} 秒<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><p>${effects(move)}</p><p>必殺能量需求：${move.ultimateChargeCost||100}</p>${move.modifications?.length?`<p>修正：${move.modifications.map(escape).join('、')}</p>`:''}`;}
   function moveDetail(move, level, agility, permanent = false) {
-    return `<div class="detail-icon tone-${tone(move.id)}">${icon(move.icon || 'sword', 72)}</div><small class="eyebrow">${move.kind === 'ultimate' ? 'ULTIMATE ART' : move.damageType === 'magic' ? 'ARCANE ART' : 'MARTIAL ART'}</small><h3>${escape(move.name)}${permanent ? '' : ` <span>Lv.${level}</span>`}</h3>${move.subtitle?`<p class="move-detail-subtitle">${escape(move.subtitle)}</p>`:''}${permanent && move.kind !== 'ultimate' ? stars(level) + `<p class="muted">永久 Lv.${level} / 3</p>` : ''}<p>${escape(move.description || '以力量擊向敵人。')}<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><div class="detail-values"><div><small>${move.estimatedDamage!=null?"預估傷害（未爆擊）":"傷害倍率"}</small><strong>${move.estimatedDamage!=null?move.estimatedDamage.toFixed(1):Math.round(move.multiplier*100)}<em>${move.estimatedDamage!=null?"":"%"}</em></strong></div><div><small>消耗</small><strong>${cost(move)}</strong></div><div><small>攻擊時間</small><strong>${move.attackTime}</strong></div><div><small>必殺能量需求</small><strong>${move.ultimateChargeCost||100}</strong></div></div><p class="effect-note">${effects(move)}</p>${move.modifications?.length?`<p class="effect-note">目前修正：${move.modifications.map(escape).join("、")}</p>`:""}`;
+    return `<div class="detail-icon tone-${tone(move.id)}">${icon(move.icon || 'sword', 72)}</div><small class="eyebrow">${move.kind === 'ultimate' ? 'ULTIMATE ART' : move.damageType === 'magic' ? 'ARCANE ART' : 'MARTIAL ART'} · ${gradeBadge(move)}</small><h3>${escape(move.name)}${permanent ? '' : ` <span>Lv.${level}</span>`}</h3>${move.subtitle?`<p class="move-detail-subtitle">${escape(move.subtitle)}</p>`:''}${permanent && move.kind !== 'ultimate' ? stars(level) + `<p class="muted">永久 Lv.${level} / 3</p>` : ''}<p>${escape(move.description || '以力量擊向敵人。')}<br>${({physical:'物理',magic:'魔法',spell:'咒語'})[move.damageType]}／${move.elements?.map(e=>D.elements[e]).join('＋')||'無屬性'}</p><div class="detail-values"><div><small>${move.estimatedDamage!=null?"預估傷害（未爆擊）":"傷害倍率"}</small><strong>${move.estimatedDamage!=null?move.estimatedDamage.toFixed(1):Math.round(move.multiplier*100)}<em>${move.estimatedDamage!=null?"":"%"}</em></strong></div><div><small>消耗</small><strong>${cost(move)}</strong></div><div><small>攻擊時間</small><strong>${move.attackTime}</strong></div><div><small>必殺能量需求</small><strong>${move.ultimateChargeCost||100}</strong></div></div><p class="effect-note">${effects(move)}</p>${move.modifications?.length?`<p class="effect-note">目前修正：${move.modifications.map(escape).join("、")}</p>`:""}`;
   }
-  root.GameUI = { escape, tone, stars, icon, button, tabs, card, slot, statBar, ring, castBar, characterArt, cost, effects, moveDetail, skillDetail, compactMoveDetail, ultimateChargeSpeed };
+  root.GameUI = { escape, tone, stars, icon, gradeBadge, button, tabs, card, slot, statBar, ring, castBar, characterArt, cost, effects, moveDetail, skillDetail, compactMoveDetail, ultimateChargeSpeed };
 })(globalThis);
 
 </script><script>
@@ -1786,7 +2068,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       const move = D.moves[id], level = game.permanent.moves[id] || 1, view = { ...move, multiplier: move.multiplier * P.moveScale(level) };
       const equipped = move.kind === 'ultimate' ? game.build.ultimate === id : game.build.moves.includes(id);
       details = U.moveDetail(view, level, P.statsFor(P.createRun(game.permanent, game.build)).agility, true) + U.button(equipped ? '從開局 Build 移除' : '加入開局 Build', 'library-equip', { id, primary: !equipped });
-    } else if (id && category === 'talents') { const skill = D.skills[id], equipped = game.build.talents.includes(id); details = `<div class="detail-icon tone-${U.tone(id)}">${U.icon(skill.icon, 72)}</div><small class="eyebrow">PASSIVE ABILITY</small><h3>${skill.name}</h3><span class="detail-badge">已學會 · Lv.1</span><p>${skill.description}</p><p>分類：${skill.category}</p><p class="effect-note">只要配置於技能欄，效果就會自動生效。</p>${U.button(equipped ? '從開局 Build 移除' : '加入開局 Build', 'library-equip', { id, primary: !equipped })}`; }
+    } else if (id && category === 'talents') { const skill = D.skills[id], equipped = game.build.talents.includes(id); details = `<div class="detail-icon tone-${U.tone(id)}">${U.icon(skill.icon, 72)}</div><small class="eyebrow">PASSIVE ABILITY · ${U.gradeBadge(skill)}</small><h3>${skill.name}</h3><span class="detail-badge">已學會 · Lv.1</span><p>${skill.description}</p><p>分類：${skill.category}</p><p class="effect-note">只要配置於技能欄，效果就會自動生效。</p>${U.button(equipped ? '從開局 Build 移除' : '加入開局 Build', 'library-equip', { id, primary: !equipped })}`; }
     else if (id) { const book = D.books[id], current = game.permanent.moves[book.requirement.moveId] || 0, learned = !!game.permanent.moves[book.moveId]; details = `<div class="detail-icon tone-violet">${U.icon('book', 72)}</div><small class="eyebrow">PERMANENT KNOWLEDGE</small><h3>《${book.name}》</h3><span class="detail-badge">${learned ? '已理解' : '尚未理解'}</span><p>${book.description}</p><div class="book-condition"><small>學習條件</small><strong>${D.moves[book.requirement.moveId].name} · 永久 Lv.${book.requirement.level}</strong>${U.stars(current)}<span>${current} / ${book.requirement.level}</span><div class="condition-track"><i style="width:${Math.min(100, current / book.requirement.level * 100)}%"></i></div></div>${U.button(learned ? '已學會'+D.moves[book.moveId].name : '理解 · 學習魔法', 'learn-book', { id, primary: true, disabled: learned || current < book.requirement.level })}`; }
     return `${header('能力庫存', 'THE ARCHIVE · PERMANENT COLLECTION', '<span class="permanent-mark">◇ 局外永久收藏</span>')}<div class="library-layout"><nav class="library-nav" aria-label="能力分類">${[['talents', '技能', 'wind'], ['moves', '招式', 'sword'], ['books', '魔法書', 'book']].map(([key, name, icon]) => `<button class="${category === key ? 'selected' : ''}" data-action="library-category" data-id="${key}">${U.icon(icon, 25)}<span>${name}</span><b>${key === 'talents' ? game.permanent.skills.length : key === 'moves' ? Object.keys(game.permanent.moves).length + game.permanent.ultimates.length : game.permanent.books.length}</b></button>`).join('')}<p>知識會留下。<br>每段旅途，都從這裡重新出發。</p></nav><section class="library-center"><div class="section-heading"><h2>${category === 'talents' ? '已學會的技能' : category === 'moves' ? '記憶中的招式' : '收藏的魔法書'}</h2><small>${ids.length} 項收藏</small></div><div class="catalog-grid">${ids.map(key => U.card(key, category, game.permanent.moves[key] || 1, key === id)).join('') || '<div class="empty-catalog">' + U.icon('book', 64) + '<p>第一本魔法書，仍在遺跡中等待。</p></div>'}</div><p class="quiet-note">★ 代表永久熟練度，最高 3 級。局內等級獨立成長。</p></section><aside class="ability-detail">${details}</aside></div>${footer('這是出發前的能力庫。冒險中僅在取得新能力時可選擇裝備。', U.button('前往角色設定', 'setup') + U.button('開始冒險 →', 'begin-run', { primary: true, disabled: !game.build.moves.length }))}`;
   }
@@ -1795,7 +2077,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     if(kind==='ultimate'&&game.permanent.ultimateUnlocked===false)return `<h2 id="modal-title">必殺槽尚未解鎖</h2><p>首次冒險第三次倒下、完成整局結算後永久解鎖。</p><div class="modal-footer">${U.button('返回','close')}</div>`;
     const ids = kind === 'talents' ? game.permanent.skills : kind === 'ultimate' ? [...new Set([...Object.keys(game.permanent.moves), ...game.permanent.ultimates])] : kind === 'equipment' ? game.permanent.equipment.filter(id => D.equipment[id].slot === index) : Object.keys(game.permanent.moves);
     const current = kind === 'ultimate' ? game.build.ultimate : kind === 'equipment' ? game.build.equipment[index] : game.build[kind][index];
-    return `<div class="eyebrow">CHOOSE YOUR PATH</div><h2 id="modal-title">${kind === 'equipment' ? '選擇' + slots[index] + '裝備' : kind === 'talents' ? '選擇技能' : kind === 'ultimate' ? '選擇必殺技' : '選擇招式'}</h2><div class="picker-grid">${ids.map(id => { const data = kind === 'talents' ? D.skills[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id]; const used = ['moves', 'talents'].includes(kind) && game.build[kind].includes(id) && current !== id, rarity=kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通'):null, sources=kind==='equipment'?(data.acquisitionTier==='easy'?'容易取得':(data.sourceDungeons||[]).map(dungeonId=>D.dungeons.find(d=>d.id===dungeonId)?.name).filter(Boolean).join('／')||'特殊取得'):null; return `<button class="picker-card tone-${U.tone(id)} ${current === id ? 'selected' : ''}" data-action="picker-select" data-id="${id}" ${kind==='talents'?`data-tooltip="skill:${id}"`:""} ${used ? 'disabled' : ''}>${U.icon(data.icon, 35)}<div><strong>${data.name}</strong><p>${kind==='ultimate' ? `必殺蓄能：${U.ultimateChargeSpeed(id)} · ` : kind==='talents'?data.category+" · ":""}${data.description}</p>${kind==='equipment'?`<small class="gear-rarity rarity-${data.rarity}">${rarity} · ${sources}</small>`:''}<small>${used ? '已在其他欄位' : kind === 'moves' ? `永久 Lv.${game.permanent.moves[id]}` : current === id ? '目前配置' : '可以配置'}</small></div></button>`; }).join('')}</div><div class="modal-footer">${current ? U.button('卸下此欄位', 'picker-remove') : ''}${U.button('取消', 'close')}</div>`;
+    return `<div class="eyebrow">CHOOSE YOUR PATH</div><h2 id="modal-title">${kind === 'equipment' ? '選擇' + slots[index] + '裝備' : kind === 'talents' ? '選擇技能' : kind === 'ultimate' ? '選擇必殺技' : '選擇招式'}</h2><div class="picker-grid">${ids.map(id => { const data = kind === 'talents' ? D.skills[id] : kind === 'equipment' ? D.equipment[id] : D.moves[id]; const used = ['moves', 'talents'].includes(kind) && game.build[kind].includes(id) && current !== id, rarity=kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通'):null, sources=kind==='equipment'?(data.acquisitionTier==='easy'?'容易取得':(data.sourceDungeons||[]).map(dungeonId=>D.dungeons.find(d=>d.id===dungeonId)?.name).filter(Boolean).join('／')||'特殊取得'):null; return `<button class="picker-card tone-${U.tone(id)} ${current === id ? 'selected' : ''}" data-action="picker-select" data-id="${id}" ${kind==='talents'?`data-tooltip="skill:${id}"`:""} ${used ? 'disabled' : ''}>${U.icon(data.icon, 35)}<div><strong>${data.name} ${U.gradeBadge(data)}</strong><p>${kind==='ultimate' ? `必殺蓄能：${U.ultimateChargeSpeed(id)} · ` : kind==='talents'?data.category+" · ":""}${data.description}</p>${kind==='equipment'?`<small class="gear-rarity rarity-${data.rarity}">${rarity} · ${sources}</small>`:''}<small>${used ? '已在其他欄位' : kind === 'moves' ? `永久 Lv.${game.permanent.moves[id]}` : current === id ? '目前配置' : '可以配置'}</small></div></button>`; }).join('')}</div><div class="modal-footer">${current ? U.button('卸下此欄位', 'picker-remove') : ''}${U.button('取消', 'close')}</div>`;
   }
   root.GameScreens = { setup, library, settings, picker, statNames: names, statIcons: symbols };
 })(globalThis);
@@ -1882,15 +2164,30 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function(root){
  const M=root.GameMeta,D=root.GameData,U=root.GameUI;
  const header=(title,sub)=>`<header class="screen-header"><div><div class="eyebrow">${sub}</div><h1>${title}</h1></div>${U.button('返回','screen-back')}</header>`;
- const label=d=>`<strong>${U.escape(d.name)}</strong>${d.subtitle&&d.subtitle!==d.name?`<small>${U.escape(d.subtitle)}</small>`:''}`;
+ const label=d=>`<strong>${U.escape(d.name)} ${U.gradeBadge(d)}</strong>${d.subtitle&&d.subtitle!==d.name?`<small>${U.escape(d.subtitle)}</small>`:''}`;
  function shop(game){const p=game.permanent,s=M.stock(p),t=M.tier(p),m=p.meta,remaining=Math.max(0,(s.epoch+1)*M.PERIOD-Date.now()),hours=Math.floor(remaining/3600000),minutes=Math.floor(remaining/60000)%60;
   return `${header('旅者商店','THE TRAVELLING MERCHANT')}<div class="meta-scroll"><div class="meta-banner"><div><small>旅者徽記</small><strong>◇ ${m.marks}</strong></div><span>每 12 小時換新<br><b id="shop-countdown">${hours} 小時 ${minutes} 分後刷新</b></span></div><p class="quiet-note">已攻略 ${t.count} 座不同地下城 · ${t.slots} 個貨架<br>${t.index<3?`通關 ${M.tiers[t.index+1].clears} 座後解鎖 ${M.tiers[t.index+1].slots} 格與更多商品`:'旅者商店貨架已全數開放'}<br>購買後永久學會，出發前可配置。</p><div class="merchant-grid">${s.items.map(key=>{const c=M.catalog.find(x=>x.key===key),pool=c.kind==='moves'?D.moves:D.skills,d=pool[c.id]||Object.values(pool).find(x=>x.contentId===c.id),has=M.owned?M.owned(p,c):c.kind==='moves'?!!p.moves[c.id]:p.skills.includes(c.id);return `<article class="merchant-card ${has?'collected':''}"><span class="meta-glyph">${U.icon(d.icon||'star',30)}</span><div class="meta-item-name"><small>${c.kind==='moves'?'招式 · Lv.1':'被動技能'}</small>${label(d)}</div><p>${U.escape(d.description||'可在角色設定查看招式資訊。')}</p>${c.kind==='moves'?`<small class="quiet-note">${U.cost(d)}</small>`:''}<button class="ui-button ${has?'':'primary'}" data-action="shop-buy" data-id="${c.key}" data-epoch="${s.epoch}" ${has||m.marks<c.price?'disabled':''}>${has?'已永久解鎖':`◇ ${c.price} · ${m.marks<c.price?'徽記不足':'解鎖'}`}</button></article>`;}).join('')||'<div class="meta-empty">目前商品池已全部蒐集。<br>攻略更多地下城，解鎖新貨源。</div>'}</div><p class="quiet-note">擊敗敵人、首次發現地下城與通關可累積徽記；整局結束時帶回，失敗也保留。<br>每件商品只需解鎖一次，已有能力不會重複販售。</p>${U.button('配置已學會的能力','setup')}</div>`;
  }
- function codex(game){const all=M.collection(game.permanent),tab=['moves','skills','monsters','dungeons'].includes(game.codexTab)?game.codexTab:'moves',list=all[tab],total=Object.values(all).flat(),known=total.filter(x=>x.known).length;
-  return `${header('旅途圖鑑','TRACES OF THE UNKNOWN')}<div class="meta-scroll"><div class="meta-banner"><div><small>已發現與蒐集</small><strong>${known} <small>/ ${total.length}</small></strong></div><span>尚有 ${total.length-known} 項未知<br>每段旅途，都留下足跡</span></div><div class="codex-progress"><i style="width:${100*known/Math.max(1,total.length)}%"></i></div><nav class="codex-tabs" aria-label="圖鑑分類">${[['moves','招式'],['skills','技能'],['monsters','怪物'],['dungeons','地下城']].map(([id,name])=>`<button data-action="codex-tab" data-id="${id}" class="${tab===id?'selected':''}">${name}<small>${all[id].filter(x=>x.known).length} / ${all[id].length}</small></button>`).join('')}</nav><div class="codex-grid">${list.map((e,i)=>`<article class="codex-entry ${e.known?'known':'unknown'}"><span class="meta-glyph" aria-hidden="true">${e.known?U.icon(e.data.icon||(tab==='monsters'?'hood':'book'),28):'?'}</span><div><small>No. ${String(i+1).padStart(3,'0')} · ${e.known?tab==='monsters'?(e.complete?'已擊敗':'已遇見'):tab==='dungeons'?(e.complete?'已通關':e.entered?'已進入':'已發現'):'已永久學會':'尚未發現'}</small>${e.known?label(e.data):'<strong>未知的'+({moves:'招式',skills:'技能',monsters:'生物',dungeons:'遺跡'}[tab])+'</strong>'}<p>${U.escape(e.known?(e.data.description||e.data.features?.join(' ／ ')||'已記錄於旅途圖鑑。'):e.hint)}</p></div></article>`).join('')}</div></div>`;
+ const tabs=[['moves','招式'],['skills','技能'],['books','魔法書'],['equipment','裝備'],['statuses','狀態'],['monsters','怪物'],['dungeons','地下城']];
+ const typeName={moves:'招式',skills:'技能',books:'魔法書',equipment:'裝備',statuses:'狀態',monsters:'生物',dungeons:'遺跡'};
+ function codex(game){const all=M.collection(game.permanent),tab=tabs.some(x=>x[0]===game.codexTab)?game.codexTab:'moves',list=all[tab],total=tabs.flatMap(([id])=>all[id]),known=total.filter(x=>x.known).length;
+  return `${header('旅途圖鑑','TRACES OF THE UNKNOWN')}<div class="meta-scroll"><div class="meta-banner"><div><small>已發現與蒐集</small><strong>${known} <small>/ ${total.length}</small></strong></div><span>尚有 ${total.length-known} 項未知<br>點選條目查看完整效果</span></div><div class="codex-progress"><i style="width:${100*known/Math.max(1,total.length)}%"></i></div><nav class="codex-tabs codex-all-tabs" aria-label="圖鑑分類">${tabs.map(([id,name])=>`<button data-action="codex-tab" data-id="${id}" class="${tab===id?'selected':''}">${name}<small>${all[id].filter(x=>x.known).length} / ${all[id].length}</small></button>`).join('')}</nav><div class="codex-grid">${list.map((e,i)=>`<button class="codex-entry ${e.known?'known':'unknown'}" data-action="codex-detail" data-id="${e.id}" data-kind="${tab}"><span class="meta-glyph" aria-hidden="true">${e.known?U.icon(e.data.icon||(tab==='monsters'?'hood':tab==='equipment'?'armor':tab==='statuses'?'star':'book'),28):'?'}</span><span><small>No. ${String(i+1).padStart(3,'0')} · ${e.known?tab==='monsters'?(e.complete?'已擊敗':'已遇見'):tab==='dungeons'?(e.complete?'已通關':e.entered?'已進入':'已發現'):'已蒐集':'尚未發現'}</small>${e.known?label(e.data):'<strong>未知的'+typeName[tab]+'</strong>'}<p>${U.escape(e.known?(e.data.description||e.data.features?.join(' ／ ')||'已記錄於旅途圖鑑。'):e.hint)}</p></span></button>`).join('')}</div></div>`;
+ }
+ const elementName=id=>D.elements[id]||id,modText=m=>{const n={damage:'傷害',incoming:'承受傷害',attackTime:'讀條',agility:'敏捷',accuracy:'命中率',critChance:'爆擊率',dodgeChance:'閃避率','cost:mana':'MP消耗','cost:stamina':'SP消耗',healing:'治療量',chargeRate:'必殺蓄能速度'}[m.stage]||m.stage;return `${m.conditions?.element?elementName(m.conditions.element)+'屬性 ':''}${n}${m.op==='add'?(m.value>=0?'+':'')+m.value:' ×'+m.value}`;};
+ const statusText=s=>{const parts=(s.modifiers||[]).map(modText);if(s.tick)parts.push(`每 ${s.tick.interval} 秒造成施放者最大${s.tick.stat==='mana'?'MP':s.tick.stat==='stamina'?'SP':'HP'}的 ${Math.round(s.tick.ratio*1000)/10}% 傷害`);if(s.consume)parts.push(`下一次${s.consume==='physical'?'物理':'魔法'}招式後消失`);return parts.join('；')||'狀態標記，重複施加時刷新持續時間';};
+ const effectText=m=>(m.effects||[]).map(e=>e.type==='interrupt'?'中斷敵人目前讀條':e.type==='heal'?`恢復最大 HP ${e.ratio*100}%`:e.type==='restore'?`恢復 ${e.amount} ${e.resource==='mana'?'MP':'SP'}`:e.type==='shield'?`獲得最大 HP ${e.ratio*100}% 的護盾`:e.type==='cleanse'?'移除戰鬥 Debuff':e.status?`${e.status.name}（${e.status.duration}秒）：${statusText(e.status)}`:e.type).join('；')||'無額外狀態效果';
+ function codexDetail(game,kind,id){const all=M.collection(game.permanent),entry=all[kind]?.find(x=>x.id===id);if(!entry)return '<h2 id="modal-title">找不到圖鑑資料</h2>';if(!entry.known)return `<div class="eyebrow">UNKNOWN ${typeName[kind].toUpperCase()}</div><h2 id="modal-title">尚未發現</h2><p>${U.escape(entry.hint)}</p><div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;const d=entry.data;let body='';
+  if(kind==='moves'){const lv=game.permanent.moves[id]||1;body=U.moveDetail(d,lv,0,true)+`<p class="effect-note"><b>完整效果：</b>${U.escape(effectText(d))}</p>`;}
+  else if(kind==='skills'){const mechanics=[...(d.combatModifiers||[]).map(modText),...(d.hooks||[]).map(h=>`${h.event} 時觸發`),...Object.entries(d.modifiers||{}).map(([k,v])=>`${k.toUpperCase()} +${v}`),...Object.entries(d.statRates||{}).map(([k,v])=>`${k.toUpperCase()} +${v*100}%`)];body=`<div class="eyebrow">PASSIVE SKILL · ${U.gradeBadge(d)}</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>${U.escape(d.description)}</p><p class="effect-note"><b>實際效果：</b>${U.escape(mechanics.join('；')||'效果已由專屬觸發器執行')}</p>`;}
+  else if(kind==='books'){const learned=!!game.permanent.moves[d.moveId],req=game.permanent.moves[d.requirement.moveId]||0;body=`<div class="eyebrow">MAGIC GRIMOIRE</div><h2 id="modal-title">《${U.escape(d.name)}》</h2><p>${U.escape(d.description)}</p><p>理解條件：${U.escape(D.moves[d.requirement.moveId].name)} 永久 Lv.${d.requirement.level}（目前 Lv.${req}）</p><p>學會招式：${U.escape(D.moves[d.moveId].name)} · ${learned?'已理解':'尚未理解'}</p>`;}
+  else if(kind==='equipment'){body=`<div class="eyebrow">${U.escape(D.equipmentRarityLabels?.[d.rarity]||'普通')} EQUIPMENT · ${U.gradeBadge(d)}</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>${U.escape(d.description)}</p><p>部位：${U.escape(({head:'頭部',chest:'身體',arms:'手部',feet:'腳部',weapon:'武器'})[d.slot])}${d.weaponType?' · 類型：'+U.escape(({sword:'劍',bow:'弓',blunt:'鈍器',staff:'法杖'})[d.weaponType]):''}</p>`;}
+  else if(kind==='statuses'){body=`<div class="eyebrow">${d.polarity==='buff'?'BUFF':'DEBUFF'}</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>持續 ${d.duration} 秒</p><p class="effect-note">${U.escape(statusText(d))}</p><p>${U.escape(d.description)}</p>`;}
+  else if(kind==='monsters'){body=`<div class="eyebrow">BESTIARY</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>屬性：${(d.elements||[]).map(elementName).join('＋')||'無'} · 行動：${U.escape(d.behavior||'未知')}</p><p>招式：${(d.moves||[]).map(x=>D.moves[x]?.name).filter(Boolean).map(U.escape).join('、')}</p>`;}
+  else body=`<div class="eyebrow">DUNGEON RECORD</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>建議 Lv.${d.recommendedLevel||d.level} · ${U.escape(d.description)}</p><p>特色：${(d.features||[]).map(U.escape).join('／')}</p>`;
+  return `${body}<div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;
  }
  function settlement(run){const r=M.ledger(run);return `<section class="meta-settlement"><small>本局帶回 · 旅者徽記</small><strong>＋${r.total} ◇</strong><p>戰鬥 ${r.combat} · 探索 ${r.exploration} · 地下城 ${r.dungeons}</p><small>已存入局外商店錢包</small></section>`;}
- root.MetaScreens={shop,codex,settlement};
+ root.MetaScreens={shop,codex,codexDetail,settlement};
 })(globalThis);
 
 </script><!-- /inline-module --><!-- inline-module:encounters.js --><script>
@@ -2034,7 +2331,8 @@ function achievementScreen(){
     const done=!locked&&p.completedAchievementIds.includes(a.id);
     const required=(missing?owners:prerequisites).map(id=>Classes.classes[id]?.className||id).join('、');
     const reward=content?.name||Classes.classes[a.rewardId]?.className||a.rewardId;
-    return `<article class="codex-entry achievement-card ${locked?'unknown':'known'}"><div><small>${locked?'🔒 尚未開放':done?'✓ 已完成':'進行中'}</small><strong>${U.escape(reward)}</strong><p>${U.escape(a.name)} · ${p.achievementProgress[a.id]||0} / ${a.progressTarget}</p><p>${locked?'先解鎖職業：'+U.escape(required):U.escape(a.description)}</p></div></article>`;
+    const progress=a.id==='ACH_UNLOCK_RANGER'?`箭類擊殺 ${Math.min(40,p.achievementProgress[a.id]||0)} / 40<br>命中讀條 ${Math.min(20,p.achievementProgress.ACH_UNLOCK_RANGER_CASTING_HITS||0)} / 20`:a.id==='ACH_UNLOCK_CLERIC'?`有效治療 ${Math.min(5000,Math.round(p.achievementProgress[a.id]||0))} / 5000<br>支援戰鬥 ${Math.min(30,p.achievementProgress.ACH_UNLOCK_CLERIC_SUPPORT_BATTLES||0)} / 30`:`${p.achievementProgress[a.id]||0} / ${a.progressTarget}`;
+    return `<article class="codex-entry achievement-card ${locked?'unknown':'known'}"><div><small>${locked?'🔒 尚未開放':done?'✓ 已完成':'進行中'}</small><strong>${U.escape(reward)}</strong><p>${U.escape(a.name)} · ${progress}</p><p>${locked?'先解鎖職業：'+U.escape(required):U.escape(a.description)}</p></div></article>`;
   }).join('');
   if(tab==='tasks'||tab==='journey'){
     const stats=game.run?Ach.journeyStats(game.run):null;
@@ -2260,7 +2558,7 @@ function continueResult() {
 }
 function showReward() {
   const names={moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'};
-  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
+  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name} ${U.gradeBadge(data)}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
 }
 function acquisitionNext() {
   const ticket = game.run.pendingAcquisitions?.[0];
@@ -2366,6 +2664,7 @@ function handleAction(action, id, element) {
     try{Classes.select(game.permanent,game.build,id);saveBuild();closeModal();toast('已選擇職業：'+Classes.classes[id].className);}catch(error){toast(error.message);}
   }
   else if(action==='codex-tab'&&game.screen==='codex'){game.codexTab=id;renderScreen();}
+  else if(action==='codex-detail'&&game.screen==='codex')openModal('codex-detail',MetaScreens.codexDetail(game,element.dataset.kind,id),'result-modal');
   else if(action==='shop-buy'&&!game.run&&game.screen==='shop'){
     const draft=JSON.parse(JSON.stringify(game.permanent)),result=Meta.buy(draft,id,element.dataset.epoch);
     if(result.ok){const next={...game,permanent:draft};if(!RunSave.save(storage,next)){toast('儲存失敗，未扣除徽記。');return;}game.permanent=draft;persist();Audio.emit('itemGain');toast('永久解鎖，可至角色設定配置。');}else toast(result.message);renderScreen();
