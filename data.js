@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.16.1', date: '2026-09-29' },
+    release: { version: '0.18.0', date: '2026-09-29' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -57,7 +57,7 @@
     }
   };
   // Adventure tuning is separate from the combat engine's fixed sandbox defaults.
-  data.adventure = { version: 2, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
+  data.adventure = { version: 3, maxLevel:999, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
   data.adventure.balance50 = { resourceDamage: .7, castAgilityScale: 100, chargePerSecond: 1,
     growth: [
       { through: 10, hp: 12, stamina: 3, mana: 3, agility: .6, luck: .3 },
@@ -77,9 +77,9 @@
   data.balance = {
     critBase: .05, critPerLuck: .006, critCap: .55, critDamageBase: 1.4, critDamagePerLuck: .008,
     dodgePerAgility: .0015, dodgeCap: .3, expPerLuck: .008,
-    expBase: 18, expPerLevel: 8, levelCost: 90, levelCostGrowth: 30,
+    expBase: 24, expPerLevel: 12, levelCost: 90, levelCostGrowth: 30,
     expGap: [[-20, .1], [-10, .35], [-5, .7], [0, 1], [3, 1.15], [5, 1.3], [10, 1.6], [20, 2]],
-    moveGrowth: [.18, .09, .035, .012], ultimateCharge: 12,
+    moveGrowth: [.18, .09, .035, .012], post50Mastery:[[200,.008],[500,.004],[999,.002]], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },
     enemyGrowth: .15, enemyLevelPressure: { start: 5, perLevel: .045, agilityPerLevel: .018 }, enemyDefense: { base: 4, perLevel: .25, levelGapPerLevel: 5.5, formulaConstant: 100, maximumReduction: .8 }, levelGapCombat: { enemyDamagePerLevel: .015, enemyDamageCap: 1.75 }, elementSkills: { minimumResourceCostMultiplier: .2, maximumResistanceReduction: .95 },
     nonElementIdentity: {

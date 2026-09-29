@@ -132,7 +132,7 @@
  if(typeof module!=='undefined')module.exports=api;else root.WorldMaps=api;
 })(globalThis);
 
-</script><!-- /inline-module --><script src="classes.js"></script><script src="content-copy.js"></script><script>ContentGrades(GameData);ResourceDistribution(GameData);ContentCopy(GameData);</script><script src="achievements.js"></script><script src="skill-runtime.js"></script><script src="engine.js"></script><script src="world-rewards.js"></script><!-- inline-module:meta.js --><script>
+</script><!-- /inline-module --><script src="classes.js"></script><script src="content-copy.js"></script><script src="level-progression.js"></script><script>ContentGrades(GameData);ResourceDistribution(GameData);ContentCopy(GameData);LevelProgression.apply(GameData);</script><script src="achievements.js"></script><script src="skill-runtime.js"></script><script src="engine.js"></script><script src="world-rewards.js"></script><!-- inline-module:meta.js --><script>
 /* Permanent collection, rotating inventory and run-earned currency. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
