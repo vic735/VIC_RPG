@@ -76,12 +76,16 @@
     return table.at(-1)[1];
   }
   const levelCost = level => level>=D.adventure.maxLevel?Infinity:D.balance.levelCost + (level - 1) * D.balance.levelCostGrowth;
+  function targetLevelsFor(enemyLevel,role='normal'){const knots=D.balance.expPacing.levelKnots;let value=knots[0][1];for(let i=1;i<knots.length;i++){const [a,av]=knots[i-1],[b,bv]=knots[i];if(enemyLevel<=b){value=av+(Math.max(a,enemyLevel)-a)/(b-a)*(bv-av);break;}value=bv;}return value*(D.balance.expPacing.roleMultipliers[role]||1);}
+  function expForLevels(level,levels){let exp=0,whole=Math.floor(levels),current=level;for(let i=0;i<whole&&current<D.adventure.maxLevel;i++,current++)exp+=levelCost(current);if(current<D.adventure.maxLevel)exp+=(levels-whole)*levelCost(current);return exp;}
   function grantExp(run, enemyLevel, enemyType, encounter={}) {
     const beforeLevel=run.level,beforeStats=statsFor(run);
     const actor={stats:statsFor(run),statuses:{},hp:1,mana:1,stamina:1};const runtime=new R.Runtime({time:0,run,player:actor,log(){}},actor,run.build.talents.map(id=>D.skills[id]));
     const expFactor=runtime.modify('exp',1);
     const opening=!run.dungeon&&run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level),profile=enemyProfile(enemyType,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id});
-    const amount = Math.round((profile.species.exp*profile.tuning.exp)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
+    const targetLevels=targetLevelsFor(enemyLevel,profile.role)*profile.species.exp;
+    const luckBonus=Math.min(D.balance.expLuckCap,statsFor(run).luck*D.balance.expPerLuck);
+    const amount = Math.round(expForLevels(run.level,targetLevels)*expFactor*(opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap)*(opening?D.balance.expPacing.openingMultiplier:1)*(1+luckBonus));
     runtime.emit('OnEXPReceived',{amount}); run.level=Math.min(D.adventure.maxLevel,Math.max(1,run.level));run.exp += amount; let levels = 0;
     while (run.level<D.adventure.maxLevel&&run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
     const capped=run.level>=D.adventure.maxLevel;if(capped)run.exp=0;
@@ -161,6 +165,6 @@
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?.enemyWaves[run.dungeon.stage];if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
+  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);

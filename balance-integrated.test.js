@@ -13,8 +13,8 @@ test('十等內額外減傷為零，十一等起平滑增加；基礎防禦仍�
 test('史萊姆EXP七折、定位單選，地下城不觸發開局三倍',()=>{
  assert.equal(P.enemyProfile('greywind_0').species.exp,.7);
  assert.equal(P.enemyProfile('greywind_elite',{overworld:false}).tuning.exp,4);
- const r=P.createRun(P.freshProgress());r.level=20;const luck=P.statsFor(r).luck;assert.equal(P.grantExp(r,20,'greywind_0').amount,Math.round((D.balance.expBase+20*D.balance.expPerLevel)*.7*(1+luck*.008)));
- const d=P.createRun(P.freshProgress());d.dungeon={id:'abandoned_mine',stage:0};const expected=Math.round((D.balance.expBase+2*D.balance.expPerLevel)*.7*1.8*P.expMultiplier(1)*(1+P.statsFor(d).luck*.008));assert.equal(P.grantExp(d,2,'greywind_0',{role:'normal'}).amount,expected);
+ const r=P.createRun(P.freshProgress());r.level=20;const luck=Math.min(D.balance.expLuckCap,P.statsFor(r).luck*.008),normalTarget=P.targetLevelsFor(20,'normal')*.7;assert.equal(P.grantExp(r,20,'greywind_0').amount,Math.round(P.expForLevels(20,normalTarget)*(1+luck)));
+ const d=P.createRun(P.freshProgress());d.dungeon={id:'abandoned_mine',stage:0};const dungeonTarget=P.targetLevelsFor(2,'dungeon')*.7,expected=Math.round(P.expForLevels(1,dungeonTarget)*P.expMultiplier(1)*(1+Math.min(D.balance.expLuckCap,P.statsFor(d).luck*.008)));assert.equal(P.grantExp(d,2,'greywind_0',{role:'normal'}).amount,expected);
  assert.equal(P.expMultiplier(-20),.1);assert.equal(P.expMultiplier(5),1.3);assert.equal(P.expMultiplier(10),1.6);assert.equal(P.expMultiplier(20),2);
 });
 test('冒險階級Lv對照只決定任務目標，不要求角色等級',()=>{
