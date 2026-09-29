@@ -107,7 +107,24 @@
  D.contentDistribution={version:1,dungeonShareTarget:.82,wildShareTarget:.18,startingMoves:[...D.startingMoves],spellbookMoves:[...bookMoves],dungeonMoves:dungeonMoveAllocation,dungeonSkills:dungeonSkillAllocation,wildMoves:fieldMoveAllocation,wildSkills:fieldSkillAllocation};
  D.contentV1={version:1,moves,skills,moveCount:100,skillCount:72,initialMoveIds:['M001','M002','M003','M004','M005','M006','M007','M008','M009','M014','M015','M020','M021','M022','M026','M027','M032','M038','M044','M072'],initialSkillIds:['S001','S002','S003','S004','S005','S012','S014','S018','S023','S025','S026','S043','S048','S050']};
  for(const m of Object.values(D.moves))if(m.standardElementMatrix&&(m.name.includes('強')||m.name.includes('重岩彈')))m.family='STRONG_BULLET';
- for(const [el,rootName] of Object.entries(roots)){const id='std_'+el+'_greater_orb';if(!D.moves[id])D.moves[id]={id,name:`森・${rootName}・烏`,subtitle:`${elementLabels[el]}屬性高階巨球`,description:`${elementLabels[el]}屬性高階巨球：高傷害的後期招式。`,icon:'orb',kind:'normal',damageType:'magic',elements:[el],multiplier:2.25,cost:{mana:38},attackTime:190,ultimateChargeCost:150,effects:[],family:'GREATER_ORB',standardElementMatrix:true,matrixElement:el};D.moves[id].ultimateChargeCost||=150;const dungeonId={metal:'thunder_workshop',wood:'root_cave',water:'frozen_tower',fire:'lava_vein',earth:'giant_ruins',light:'blacklight_chapel',dark:'element_abyss'}[el],d=D.dungeons.find(x=>x.id===dungeonId),entry=d&&D.rewardPools[d.primaryRewardPool].entries.find(x=>x.rewardType==='moves');if(entry&&!entry.rewardIds.includes(id))entry.rewardIds.push(id);}
+ const greaterOrbBooks={
+  metal:{bookId:'thunder_grimoire',bookName:'雷霆巨球書',dungeonId:'thunder_workshop',requirement:'metal_0'},
+  wood:{bookId:'verdant_grimoire',bookName:'森靈巨球書',dungeonId:'root_cave',requirement:'wood_0'},
+  water:{bookId:'glacial_grimoire',bookName:'冰潮巨球書',dungeonId:'frozen_tower',requirement:'water_0'},
+  fire:{bookId:'inferno_grimoire',bookName:'炎獄巨球書',dungeonId:'lava_vein',requirement:'fireball'},
+  earth:{bookId:'titan_grimoire',bookName:'巨岩巨球書',dungeonId:'giant_ruins',requirement:'earth_0'},
+  light:{bookId:'radiance_grimoire',bookName:'聖輝巨球書',dungeonId:'blacklight_chapel',requirement:'light_0'},
+  dark:{bookId:'void_grimoire',bookName:'深闇巨球書',dungeonId:'element_abyss',requirement:'dark_bolt'}
+ };
+ for(const [el,rootName] of Object.entries(roots)){
+  const id='std_'+el+'_greater_orb',config=greaterOrbBooks[el];
+  if(!D.moves[id])D.moves[id]={id,name:`森・${rootName}・烏`,subtitle:`${elementLabels[el]}屬性高階巨球`,description:`${elementLabels[el]}屬性高階巨球：高傷害的後期招式。`,icon:'orb',kind:'normal',damageType:'magic',elements:[el],multiplier:2.25,cost:{mana:38},attackTime:190,ultimateChargeCost:150,effects:[],family:'GREATER_ORB',standardElementMatrix:true,matrixElement:el};
+  D.moves[id].ultimateChargeCost||=150;
+  D.books[config.bookId]={id:config.bookId,name:config.bookName,moveId:id,requirement:{moveId:config.requirement,level:3},description:`永久 ${D.moves[config.requirement].name} Lv.3 後可理解，學會 ${D.moves[id].name}（${D.moves[id].subtitle}）。`,icon:'book'};
+  for(const pool of Object.values(D.rewardPools))for(const entry of pool.entries)if(entry.rewardType==='moves')entry.rewardIds=entry.rewardIds.filter(moveId=>moveId!==id);
+  const dungeon=D.dungeons.find(x=>x.id===config.dungeonId);
+  for(const poolId of [dungeon?.secondaryRewardPool,dungeon?.rareRewardPool]){const entry=D.rewardPools[poolId]?.entries.find(x=>x.rewardType==='books');if(entry&&!entry.rewardIds.includes(config.bookId))entry.rewardIds.push(config.bookId);}
+ }
  D.applyResourceCostBalance();
  if(typeof module!=='undefined')module.exports=D.contentV1;else root.ContentV1=D.contentV1;
 })(globalThis);

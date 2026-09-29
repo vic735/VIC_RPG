@@ -63,9 +63,9 @@ test('49 個元素技能平均分配至 11 座地下城且沒有重複歸屬',()
  }
 });
 
-test('普通野怪能力掉落率降至 2.5%～3.5%，技能來源目標為地下城 82%',()=>{
+test('普通野怪能力掉落率為 5%～6%，技能種類來源仍以地下城 82% 為主',()=>{
  const ordinary=D.world.regions.flatMap(r=>r.enemyPools).map(id=>D.monsters[id]);
- assert.ok(ordinary.every(m=>m.dropChance>=.025&&m.dropChance<=.035));
+ assert.ok(ordinary.every(m=>m.dropChance>=.05&&m.dropChance<=.06));
  assert.equal(D.balance.rewardSourceTargets.dungeonSkillShare,.82);
  assert.equal(D.balance.rewardSourceTargets.wildSkillShare,.18);
 });

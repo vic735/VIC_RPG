@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.11.0', date: '2026-09-28' },
+    release: { version: '0.13.0', date: '2026-09-29' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -87,7 +87,8 @@
       magic: { pureDamageBonus: .2, focusCastThreshold: 150, focusDamageBonus: .25, purificationDamageBonus: .15, purificationCostReduction: .1, overflowManaRatio: .8, overflowDamageBonus: .25, depletedManaRatio: .25, depletedCostReduction: .25, archmageDamageBonus: .35, archmageLongCastBonus: .15 },
       moves: { manaBoltRatio: 1, manaBoltCost: 10, manaBoltAttackTime: 80, manaCannonRatio: 1.6, manaCannonCost: 26, manaCannonAttackTime: 160 }
     },
-    playerSpeed: 190, discoveryRadius: 370, respawnSeconds: 65
+    playerSpeed: 190, discoveryRadius: 460, respawnSeconds: 65,
+    wildRewards: { pityBattles: 15, ordinaryDropChance: .05, openingDropChance: .06, eliteDropChance: .55, golemDropChance: .25 }
   };
   Object.assign(data.moves, {
     spark: { id: 'spark', name: '雷電術', description: '從觀星所學會的雷電，命中時擊碎敵人的讀條。', icon: 'bolt', kind: 'normal', damageType: 'magic', multiplier: 1.5, cost: { mana: 25 }, attackTime: 120, effects: [{ type: 'interrupt' }] },
@@ -145,7 +146,7 @@
   (typeof module !== 'undefined' ? require('./world-content.js') : root.WorldContent)(data);
   // Opening pacing: cheap basic attacks sustain the first continuous dungeon.
   data.moves.quick.cost.stamina=3;Object.assign(data.moves.fire,{name:'帕・伯・烏',subtitle:'初階火球術',magicText:'帕・伯・烏',localizedName:'初階火球術',icon:'flame',elements:['fire'],tags:['magic'],description:'開局即可使用的低階火焰魔法。消耗低，適合前期持續作戰。'});data.moves.fire.cost.mana=5;data.moves.quick.ultimateChargeCost=65;data.moves.fire.ultimateChargeCost=90;
-  data.balance.respawnSeconds=20;
+  data.balance.respawnSeconds=16;
   data.balance.quickBattleLevelGap=5;
   data.balance.quickBattleSeconds=.55;
   data.balance.openingExp={through:12,multiplier:3,minimumGapFactor:.7};

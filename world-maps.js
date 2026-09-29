@@ -45,7 +45,7 @@
    if(i>=11&&i%12===11)point.elite=true;
   }
   // Fill gaps without moving existing spawns or replacing their saved cooldowns.
-  const anchors=[...points],density={columns:18,rows:12,minimumSpacing:230};
+  const anchors=[...points],density={columns:19,rows:13,minimumSpacing:205};
   map.encounterDensity=density;
   for(let row=0;row<density.rows;row++)for(let col=0;col<density.columns;col++){
    const x=Math.round(margin+(col+.3+random()*.4)*(D.world.width-margin*2)/density.columns),y=Math.round(margin+(row+.3+random()*.4)*(D.world.height-margin*2)/density.rows);

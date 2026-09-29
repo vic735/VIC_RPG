@@ -259,7 +259,7 @@ function finishEncounter() {
   if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type,game.encounter) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
-  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId)) : []; if(game.fieldRewards.length)persist();
+  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId,run)) : []; if(game.fieldRewards.length)persist();
  game.result = { won, exp, beforeLevel }; game.resultDelay = 1.05;
 
 }
@@ -290,7 +290,7 @@ function continueResult() {
 }
 function showReward() {
   const names={moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'};
-  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id];return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name}</strong><small>${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
+  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
 }
 function acquisitionNext() {
   const ticket = game.run.pendingAcquisitions?.[0];
