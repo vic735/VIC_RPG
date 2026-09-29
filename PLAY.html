@@ -417,7 +417,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.18.0', date: '2026-09-29' },
+    release: { version: '0.18.1', date: '2026-09-30' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -1136,7 +1136,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   ACH_WARRIOR_MASTERY_03:{id:'ACH_WARRIOR_MASTERY_03',name:'不退之人',category:'職業精通',description:'戰士低血量時擊倒 30 名敵人。',progressTarget:30,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_002'},
   ACH_WARRIOR_MASTERY_04:{id:'ACH_WARRIOR_MASTERY_04',name:'鐵壁',category:'職業精通',description:'戰士在勝利戰鬥中累積承受 10,000 傷害。',progressTarget:10000,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_003'},
   ACH_WARRIOR_MASTERY_05:{id:'ACH_WARRIOR_MASTERY_05',name:'戰場支配者',category:'職業精通',description:'戰士成功中斷敵人 50 次。',progressTarget:50,rewardType:'UnlockMove',rewardId:'WARRIOR_MOVE_002'}
-  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'同時裝備 4 個魔法傷害招式，並以魔法招式完成一次擊殺。',progressTarget:1,rewardType:'UnlockClass',rewardId:'MAGE'}
+  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'同時裝備 4 個魔法傷害招式，並以魔法招式累積擊倒 50 名敵人。',progressTarget:50,rewardType:'UnlockClass',rewardId:'MAGE'}
   ,ACH_UNLOCK_RANGER:{id:'ACH_UNLOCK_RANGER',name:'獵人之眼',category:'職業解鎖',description:'以箭類招式擊倒 40 名敵人並命中讀條敵人 20 次。',progressTarget:40,rewardType:'UnlockClass',rewardId:'RANGER'}
   ,ACH_UNLOCK_CLERIC:{id:'ACH_UNLOCK_CLERIC',name:'聖光之誓',category:'職業解鎖',description:'累積有效治療 5000，並以治療或防護完成 30 場戰鬥。',progressTarget:5000,rewardType:'UnlockClass',rewardId:'CLERIC'}
   ,ACH_UNLOCK_SPELLSWORD:{id:'ACH_UNLOCK_SPELLSWORD',name:'術劍之門',category:'職業解鎖',description:'戰士與魔法師皆解鎖後，以混合配置通關 20 座不同地下城。',progressTarget:20,rewardType:'UnlockClass',rewardId:'SPELLSWORD',prerequisites:['WARRIOR','MAGE']}
