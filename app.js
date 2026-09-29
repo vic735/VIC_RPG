@@ -64,7 +64,8 @@ function achievementScreen(){
     const done=!locked&&p.completedAchievementIds.includes(a.id);
     const required=(missing?owners:prerequisites).map(id=>Classes.classes[id]?.className||id).join('、');
     const reward=content?.name||Classes.classes[a.rewardId]?.className||a.rewardId;
-    return `<article class="codex-entry achievement-card ${locked?'unknown':'known'}"><div><small>${locked?'🔒 尚未開放':done?'✓ 已完成':'進行中'}</small><strong>${U.escape(reward)}</strong><p>${U.escape(a.name)} · ${p.achievementProgress[a.id]||0} / ${a.progressTarget}</p><p>${locked?'先解鎖職業：'+U.escape(required):U.escape(a.description)}</p></div></article>`;
+    const progress=a.id==='ACH_UNLOCK_RANGER'?`箭類擊殺 ${Math.min(40,p.achievementProgress[a.id]||0)} / 40<br>命中讀條 ${Math.min(20,p.achievementProgress.ACH_UNLOCK_RANGER_CASTING_HITS||0)} / 20`:a.id==='ACH_UNLOCK_CLERIC'?`有效治療 ${Math.min(5000,Math.round(p.achievementProgress[a.id]||0))} / 5000<br>支援戰鬥 ${Math.min(30,p.achievementProgress.ACH_UNLOCK_CLERIC_SUPPORT_BATTLES||0)} / 30`:`${p.achievementProgress[a.id]||0} / ${a.progressTarget}`;
+    return `<article class="codex-entry achievement-card ${locked?'unknown':'known'}"><div><small>${locked?'🔒 尚未開放':done?'✓ 已完成':'進行中'}</small><strong>${U.escape(reward)}</strong><p>${U.escape(a.name)} · ${progress}</p><p>${locked?'先解鎖職業：'+U.escape(required):U.escape(a.description)}</p></div></article>`;
   }).join('');
   if(tab==='tasks'||tab==='journey'){
     const stats=game.run?Ach.journeyStats(game.run):null;
@@ -290,7 +291,7 @@ function continueResult() {
 }
 function showReward() {
   const names={moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'};
-  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
+  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name} ${U.gradeBadge(data)}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
 }
 function acquisitionNext() {
   const ticket = game.run.pendingAcquisitions?.[0];
@@ -396,6 +397,7 @@ function handleAction(action, id, element) {
     try{Classes.select(game.permanent,game.build,id);saveBuild();closeModal();toast('已選擇職業：'+Classes.classes[id].className);}catch(error){toast(error.message);}
   }
   else if(action==='codex-tab'&&game.screen==='codex'){game.codexTab=id;renderScreen();}
+  else if(action==='codex-detail'&&game.screen==='codex')openModal('codex-detail',MetaScreens.codexDetail(game,element.dataset.kind,id),'result-modal');
   else if(action==='shop-buy'&&!game.run&&game.screen==='shop'){
     const draft=JSON.parse(JSON.stringify(game.permanent)),result=Meta.buy(draft,id,element.dataset.epoch);
     if(result.ok){const next={...game,permanent:draft};if(!RunSave.save(storage,next)){toast('儲存失敗，未扣除徽記。');return;}game.permanent=draft;persist();Audio.emit('itemGain');toast('永久解鎖，可至角色設定配置。');}else toast(result.message);renderScreen();

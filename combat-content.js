@@ -46,9 +46,9 @@ function enrich(D){
  neutral.forEach(([id,name,m,c,t,e,h])=>add([id,name,name,'physical',[],m,c,t,e,h]));
  const ni=D.balance.nonElementIdentity,neutralMagic=[
   ['mana_bolt','魔力彈','純粹魔力凝成的低階飛彈',ni.moves.manaBoltRatio,ni.moves.manaBoltCost,ni.moves.manaBoltAttackTime,1,100,'old_lab'],
-  ['pure_mana_cannon','純粹魔力砲','捨棄屬性與附加效果的長詠唱砲擊',ni.moves.manaCannonRatio,ni.moves.manaCannonCost,ni.moves.manaCannonAttackTime,2,190,'frozen_tower']
+  ['pure_mana_cannon','純粹魔力砲','',ni.moves.manaCannonRatio,ni.moves.manaCannonCost,ni.moves.manaCannonAttackTime,2,190,'frozen_tower']
  ];
- neutralMagic.forEach(([id,name,subtitle,ratio,cost,time,tier,shopCost,preferredDungeon])=>{add([id,name,subtitle,'magic',[],ratio,cost,time]);Object.assign(D.moves[id],{contentId:id,shopEligible:true,shopTier:tier,shopCost,rarity:tier===1?'common':'uncommon',tags:['magic','non-element'],preferredDungeon});});
+ neutralMagic.forEach(([id,name,subtitle,ratio,cost,time,tier,shopCost,preferredDungeon])=>{add([id,name,subtitle,'magic',[],ratio,cost,time]);Object.assign(D.moves[id],{contentId:id,shopEligible:true,shopTier:tier,shopCost,rarity:tier===1?'common':'uncommon',tags:['magic','non-element'],preferredDungeon,...(id==='pure_mana_cannon'?{description:'無屬性魔法攻擊。'}:{})});});
  const sets={metal:['真・德','真・迪','參倫・德','參倫・陸','真・法','真・倫司吧'],wood:['艾・德','艾・迪','德魯・卡阿','帕咔申・尤','艾・法','德魯・倫司吧'],water:['雅・德','雅・烏','希・德','希・迪','雅・法','希・倫司吧'],fire:['伯・德','伯・烏','伯・迪','伯・陸','阿・伯・德','伯・法'],earth:['卓・德','卓・烏','卓・迪','卓・倫司吧','阿・卓・德','卓・法'],light:['麗・德','麗・烏','麗・陸','麗・倫司吧','麗・法','麗・艾妮司'],dark:['布・德','布・烏','布・迪','布・陸','布・法','布・倫司吧']};
  for(const [element,names] of Object.entries(sets)) names.forEach((name,i)=>{const support=name.includes('法')||name.includes('倫司吧')||name.includes('艾妮司');const effects=support?[name.includes('艾妮司')?{type:'heal',ratio:.25}:buff(element+'_ward',D.elements[element]+'之庇護',[mod('incoming',.88)],4)]:element==='fire'?[burn]:element==='water'?[slow]:[];add([element+'_'+i,name,D.elements[element]+(support?'屬性咒術':'屬性攻擊'),support?'spell':'magic',[element],support?0:1.05+i*.18,14+i*3,85+i*13,effects]);});
  for(const m of Object.values(D.moves)){m.elements ||= ({fire:['fire'],inferno:['fire'],spark:['metal'],nova:['light']}[m.id]||[]);m.tags ||= [m.damageType==='physical'?'slash':'magic'];m.hits ||=1;m.originalAttackTime=m.attackTime;}

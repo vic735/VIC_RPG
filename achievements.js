@@ -9,7 +9,7 @@
   ACH_WARRIOR_MASTERY_03:{id:'ACH_WARRIOR_MASTERY_03',name:'不退之人',category:'職業精通',description:'戰士低血量時擊倒 30 名敵人。',progressTarget:30,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_002'},
   ACH_WARRIOR_MASTERY_04:{id:'ACH_WARRIOR_MASTERY_04',name:'鐵壁',category:'職業精通',description:'戰士在勝利戰鬥中累積承受 10,000 傷害。',progressTarget:10000,rewardType:'UnlockSkill',rewardId:'WARRIOR_SKILL_003'},
   ACH_WARRIOR_MASTERY_05:{id:'ACH_WARRIOR_MASTERY_05',name:'戰場支配者',category:'職業精通',description:'戰士成功中斷敵人 50 次。',progressTarget:50,rewardType:'UnlockMove',rewardId:'WARRIOR_MOVE_002'}
-  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'以 MP 傷害招式擊倒 50 名敵人，並在同一局用過 4 種不同魔法。',progressTarget:50,rewardType:'UnlockClass',rewardId:'MAGE'}
+  ,ACH_UNLOCK_MAGE:{id:'ACH_UNLOCK_MAGE',name:'奧術道路',category:'職業解鎖',description:'同時裝備 4 個魔法傷害招式，並以魔法招式完成一次擊殺。',progressTarget:1,rewardType:'UnlockClass',rewardId:'MAGE'}
   ,ACH_UNLOCK_RANGER:{id:'ACH_UNLOCK_RANGER',name:'獵人之眼',category:'職業解鎖',description:'以箭類招式擊倒 40 名敵人並命中讀條敵人 20 次。',progressTarget:40,rewardType:'UnlockClass',rewardId:'RANGER'}
   ,ACH_UNLOCK_CLERIC:{id:'ACH_UNLOCK_CLERIC',name:'聖光之誓',category:'職業解鎖',description:'累積有效治療 5000，並以治療或防護完成 30 場戰鬥。',progressTarget:5000,rewardType:'UnlockClass',rewardId:'CLERIC'}
   ,ACH_UNLOCK_SPELLSWORD:{id:'ACH_UNLOCK_SPELLSWORD',name:'術劍之門',category:'職業解鎖',description:'戰士與魔法師皆解鎖後，以混合配置通關 20 座不同地下城。',progressTarget:20,rewardType:'UnlockClass',rewardId:'SPELLSWORD',prerequisites:['WARRIOR','MAGE']}
@@ -22,7 +22,29 @@
  function add(p,id,value,queue){C.normalize(p);const d=defs[id];if(!d||p.completedAchievementIds.includes(id)||!available(p,d))return false;p.achievementProgress[id]=Math.min(d.progressTarget,(p.achievementProgress[id]||0)+value);if(p.achievementProgress[id]<d.progressTarget)return false;p.completedAchievementIds.push(id);if(d.rewardType==='UnlockClass'&&!p.unlockedClassIds.includes(d.rewardId))p.unlockedClassIds.push(d.rewardId);if(d.rewardType==='UnlockMove'){if(!p.unlockedClassExclusiveMoveIds.includes(d.rewardId))p.unlockedClassExclusiveMoveIds.push(d.rewardId);p.moves[d.rewardId]||=1;}if(d.rewardType==='UnlockSkill'){if(!p.unlockedClassExclusiveSkillIds.includes(d.rewardId))p.unlockedClassExclusiveSkillIds.push(d.rewardId);if(!p.skills.includes(d.rewardId))p.skills.push(d.rewardId);}queue?.push(d);return true;}
  function start(run){run.runAchievementTemporaryState={weaponStayedSword:run.build.equipment.weapon==='sword',usedOnlySwordDamage:true,damageTaken:0,lowHpKill:false,interrupts:0};}
  function battleEnd(p,run,b){if(!run||!b||run.achievementBattleHandled)return [];run.achievementBattleHandled=false;const t=run.runAchievementTemporaryState||{};const events=b.events||[];for(const e of events){if(e.actorId==='player'&&e.type==='damage'){const m=D.moves[e.moveId];if(!swordMove(m))t.usedOnlySwordDamage=false;}if(e.targetId==='player'&&e.type==='damage')t.damageTaken+=e.damage||0;if(e.actorId==='player'&&e.type==='interrupt')t.interrupts++;}const q=[];const warrior=run.activeClassId==='WARRIOR',sword=run.build.equipment.weapon==='sword';if(b.phase==='victory'&&t.weaponStayedSword&&t.usedOnlySwordDamage)add(p,'ACH_UNLOCK_WARRIOR',1,q);if(warrior&&sword&&b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_01',1,q);if(warrior&&sword){for(const e of events)if(e.actorId==='player'&&e.type==='cast'&&swordMove(D.moves[e.moveId])&&(D.moves[e.moveId].attackTimeBase||D.moves[e.moveId].attackTime)>=150)add(p,'ACH_WARRIOR_MASTERY_02',1,q);if(b.phase==='victory')add(p,'ACH_WARRIOR_MASTERY_04',t.damageTaken,q);add(p,'ACH_WARRIOR_MASTERY_05',t.interrupts,q);}run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
- function trackBattle(p,run,b){const q=battleEnd(p,run,b),t=run.runAchievementTemporaryState||{},events=b.events||[];t.uniqueMagicMoveIds||=[];let mpKill=false,arrowKill=false,healOrProtect=false;for(const e of events)if(e.actorId==='player'){const m=D.moves[e.moveId];if(e.type==='cast'&&m?.damageType==='magic')t.uniqueMagicMoveIds=[...new Set([...t.uniqueMagicMoveIds,m.id])];if(e.type==='damage'&&m){mpKill||=m.damageType==='magic'&&!!m.cost?.mana;arrowKill||=(m.tags||[]).includes('arrow');}if(e.type==='cast'&&m&&['heal','defense'].includes(m.kind))healOrProtect=true;}if(b.phase==='victory'&&mpKill&&t.uniqueMagicMoveIds.length>=4)add(p,'ACH_UNLOCK_MAGE',1,q);if(b.phase==='victory'&&arrowKill)add(p,'ACH_UNLOCK_RANGER',1,q);if(b.phase==='victory'&&healOrProtect)add(p,'ACH_UNLOCK_CLERIC',1,q);for(const d of Object.values(defs))if(d.category==='職業精通'&&classOf(d.id)===run.activeClassId&&b.phase==='victory')add(p,d.id,1,q);return q;}
+ function trackBattle(p,run,b){
+  const q=battleEnd(p,run,b),t=run.runAchievementTemporaryState||{},events=b.events||[],victory=b.phase==='victory';
+  const damaging=events.filter(e=>e.actorId==='player'&&e.targetId==='enemy'&&['damage','afterimage'].includes(e.type)&&(e.damage||0)>0&&D.moves[e.moveId]);
+  const finishingMove=D.moves[damaging.at(-1)?.moveId],equipped=(run.build?.moves||[]).map(id=>D.moves[id]).filter(Boolean);
+  const damagingMagic=m=>m?.damageType==='magic'&&(m.multiplier||0)>0;
+  if(victory&&equipped.length===4&&equipped.every(damagingMagic)&&damagingMagic(finishingMove))add(p,'ACH_UNLOCK_MAGE',1,q);
+
+  const rangerId='ACH_UNLOCK_RANGER',rangerHitsKey=rangerId+'_CASTING_HITS';
+  const arrowKills=victory&&(finishingMove?.tags||[]).includes('arrow')?1:0;
+  const castingHits=events.filter(e=>e.actorId==='player'&&e.targetId==='enemy'&&e.type==='damage'&&e.targetCasting&&(D.moves[e.moveId]?.tags||[]).includes('arrow')).length;
+  p.achievementProgress[rangerId]=Math.min(defs[rangerId].progressTarget,(p.achievementProgress[rangerId]||0)+arrowKills);
+  p.achievementProgress[rangerHitsKey]=(p.achievementProgress[rangerHitsKey]||0)+castingHits;
+  if(p.achievementProgress[rangerId]>=40&&p.achievementProgress[rangerHitsKey]>=20)add(p,rangerId,0,q);
+
+  const clericId='ACH_UNLOCK_CLERIC',clericBattlesKey=clericId+'_SUPPORT_BATTLES';
+  const actualHealing=events.filter(e=>e.actorId==='player'&&e.type==='heal').reduce((sum,e)=>sum+(e.healing||0),0);
+  const supportUsed=events.some(e=>e.actorId==='player'&&e.type==='cast'&&['heal','defense'].includes(D.moves[e.moveId]?.specKind||D.moves[e.moveId]?.kind));
+  p.achievementProgress[clericId]=Math.min(defs[clericId].progressTarget,(p.achievementProgress[clericId]||0)+actualHealing);
+  if(victory&&supportUsed)p.achievementProgress[clericBattlesKey]=(p.achievementProgress[clericBattlesKey]||0)+1;
+  if(p.achievementProgress[clericId]>=5000&&p.achievementProgress[clericBattlesKey]>=30)add(p,clericId,0,q);
+  for(const d of Object.values(defs))if(d.category==='職業精通'&&classOf(d.id)===run.activeClassId&&victory)add(p,d.id,1,q);
+  return q;
+ }
  function dungeonClear(p,run,dungeonId){if(!p.unlockedClassIds.includes('WARRIOR')||!p.unlockedClassIds.includes('MAGE'))return [];const ids=run.build.moves.map(id=>D.moves[id]);const mp=ids.filter(m=>m?.damageType==='magic'&&m.cost?.mana).length,physical=ids.filter(m=>m?.damageType==='physical').length;if(mp<2||physical<2)return [];const seen=run.runAchievementTemporaryState?.uniqueDungeonIdsCountedForSpellsword||[];if(seen.includes(dungeonId))return [];run.runAchievementTemporaryState||={};run.runAchievementTemporaryState.uniqueDungeonIdsCountedForSpellsword=[...seen,dungeonId];const q=[];add(p,'ACH_UNLOCK_SPELLSWORD',1,q);run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
  const journeyTasks=[
   {id:'RUN_HUNT',name:'戰鬥歷練',metric:'kills',target:20,marks:15},

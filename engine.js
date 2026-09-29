@@ -83,7 +83,7 @@
     }
     elapse(time) {
       const maximum = ultimateChargeCost(this.build.ultimate);
-      const accumulated = this.charge + (time - this.time);
+      const accumulated = this.charge + (time - this.time)*this.player.runtime.modify('chargeRate',1);
       this.charge = accumulated >= maximum - 1e-9 ? maximum : accumulated;
       this.time = time;
     }
@@ -93,6 +93,7 @@
       const move = this.getMove(id, actor);
       if (!move || (actor === this.player && !this.build.moves.includes(id) && this.build.ultimate !== id)) return { ok: false, reason: '未配置此招式' };
       const isUltimate = actor === this.player && this.build.ultimate === id && asUltimate;
+      move.isUltimate=isUltimate;
       if (isUltimate && this.charge < ultimateChargeCost(id)) return { ok: false, reason: '必殺技尚未充能完成' };
       for (const [resource, cost] of Object.entries(move.cost)) if (actor[resource] < cost) return { ok: false, reason: '資源不足' };
       for (const [resource, cost] of Object.entries(move.cost)) actor[resource] -= cost;
@@ -115,7 +116,7 @@
       if(sequence.hostile&&target.hp>0){
         if(actor.runtime.modify('accuracy',1,{move})<1&&this.rng()>actor.runtime.modify('accuracy',1,{move}))this.log('miss','MISS',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});
         else if(this.rng()<this.rule('dodgeChance',target,{move})){if(target===this.player&&target.cast&&this.equipmentEffects.onDodgeShorten)target.cast.endAt=Math.max(this.time+.05,target.cast.endAt-this.equipmentEffects.onDodgeShorten);target.runtime.emit('OnDodge',{move,target:actor});this.log('dodge','閃避',{actorId:actor.id,targetId:target.id,moveId:move.id,hit:hit+1});}
-        else {sequence.connected=true;if(move.multiplier>0){const critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
+        else {sequence.connected=true;if(move.multiplier>0){const targetCasting=!!target.cast,critical=this.rng()<this.rule('critChance',actor,{move}),damage=this.receiveDamage(actor,target,this.damageValue(actor,target,move,critical)/sequence.hits,move,critical);sequence.totalDamage+=damage;sequence.hitDamages.push(damage);this.log('damage',move.name+'造成 '+damage.toFixed(1)+' 傷害',{actorId:actor.id,targetId:target.id,moveId:move.id,damage,critical,hit:hit+1,hits:sequence.hits,targetCasting});const liveCtx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:[...sequence.hitDamages],damage,critical};if(damage>0)actor.runtime.emit('OnDamageDealt',liveCtx);if(critical)actor.runtime.emit('OnCriticalHit',liveCtx);}}
       }
       sequence.index++;if(sequence.index<sequence.hits&&target.hp>0){sequence.nextAt=this.time+(move.hitInterval??.18);return;}
       actor.sequence=null;const ctx={actor,target,move,spent:sequence.spent,totalDamage:sequence.totalDamage,hitDamages:sequence.hitDamages,successfulSupport:false,healing:false};

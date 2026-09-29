@@ -125,6 +125,62 @@
   const dungeon=D.dungeons.find(x=>x.id===config.dungeonId);
   for(const poolId of [dungeon?.secondaryRewardPool,dungeon?.rareRewardPool]){const entry=D.rewardPools[poolId]?.entries.find(x=>x.rewardType==='books');if(entry&&!entry.rewardIds.includes(config.bookId))entry.rewardIds.push(config.bookId);}
  }
+ // Repair registry-only support moves and passive skills so every collectible
+ // entry changes battle state instead of existing as display text only.
+ const cm=(stage,value,conditions={},op='multiply')=>({stage,op,value,conditions}),hk=(event,conditions,effects)=>({event,conditions,effects}),status=(id,name,duration,target,polarity,modifiers)=>({type:'status',status:{id,name,duration,target,polarity,modifiers}});
+ const moveRepairs={
+  M074:{description:'磁力束縛敵人 5 秒，使敏捷降低 18%，並中斷目前讀條。',effects:[{type:'interrupt'},status('magnetic_bind','磁縛',5,'enemy','debuff',[cm('agility',.82)])]},
+  M076:{description:'引發金屬共鳴 6 秒，使自己的金屬性傷害提高 18%。',effects:[status('metal_resonance','金屬共鳴',6,'self','buff',[cm('damage',1.18,{element:'metal'})])]},
+  M079:{description:'踏入風步 6 秒，敏捷提高 22%，縮短之後的招式讀條。',effects:[status('wind_step','風步',6,'self','buff',[cm('agility',1.22)])]},
+  M080:{description:'森之生命力恢復最大 HP 的 22%。',effects:[{type:'heal',ratio:.22}]},
+  M082:{description:'散布霧幕 5 秒，使敵人命中率降低 25%。',effects:[status('mist_veil','霧幕',5,'enemy','debuff',[cm('accuracy',.75)])]},
+  M083:{description:'冰封敵人 5 秒，使敏捷降低 25%，並中斷目前讀條。',effects:[{type:'interrupt'},status('deep_freeze','冰封',5,'enemy','debuff',[cm('agility',.75)])]},
+  M086:{description:'灼熱護身持續 6 秒，受到的傷害降低 18%。',effects:[status('searing_guard','灼熱護身',6,'self','buff',[cm('incoming',.82)])]},
+  M091:{description:'凝成相當於最大 HP 20% 的晶體護盾。',effects:[{type:'shield',ratio:.2}]},
+  M092:{description:'以流砂束縛敵人 5 秒，使敏捷降低 22%，並中斷目前讀條。',effects:[{type:'interrupt'},status('sand_bind','砂縛',5,'enemy','debuff',[cm('agility',.78)])]},
+  M093:{description:'恢復最大 HP 的 12%，並移除目前所有戰鬥 Debuff。',effects:[{type:'heal',ratio:.12},{type:'cleanse'}]},
+  M094:{description:'刻下聖印 6 秒，使光屬性傷害與治療效果提高 18%。',effects:[status('holy_mark','聖印',6,'self','buff',[cm('damage',1.18,{element:'light'}),cm('healing',1.18,{element:'light'})])]},
+  M096:{description:'恢復最大 HP 的 38%。',effects:[{type:'heal',ratio:.38}]},
+  M100:{description:'以黑幕侵蝕敵人 6 秒，使其造成的傷害降低 12%。',effects:[status('black_curtain','黑幕侵蝕',6,'enemy','debuff',[cm('damage',.88)])]},
+  std_fire_protection:{description:'展開火焰防護 4 秒，使受到的傷害降低 12%。',effects:[status('fire_ward','火之庇護',4,'self','buff',[cm('incoming',.88)])]}
+ };
+ for(const [id,repair]of Object.entries(moveRepairs))if(D.moves[id])Object.assign(D.moves[id],repair);
+ const passiveRepairs={
+  S051:['蓄勢待發','必殺蓄能速度 +15%。',[cm('chargeRate',1.15)],[]],
+  S052:['必殺餘波','必殺技命中後，延遲追加本次傷害 20% 的餘波。',[],[hk('OnSkillCastFinished',{isUltimate:true,totalDamagePositive:true},[{type:'echo',ratio:.2}])]],
+  S053:['絕境蓄能','HP 低於 35% 時，必殺蓄能速度 +35%。',[cm('chargeRate',1.35,{hpRatioLt:.35})],[]],
+  S054:['滿盈守勢','必殺蓄能全滿時，受到的傷害 -10%。',[cm('incoming',.9,{chargeFull:true})],[]],
+  S055:['魔武交替','物理與魔法傷害各 +6%。',[cm('damage',1.06,{damageType:'physical'}),cm('damage',1.06,{damageType:'magic'})],[]],
+  S056:['交錯節奏','所有招式讀條 -6%。',[cm('attackTime',.94)],[]],
+  S057:['淬火','攻擊燃燒中的敵人時，火屬性傷害 +12%。',[cm('damage',1.12,{element:'fire',targetStatus:'burn'})],[]],
+  S058:['導流','金屬性招式的 MP／SP 消耗 -10%。',[cm('cost:mana',.9,{element:'metal'}),cm('cost:stamina',.9,{element:'metal'})],[]],
+  S059:['引燃生機','木屬性招式造成傷害後恢復最大 HP 3%，每次招式一次。',[],[hk('OnSkillCastFinished',{element:'wood',totalDamagePositive:true},[{type:'recover',resource:'hp',ratio:.03}])]],
+  S060:['泥濘牽制','水屬性攻擊命中束縛中的敵人時傷害 +12%。',[cm('damage',1.12,{element:'water',targetStatus:'root'})],[]],
+  S061:['光蝕循環','光與闇屬性招式的 MP／SP 消耗 -8%。',[cm('cost:mana',.92,{element:'light'}),cm('cost:stamina',.92,{element:'light'}),cm('cost:mana',.92,{element:'dark'}),cm('cost:stamina',.92,{element:'dark'})],[]],
+  S062:['明滅加速','光與闇屬性招式讀條 -10%。',[cm('attackTime',.9,{element:'light'}),cm('attackTime',.9,{element:'dark'})],[]],
+  S063:['破甲直覺','攻擊正在讀條的敵人時傷害 +10%。',[cm('damage',1.1,{targetCasting:true})],[]],
+  S064:['守勢轉攻','受到傷害後，下一次物理招式傷害 +12%。',[],[hk('OnDamageTaken',{primary:true},[status('guard_counter','守勢轉攻',60,'self','buff',[cm('damage',1.12,{damageType:'physical'})])])]],
+  S065:['魔力高漲','MP 高於 70% 時，魔法傷害 +10%。',[cm('damage',1.1,{damageType:'magic',resource:'mana',ratioGt:.7})],[]],
+  S066:['體力高漲','SP 高於 70% 時，物理傷害 +10%。',[cm('damage',1.1,{damageType:'physical',resource:'stamina',ratioGt:.7})],[]],
+  S067:['低耗專家','所有 MP／SP 消耗 -8%。',[cm('cost:mana',.92),cm('cost:stamina',.92)],[]],
+  S068:['長詠專家','原始讀條值至少 140 的魔法傷害 +15%。',[cm('damage',1.15,{damageType:'magic',originalTimeGte:140})],[]],
+  S069:['治癒轉化','所有治療量 +15%。',[cm('healing',1.15)],[]],
+  S070:['傷勢適應','HP 低於 40% 時，受到的傷害 -12%。',[cm('incoming',.88,{hpRatioLt:.4})],[]],
+  S071:['精準閃避','閃避率增加 6 個百分點。',[cm('dodgeChance',.06,{},'add')],[]],
+  S072:['幸運迴響','爆擊傷害倍率增加 0.15。',[cm('critMultiplier',.15,{},'add')],[]]
+ };
+ for(const [id,[name,description,combatModifiers,hooks]]of Object.entries(passiveRepairs)){const s=D.skills[id];if(s)Object.assign(s,{name,description,combatModifiers,hooks});}
+ if(D.skills.S064?.hooks?.[0]?.effects?.[0]?.status)D.skills.S064.hooks[0].effects[0].status.consume='physical';
+ const elementRepairs={
+  'std_metal_磁場干涉':{combatModifiers:[cm('interruptChance',1.25,{element:'metal',targetCasting:true})],description:'金屬性招式攻擊正在讀條的敵人時，中斷成功率 +25%。'},
+  'std_wood_根系共生':{hooks:[hk('OnSkillCastFinished',{element:'wood',successfulSupport:true},[status('root_symbiosis','根系共生',4,'self','buff',[cm('incoming',.92)])])]},
+  'std_water_凝霜':{combatModifiers:[cm('damage',1.08,{element:'water',targetStatus:'chill'})],description:'水屬性招式攻擊寒氣中的敵人時傷害 +8%。'},
+  'std_fire_灼熱核心':{combatModifiers:[cm('damage',1.1,{element:'fire',targetStatus:'burn'})]},
+  'std_earth_岩脈':{combatModifiers:[cm('cost:mana',.9,{element:'earth'}),cm('cost:stamina',.9,{element:'earth'})],description:'土屬性招式的 MP／SP 消耗 -10%。'},
+  'std_light_光_庇佑':{hooks:[hk('OnSkillCastFinished',{element:'light',successfulSupport:true},[{type:'shield',ratio:.05}])]},
+  'std_dark_黑幕侵蝕':{combatModifiers:[cm('damage',1.08,{element:'dark',targetDebuff:true})],description:'敵人有 Debuff 時，闇屬性傷害 +8%。'}
+ };
+ for(const [id,repair]of Object.entries(elementRepairs))if(D.skills[id])Object.assign(D.skills[id],repair);
  D.applyResourceCostBalance();
  if(typeof module!=='undefined')module.exports=D.contentV1;else root.ContentV1=D.contentV1;
 })(globalThis);

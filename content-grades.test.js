@@ -1,0 +1,8 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const D=require('./data');require('./content-v1');require('./classes');
+const unique=o=>[...new Set(Object.values(o))],valid=new Set(['C','B','A','S','SS']);
+test('所有招式、技能與裝備都有 C 至 SS 品級',()=>{for(const [name,items]of [['moves',unique(D.moves)],['skills',unique(D.skills)],['equipment',Object.values(D.equipment)]]){assert.ok(items.length>0);for(const item of items)assert.ok(valid.has(item.powerGrade),name+':'+item.id);}});
+test('三類內容都有完整五階分布，且傳說裝備為 SS',()=>{for(const items of [unique(D.moves),unique(D.skills),Object.values(D.equipment)])for(const grade of valid)assert.ok(items.some(x=>x.powerGrade===grade),grade);for(const item of Object.values(D.equipment).filter(x=>x.rarity==='legendary'))assert.equal(item.powerGrade,'SS');});
+test('品級不寫入玩家存檔，也不改變招式與裝備數值',()=>{assert.equal(D.moves.quick.powerGrade,'B');assert.equal(D.contentGradeRank('SS'),4);assert.equal(D.contentGrades.join('/'),'C/B/A/S/SS');});
+test('七屬性技能使用固定品級階梯',()=>{for(const el of ['metal','wood','water','fire','earth','light','dark']){assert.equal(D.skills[el+'_affinity'].powerGrade,'B');assert.equal(D.skills['element_'+el+'_blessing'].powerGrade,'A');assert.equal(D.skills['element_'+el+'_grace'].powerGrade,'S');assert.equal(D.skills['element_'+el+'_authority'].powerGrade,'SS');assert.equal(D.skills['element_'+el+'_resistance'].powerGrade,'B');assert.equal(D.skills['element_'+el+'_immunity'].powerGrade,'A');assert.equal(D.skills['element_'+el+'_absorb'].powerGrade,'S');}});
+test('純粹魔力砲不顯示已移除的舊副標與說明',()=>{const m=D.moves.pure_mana_cannon;assert.equal(m.subtitle,'');assert.doesNotMatch(m.description,/捨棄屬性|附加效果|長詠唱砲擊/);});

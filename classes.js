@@ -37,6 +37,34 @@
  ['SPELLSWORD_SKILL_001','魔武共振','SPELLSWORD'],['SPELLSWORD_SKILL_002','雙源循環','SPELLSWORD'],['SPELLSWORD_SKILL_003','術劍一體','SPELLSWORD'],['SPELLSWORD_SKILL_004','均衡之軀','SPELLSWORD'],['WARRIOR_SKILL_004','戰士反攻','WARRIOR']
  ];
  for(const [id,name,classId] of exclusiveSkills)if(!D.skills[id])D.skills[id]={id,name,category:'職業',icon:'star',description:`${name} · ${classId} 專屬被動`,modifiers:{},contentScope:'classExclusive',allowedClassIds:[classId],combatStacking:'forbidden'};
+ const mod=(stage,value,conditions={},op='multiply')=>({stage,op,value,conditions}),hook=(event,conditions,effects)=>({event,conditions,effects}),buff=(id,name,duration,modifiers)=>({type:'status',status:{id,name,duration,target:'self',polarity:'buff',modifiers}});
+ Object.assign(D.moves.CLERIC_MOVE_001,{description:'施放大祝福，8 秒內所有傷害與治療量提高 12%。',effects:[buff('great_blessing','大祝福',8,[mod('damage',1.12),mod('healing',1.12)])]});
+ Object.assign(D.moves.CLERIC_MOVE_003,{description:'展開相當於最大 HP 25% 的神聖護盾。',effects:[{type:'shield',ratio:.25}]});
+ Object.assign(D.moves.SPELLSWORD_MOVE_002,{description:'附魔劍刃 8 秒，使物理傷害提高 18%。',effects:[buff('enchanted_sword','附魔劍',8,[mod('damage',1.18,{damageType:'physical'})])]});
+ const repairs={
+  WARRIOR_SKILL_001:['裝備劍時，物理傷害 +10%，物理招式讀條 -5%。',[mod('damage',1.1,{weapon:'sword',damageType:'physical'}),mod('attackTime',.95,{weapon:'sword',damageType:'physical'})],[]],
+  WARRIOR_SKILL_002:['HP 低於 30% 時，SP 消耗 -12%，劍類物理傷害 +10%。',[mod('cost:stamina',.88,{hpRatioLt:.3}),mod('damage',1.1,{hpRatioLt:.3,weapon:'sword',damageType:'physical'})],[]],
+  WARRIOR_SKILL_003:['HP 高於 50% 時受到傷害 -6%；HP 低於 30% 時再降低 8%。',[mod('incoming',.94,{hpRatioGt:.5}),mod('incoming',.92,{hpRatioLt:.3})],[]],
+  WARRIOR_SKILL_004:['受到傷害後，下一次物理招式傷害 +15%。',[],[hook('OnDamageTaken',{primary:true},[{type:'status',status:{id:'warrior_counter',name:'戰士反攻',duration:60,target:'self',polarity:'buff',consume:'physical',modifiers:[mod('damage',1.15,{damageType:'physical'})]}}])]],
+  MAGE_SKILL_001:['原始讀條值至少 140 的魔法傷害 +18%。',[mod('damage',1.18,{damageType:'magic',originalTimeGte:140})],[]],
+  MAGE_SKILL_002:['MP 高於 70% 時魔法傷害 +12%。',[mod('damage',1.12,{damageType:'magic',resource:'mana',ratioGt:.7})],[]],
+  MAGE_SKILL_003:['完成魔法招式後恢復最大 MP 4%。',[],[hook('OnMagicSkillFinished',{},[{type:'recover',resource:'mana',ratio:.04}])]],
+  MAGE_SKILL_004:['魔法 MP 消耗 -10%。',[mod('cost:mana',.9,{damageType:'magic'})],[]],
+  RANGER_SKILL_001:['裝備弓攻擊正在讀條的敵人時，物理傷害 +15%。',[mod('damage',1.15,{weapon:'bow',damageType:'physical',targetCasting:true})],[]],
+  RANGER_SKILL_002:['裝備弓時，箭類招式讀條 -12%。',[mod('attackTime',.88,{weapon:'bow',tag:'arrow'})],[]],
+  RANGER_SKILL_003:['裝備弓時，SP 消耗 -10%。',[mod('cost:stamina',.9,{weapon:'bow'})],[]],
+  RANGER_SKILL_004:['裝備弓時，爆擊率增加 8 個百分點。',[mod('critChance',.08,{weapon:'bow'},'add')],[]],
+  CLERIC_SKILL_001:['治療與防護招式讀條 -10%。',[mod('attackTime',.9,{kind:'heal'}),mod('attackTime',.9,{kind:'defense'})],[]],
+  CLERIC_SKILL_002:['完成治療或防護招式後恢復最大 MP 5%。',[],[hook('OnSkillCastFinished',{successfulSupport:true},[{type:'recover',resource:'mana',ratio:.05}])]],
+  CLERIC_SKILL_003:['治療量 +18%。',[mod('healing',1.18)],[]],
+  CLERIC_SKILL_004:['完成光屬性輔助招式後獲得最大 HP 8% 的護盾。',[],[hook('OnSkillCastFinished',{element:'light',successfulSupport:true},[{type:'shield',ratio:.08}])]],
+  SPELLSWORD_SKILL_001:['裝備劍時，消耗 MP 的物理招式傷害 +12%。',[mod('damage',1.12,{weapon:'sword',damageType:'physical',moveCostMana:true})],[]],
+  SPELLSWORD_SKILL_002:['同時消耗 MP 與 SP 的招式，兩種消耗各 -12%。',[mod('cost:mana',.88,{moveCostMana:true,moveCostStamina:true}),mod('cost:stamina',.88,{moveCostMana:true,moveCostStamina:true})],[]],
+  SPELLSWORD_SKILL_003:['裝備劍時，物理與魔法傷害各 +8%。',[mod('damage',1.08,{weapon:'sword',damageType:'physical'}),mod('damage',1.08,{weapon:'sword',damageType:'magic'})],[]],
+  SPELLSWORD_SKILL_004:['最大 HP、MP、SP 各 +5%。',[],[]]
+ };
+ for(const [id,[description,combatModifiers,hooks]]of Object.entries(repairs)){const s=D.skills[id];if(!s)continue;Object.assign(s,{description,combatModifiers,hooks});if(id==='SPELLSWORD_SKILL_004')s.statRates={hp:.05,mana:.05,stamina:.05};}
  D.applyResourceCostBalance();
+ if(typeof module!=='undefined'){require('./content-grades')(D);require('./resource-distribution')(D);require('./content-copy')(D);}
  const api={classes,normalize,active,eligible,canUse,select}; if(typeof module!=='undefined')module.exports=api;else root.ClassSystem=api;
 })(globalThis);
