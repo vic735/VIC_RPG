@@ -7,6 +7,7 @@
   const Classes=typeof module!=='undefined'?require('./classes'):root.ClassSystem;
   if(typeof module!=='undefined')require('./content-v1');
   const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
+  const LevelProgression=typeof module!=='undefined'?require('./level-progression'):root.LevelProgression;if(typeof module!=='undefined')LevelProgression.apply(D);
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
   function loadProgress(storage) {
@@ -47,10 +48,10 @@
   }
   function createRun(permanent, build = defaultBuild(), rng = Math.random) {
     validateBuild(build, permanent);
-    const run={ adventurerRank:{version:1,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
+    const run={ adventurerRank:{version:1,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
     ensureWorldContent(run);return run;
   }
-  function ensureWorldContent(run){Maps.ensureRun(run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
+  function ensureWorldContent(run){Maps.ensureRun(run);LevelProgression?.migrateRun(D,run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
   function regionAt(x,y){return D.world.regions.find(r=>x>=r.bounds[0]&&x<r.bounds[0]+r.bounds[2]&&y>=r.bounds[1]&&y<r.bounds[1]+r.bounds[3])||D.world.regions[0];}
   function regionDepth(r,x,y){return Math.max(0,Math.min(1,1-Math.max(Math.abs(x-r.x)/(r.bounds[2]/2),Math.abs(y-r.y)/(r.bounds[3]/2))));}
   function regionLevel(x,y){const r=regionAt(x,y),p=regionDepth(r,x,y),index=Math.min(3,Math.floor(p*4)),band=r.subAreaLevelRanges[index],within=Math.min(1,p*4-index);return Math.round(band.min+(band.max-band.min)*within);}
@@ -68,23 +69,24 @@
     if (withDebuffs) for (const id of run.debuffIds) { const d = D.debuffs.find(d => d.id === id); stats[d.stat] *= d.factor; }
     return stats;
   }
-  function moveScale(level) { const knots=D.adventure.balance50.mastery;for(let i=1;i<knots.length;i++){const [a,x]=knots[i-1],[b,y]=knots[i];if(level<=b)return x+(Math.max(a,level)-a)/(b-a)*(y-x);}return knots.at(-1)[1]+Math.max(0,level-50)*D.balance.moveGrowth.at(-1); }
+  function moveScale(level) { const knots=D.adventure.balance50.mastery;for(let i=1;i<knots.length;i++){const [a,x]=knots[i-1],[b,y]=knots[i];if(level<=b)return x+(Math.max(a,level)-a)/(b-a)*(y-x);}let value=knots.at(-1)[1],start=50;for(const [through,rate]of D.balance.post50Mastery){const end=Math.min(level,through);value+=Math.max(0,end-start)*rate;start=through;if(level<=through)break;}return value; }
   function expMultiplier(gap) {
     const table = D.balance.expGap; if (gap <= table[0][0]) return table[0][1];
     for (let i = 1; i < table.length; i++) if (gap <= table[i][0]) { const [a, av] = table[i - 1], [b, bv] = table[i]; return av + (bv - av) * (gap - a) / (b - a); }
     return table.at(-1)[1];
   }
-  const levelCost = level => D.balance.levelCost + (level - 1) * D.balance.levelCostGrowth;
+  const levelCost = level => level>=D.adventure.maxLevel?Infinity:D.balance.levelCost + (level - 1) * D.balance.levelCostGrowth;
   function grantExp(run, enemyLevel, enemyType, encounter={}) {
     const beforeLevel=run.level,beforeStats=statsFor(run);
     const actor={stats:statsFor(run),statuses:{},hp:1,mana:1,stamina:1};const runtime=new R.Runtime({time:0,run,player:actor,log(){}},actor,run.build.talents.map(id=>D.skills[id]));
     const expFactor=runtime.modify('exp',1);
     const opening=!run.dungeon&&run.level<D.balance.openingExp.through&&enemyType?.startsWith('greywind_'),gap=expMultiplier(enemyLevel-run.level),profile=enemyProfile(enemyType,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id});
     const amount = Math.round((profile.species.exp*profile.tuning.exp)*expFactor*(D.balance.expBase + enemyLevel * D.balance.expPerLevel) * (opening?Math.max(gap,D.balance.openingExp.minimumGapFactor):gap) * (opening?D.balance.openingExp.multiplier:1) * (1 + statsFor(run).luck * D.balance.expPerLuck));
-    runtime.emit('OnEXPReceived',{amount}); run.exp += amount; let levels = 0;
-    while (run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
+    runtime.emit('OnEXPReceived',{amount}); run.level=Math.min(D.adventure.maxLevel,Math.max(1,run.level));run.exp += amount; let levels = 0;
+    while (run.level<D.adventure.maxLevel&&run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
+    const capped=run.level>=D.adventure.maxLevel;if(capped)run.exp=0;
     const afterStats=statsFor(run);if(run.dungeonResources)for(const k of ['hp','mana','stamina'])run.dungeonResources[k]=Math.min(afterStats[k],run.dungeonResources[k]+afterStats[k]-beforeStats[k]);
-    run.points=0;return { amount, levels, beforeLevel, afterLevel:run.level, beforeStats, afterStats };
+    run.points=0;return { amount, levels, beforeLevel, afterLevel:run.level, beforeStats, afterStats, ...(capped?{capped:true,maxLevel:D.adventure.maxLevel}:{}) };
   }
   function allocate() { return false; } // Compatibility API: manual allocation is retired.
   function acquireMove(permanent, run, id) {
