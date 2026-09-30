@@ -145,6 +145,7 @@ function worldDebugAction(action,id){
   if(action==='world-region'&&game.run&&['world-map','world-region','world-map-detail'].includes(game.modal)){openModal('world-region',WorldDebug.regionMaps(game.run,id),'world-route-modal');return;}
   if(action==='world-map-detail'&&game.run&&game.modal==='world-region'){openModal('world-map-detail',WorldDebug.mapDetail(game.run,id),'world-route-modal');return;}
   if(action==='world-enter-map'&&game.run&&game.modal==='world-map-detail'){
+    if(!checkMapAccess(id))return;
     const map=Maps.enter(game.run,id);if(!map){toast('目前無法切換地圖。');return;}P.ensureWorldContent(game.run);
     game.keys.clear();game.touch.clear();resetJoystick();game.lastRegion=id;renderer.fx=[];renderer.hits={};renderer.attacks={};closeModal();renderUI();saveSession();toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);return;
   }
@@ -207,6 +208,7 @@ function showDungeon(d) {
 }
 function travelMapExit(exit){
  if(exit.starterPortal){game.keys.clear();resetJoystick();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
+ if(!checkMapAccess(exit.id))return;
  const run=game.run,old={...run.position},map=Maps.enter(run,exit.id);if(!map)return;
  const pad=180,xRatio=Math.max(.05,Math.min(.95,old.x/D.world.width)),yRatio=Math.max(.05,Math.min(.95,old.y/D.world.height));
  if(exit.edge==='right')run.position={x:pad,y:Math.round(yRatio*D.world.height)};
@@ -215,6 +217,7 @@ function travelMapExit(exit){
  else run.position={x:Math.round(xRatio*D.world.width),y:D.world.height-pad};
  run.mapPositions[map.id]={...run.position};game.lastRegion=map.id;renderer.fx=[];renderer.hits={};renderer.attacks={};saveSession();toast((exit.forward?'前往 ':'返回 ')+map.name+' · Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);
 }
+function checkMapAccess(id){const permit=Maps.access(game.run,id);if(permit.ok)return true;openModal('map-permit',`<div class="eyebrow">ADVENTURERS GUILD</div><h2 id="modal-title">冒險者公會通行通知</h2><p>${U.escape(permit.message)}</p><div class="modal-footer">${U.button('知道了','close',{primary:true})}</div>`);return false;}
 function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
   else if (target.kind === 'enemy') startEncounter(target.entity);
   else { const result = World.interactObject(game.run, target.entity.id); if (!result) return;

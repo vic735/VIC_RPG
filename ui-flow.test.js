@@ -50,7 +50,7 @@ function harness(initialSave=[],starterMode=false) {
   const math = Object.create(Math); math.random = () => .5;
   const ctx = { document: doc, devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080, Math: math, Date, performance: { now: () => now }, requestAnimationFrame: fn => raf = fn, localStorage: { getItem: k => saved.get(k), setItem: (k, v) => saved.set(k, v), removeItem:k=>saved.delete(k) }, console, setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,at:timerClock+ms});return id;}, clearTimeout:id=>timers.delete(id) };
   ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = (name, fn) => windowEvents[name] = fn; vm.createContext(ctx);
-  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'world-maps', 'classes', 'achievements', 'skill-runtime', 'engine', 'world-rewards', 'meta', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
+  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'world-maps', 'level-progression', 'classes', 'achievements', 'skill-runtime', 'engine', 'world-rewards', 'meta', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
   const game = ctx.GameApp.game;
   function step(count = 1) { for (let i = 0; i < count; i++) { now += 50; raf(now); } }
   function click(action, id, extra = {}) {
@@ -58,13 +58,14 @@ function harness(initialSave=[],starterMode=false) {
     if (action.startsWith('debug')) sources.push(html);
     const element = sources.flatMap(buttons).find(e => e.dataset.action === action && (id == null || e.dataset.id === id) && Object.entries(extra).every(([k, v]) => e.dataset[k] === String(v)));
     assert.ok(element, 'Missing visible UI action: ' + action + ' ' + (id || '') + JSON.stringify(extra)); assert.ok(!element.disabled, 'Disabled action: ' + action);
+    if(action==='world-enter-map'&&!starterMode){game.run.adventurerRank.index=17;game.run.battleStats.clearedDungeonIds=ctx.GameData.dungeons.map(d=>d.id);}
     events.click({ target: element, preventDefault() {} });
     if(action==='begin-run'){
       assert.equal(game.modal,null);
       assert.equal(game.run.starter.phase,'training');
       // Existing scenarios test the established main-world systems independently.
       // New starter scenarios below retain and exercise the actual opening flow.
-      if(!starterMode){game.run.starter.phase='cleared';game.run.adventurerRank.index=0;ctx.WorldMaps.enter(game.run,'north_plains_1');ctx.Progression.ensureWorldContent(game.run);vm.runInContext('renderUI()',ctx);}
+      if(!starterMode){game.run.starter.phase='cleared';game.run.adventurerRank.index=0;ctx.WorldMaps.enter(game.run,'north_plains_1');delete game.run.starter;ctx.Progression.ensureWorldContent(game.run);vm.runInContext('renderUI()',ctx);}
     }
   }
   function key(key, up = false) { events[up ? 'keyup' : 'keydown']({ key, repeat: false, preventDefault() {}, target: {} }); }
@@ -84,6 +85,10 @@ test('新局E階隨機新手區：Lv9停經驗、Boss晉階清場、碰邊緣選
  for(const region of M.regions)assert.match(h.elements.get('modal').innerHTML,new RegExp(region.name));
  h.click('world-region','southern_kingdom');h.click('world-map-detail','southern_kingdom_1');h.click('world-enter-map','southern_kingdom_1');assert.equal(r.level,9);assert.ok(P.grantExp(r,10,'greywind_1').amount>0);
 });
+test('選區及邊缘入口資格不足才出公告，B普通階可通行',()=>{
+ const h=harness([],true);h.click('begin-run');const r=h.game.run;r.starter.phase='cleared';r.adventurerRank.index=6;h.ctx.WorldMaps.enter(r,'north_plains_2');h.click('journal');h.click('world-map');h.click('world-region','north_plains');h.click('world-map-detail','north_plains_3');assert.doesNotMatch(h.elements.get('modal').innerHTML,/B 級以上/);h.click('world-enter-map','north_plains_3');assert.equal(h.game.modal,'map-permit');assert.match(h.elements.get('modal').innerHTML,/B 級以上/);assert.equal(r.currentMapId,'north_plains_2');h.click('close');r.position={x:h.ctx.GameData.world.width-40,y:2000};h.step(2);h.click('interact');assert.equal(h.game.modal,'map-permit');h.click('close');r.adventurerRank.index=7;h.click('interact');assert.equal(r.currentMapId,'north_plains_3');
+});
+
 test('獨立成就入口分開職業技能招式，未解鎖職業的專屬成就上鎖',()=>{
  const h=harness();h.click('achievements');assert.equal(h.game.screen,'achievements');assert.match(h.elements.get('screen').innerHTML,/職業解鎖/);
  h.click('achievement-tab','skills');assert.match(h.elements.get('screen').innerHTML,/先解鎖職業：戰士/);assert.match(h.elements.get('screen').innerHTML,/劍勢/);

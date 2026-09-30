@@ -38,18 +38,20 @@
  ];
  const dungeonMap={abandoned_mine:1,old_lab:1,root_cave:2,sunken_temple:2,lava_vein:3,giant_ruins:4,frozen_tower:4,thunder_workshop:4,blacklight_chapel:5,element_abyss:5,terminal_structure:5};
  const legacyToRegion={greywind:'north_plains',verdant:'mirewood',redrift:'central_mines',froststorm:'northern_kingdom',obsidian:'dark_empire'};
- const layoutVersion=3,safeRadius=720,sharedEntry={x:Math.round(D.world.width/2),y:Math.round(D.world.height/2)};D.world.camp={...sharedEntry};
+ const layoutVersion=4,safeRadius=720,sharedEntry={x:Math.round(D.world.width/2),y:Math.round(D.world.height/2)};D.world.camp={...sharedEntry};
+ const progressionBands=[[10,25],[25,80],[80,250],[250,600],[600,999]],eliteBands=[[20,30],[60,100],[200,300],[500,700],[850,999]];
+ D.mapAccessRules={2:{rank:'B'},3:{rank:'A',previousDungeonMap:2},4:{rank:'S',previousDungeonMap:3}};
  const regions=[],maps=[];
  for(const [sortOrder,row] of rows.entries()){
   const [id,name,description,legacyId,environmentId,color,themeTags,elementTendencies,levels,dungeonIds]=row;
   const legacy=D.world.regions.find(r=>r.id===legacyId);
   const region={id,name,description,mapIds:[],themeTags:[...themeTags],elementTendencies:[...elementTendencies],rewardTendencies:[...themeTags],sortOrder,uiPosition:{column:sortOrder%2,row:Math.floor(sortOrder/2)},color,environmentId,legacyRegionId:legacyId};
-  for(const [index,[recommendedLevelMin,recommendedLevelMax]] of levels.entries()){
+  for(const [index,[recommendedLevelMin,recommendedLevelMax]] of progressionBands.entries()){
    const mapId=id+'_'+(index+1),assigned=dungeonIds.filter(d=>dungeonMap[d]===index+1),rewardPoolId=mapId+'_field';
    const source=D.rewardPools[legacyId+'_field'];
    D.rewardPools[rewardPoolId]={id:rewardPoolId,entries:JSON.parse(JSON.stringify(source?.entries||[]))};
    const map={id:mapId,regionId:id,name:index===0?name+'・起始地圖':name+'・地圖 '+(index+1),description:index===0?description:description+'，可依目前實力選擇挑戰。',recommendedLevelMin,recommendedLevelMax,dangerTier:index+1,enemyPoolIds:[...legacy.enemyPools],elitePoolIds:[...legacy.elitePools],dungeonIds:assigned,rewardPoolIds:[rewardPoolId],elementTendencies:[...elementTendencies],gameplayTags:[...themeTags],environmentId,isAvailable:true,sortOrder:index,entry:{...sharedEntry},color};
-   region.mapIds.push(mapId);maps.push(map);
+   map.finalLevelScale=true;map.eliteLevelRange=eliteBands[index];region.mapIds.push(mapId);maps.push(map);
   }
   regions.push(region);
  }
@@ -87,12 +89,15 @@
    const template=D.dungeons.find(d=>d.id===(level<25?(map.regionId==='southern_kingdom'?'old_lab':'abandoned_mine'):themeTemplate));
    const dungeon=JSON.parse(JSON.stringify(template));dungeon.id=map.id+'_dungeon';dungeon.name=name+'・'+(map.sortOrder+1);dungeon.level=dungeon.recommendedLevel=level;dungeon.generatedMapDungeon=true;dungeon.templateId=template.id;dungeon.features=[...map.gameplayTags];dungeon.description=map.name+'的區域試煉。';
    dungeon.enemyWaves=dungeon.enemyWaves.map((w,i)=>({...w,type:w.role==='normal'?map.enemyPoolIds[i%map.enemyPoolIds.length]:w.role==='elite'?map.elitePoolIds[0]:w.type,level:Math.max(1,level+(w.role==='boss'?1:w.role==='normal'?-2:0))}));dungeon.encounters=dungeon.enemyWaves.map(w=>w.type);
+   const poolAliases={};for(const key of ['primaryRewardPool','secondaryRewardPool','rareRewardPool']){const old=dungeon[key],id=dungeon.id+'_'+key;D.rewardPools[id]=JSON.parse(JSON.stringify(D.rewardPools[old]));D.rewardPools[id].id=id;poolAliases[old]=id;dungeon[key]=id;const types=key==='primaryRewardPool'?['moves','talents']:key==='secondaryRewardPool'?['equipment','books']:['moves','talents','equipment','books'];for(const type of types)if(!D.rewardPools[id].entries.some(e=>e.rewardType===type))D.rewardPools[id].entries.push({rewardType:type,rewardIds:[],weight:1,rarity:key==='rareRewardPool'?'rare':'normal'});}for(const rule of dungeon.rewardCombinationRules)for(const draw of rule.draws)draw.pool=poolAliases[draw.pool]||draw.pool;
    D.dungeons.push(dungeon);map.dungeonIds.push(dungeon.id);
   }
   map.dungeonIds.forEach((id,index)=>{const d=D.dungeons.find(d=>d.id===id);d.mapId=map.id;d.regionId=regions.find(r=>r.id===map.regionId).legacyRegionId;d.x=map.entry.x+260+index*220;d.y=map.entry.y-200;});
-  map.spawnPoints=spawnLayout(map);
+  for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);d.rewardReferenceLevel=d.generatedMapDungeon?[12,38,85,130,175][map.sortOrder]:d.level;d.finalLevelScale=true;d.recommendedLevel=d.level=map.sortOrder===0?Math.max(map.recommendedLevelMin,Math.min(map.recommendedLevelMax,d.level)):id==='terminal_structure'?999:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);for(const wave of d.enemyWaves)wave.level=Math.min(999,Math.max(map.recommendedLevelMin,d.level+(wave.role==='boss'?1:wave.role==='normal'?-2:0)));}
+  map.spawnPoints=spawnLayout(map);for(const [i,point]of map.spawnPoints.entries())if(point.elite){const [min,max]=map.eliteLevelRange;point.level=Math.round(min+(max-min)*(i%5)/4);}
  }
  D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ if(D.contentGrades&&D.contentDistribution){if(typeof module!=='undefined')require('./content-grades')(D);else root.ContentGrades(D);const redistribute=typeof module!=='undefined'?require('./resource-distribution'):root.ResourceDistribution;redistribute(D);}
  const starterConfig={areaRatio:.5,levelCap:9,expMultiplier:4,bossHpMultiplier:2.6,bossDamageMultiplier:.65};
  const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=D.world.width*Math.sqrt(starterConfig.areaRatio),height=D.world.height*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
   for(let i=0;i<36;i++){const angle=i*2.399963,radius=240+Math.floor(i/9)*150;map.spawnPoints.push({x:Math.max(90,Math.min(width-90,map.entry.x+Math.cos(angle)*radius)),y:Math.max(90,Math.min(height-90,map.entry.y+Math.sin(angle)*radius)),level:1+Math.floor(i/5),elite:false});}
@@ -110,7 +115,8 @@
  function ensureRun(run){
   if(run.starter&&run.currentMapId===run.starter.mapId){run.mapPositions||={};if(run.starter.phase!=='cleared')populate(run,D.maps[run.currentMapId]);syncStarter(run);return run;}
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
-  if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.world.enemies=run.world.enemies.filter(e=>!e.id?.includes('-patrol-'));run.mapLayoutVersion=layoutVersion;}
+  if(run.mapLayoutVersion===3){run.world.enemies=run.world.enemies.filter(e=>{if(!e.id?.includes('-patrol-'))return true;const index=Number(e.id.split('-patrol-')[1]),point=D.maps[e.mapId]?.spawnPoints[index];if(!point)return false;e.level=point.level;return true;});run.mapLayoutVersion=layoutVersion;}
+  else if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.world.enemies=run.world.enemies.filter(e=>!e.id?.includes('-patrol-'));run.mapLayoutVersion=layoutVersion;}
   run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
   run.availableMoves=[...new Set([...(run.availableMoves||[]),...run.build.moves,run.build.ultimate,...Object.values(run.loot||{}).filter(r=>r.kind==='moves').map(r=>r.id)].filter(id=>D.moves[id]))];
   run.availableSkills=[...new Set([...(run.availableSkills||[]),...run.build.talents,...Object.values(run.loot||{}).filter(r=>r.kind==='talents').map(r=>r.id)].filter(id=>D.skills[id]))];
@@ -131,15 +137,17 @@
    run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,discovered:false,defeatedUntil:0});
   }
  }
- function enter(run,id){
+ function enter(run,id,options={}){
   const map=D.maps[id];if(!map||!map.isAvailable||run.dungeon)return false;
+  if(!options.debug&&!access(run,id).ok)return false;
   if(map.starter||run.starter&&run.currentMapId===run.starter.mapId&&run.starter.phase!=='cleared')return false;
   ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
   run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
   populate(run,map);
   return map;
  }
- const api={regions,maps,byId:D.maps,layoutVersion,safeRadius,starterConfig,starterMaps,startStarter,syncStarter,clearStarter,ensureRun,enter,inferLegacy};
+ function access(run,id){const map=D.maps[id];if(!map)return {ok:false,message:'此地圖目前無法進入。'};if(map.id===run.currentMapId)return {ok:true};if(run.starter&&run.currentMapId===run.starter.mapId&&run.starter.phase!=='cleared')return {ok:false,message:'請先打倒新手區守關 Boss。'};const rule=D.mapAccessRules[map.sortOrder];if(!rule||map.starter)return {ok:true};if((run.adventurerRank?.index??0)<D.runRating.ranks.indexOf(rule.rank))return {ok:false,message:'此區域僅開放 '+rule.rank+' 級以上冒險者進入。'};if(rule.previousDungeonMap!==undefined&&!run.battleStats?.clearedDungeonIds?.some(id=>{const d=D.dungeons.find(d=>d.id===id);return D.maps[d?.mapId]?.sortOrder===rule.previousDungeonMap;}))return {ok:false,message:'請先在本局通關任一大區第 '+(rule.previousDungeonMap+1)+' 張地圖的地下城，取得深入許可。'};return {ok:true};}
+ const api={access,regions,maps,byId:D.maps,layoutVersion,safeRadius,starterConfig,starterMaps,startStarter,syncStarter,clearStarter,ensureRun,enter,inferLegacy};
  if(typeof module!=='undefined')module.exports=api;else root.WorldMaps=api;
 })(globalThis);
 
