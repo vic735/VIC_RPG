@@ -9,14 +9,15 @@ const game = {
   resultDelay: null, recoveryCountdown: null, resultHandled: false, noRandom: false, settings: Audio.settings, castFlashes: {}, wasReady: false
 };
 try { const build = JSON.parse(storage.getItem('afterlight.loadout.v1') || 'null'); if (build) { P.validateBuild(build, game.permanent); game.build = build; } } catch (_) {}
+game.contentSort='rarity';game.contentSortReverse=false;try{const preference=JSON.parse(storage.getItem('afterlight.sort.v1')||'null');if(preference&&['rarity','type','element','name'].includes(preference.key)){game.contentSort=preference.key;game.contentSortReverse=!!preference.reverse;}}catch(_){}
 game.presets=[];try{const saved=JSON.parse(storage.getItem('afterlight.presets.v1')||'[]');if(Array.isArray(saved))game.presets=saved.slice(0,6);}catch(_){}
 const renderer = new GameArt.Renderer($('scene'));
 let last = performance.now(), uiTime = 0, longPressTimer = null, hoverTimer = null, pressOrigin = null, suppressClick = false;
 let saveElapsed=0,saveErrorShown=false;
 function resetAllProgress(){
- const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1',RunSave.KEY],backup={};
+ const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1','afterlight.sort.v1',RunSave.KEY],backup={};
  try{for(const key of keys)backup[key]=localStorage.getItem(key);for(const key of keys)localStorage.removeItem(key);}catch(_){for(const [key,value]of Object.entries(backup))try{if(value!==null&&value!==undefined)localStorage.setItem(key,value);}catch(_){}toast('重置未完成，請檢查瀏覽器儲存權限。');return;}
- game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
+ game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
 }
 function saveSession(){if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
 function resumeSession(){const loaded=RunSave.load(storage);if(loaded.warning){toast(loaded.warning);return;}const snapshot=loaded.snapshot;if(!snapshot)return;for(const k of ['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom','battle'])if(snapshot[k]!==undefined)game[k]=snapshot[k];const latest=P.loadProgress(storage).progress;if((latest.meta?.revision||0)>(game.permanent.meta?.revision||0))game.permanent=latest;game.eventCursor=0;game.transition=0;game.screen=null;rebuildSkills();renderUI();
@@ -257,8 +258,8 @@ function showRunLoadout(){
 function showRunSlot(kind,index){
  const run=game.run;if(!run||game.scene==='battle'||!['moves','talents','ultimate'].includes(kind)||!Number.isInteger(index)||index<0||index>3)return;
  game.runPicker={kind,index};const list=kind==='talents'?run.availableSkills:run.availableMoves,source=kind==='talents'?D.skills:D.moves;
- const candidates=(list||[]).filter(id=>source[id]&&Classes.eligible(source[id],run.activeClassId,game.permanent)&&(kind!=='moves'||source[id].kind==='normal'));
- openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2><div class="run-choice-list">${candidates.map(id=>`<button data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
+ const candidates=S.sortIds(game,(list||[]).filter(id=>source[id]&&Classes.eligible(source[id],run.activeClassId,game.permanent)&&(kind!=='moves'||source[id].kind==='normal')),kind);
+ openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2>${S.sortControls(game)}<div class="run-choice-list">${candidates.map(id=>`<button data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
 }
 function selectRunAbility(id){
  const run=game.run,pick=game.runPicker;if(!run||game.modal!=='run-slot'||!pick)return;
@@ -427,6 +428,7 @@ function handleAction(action, id, element) {
   else if(action==='debug-start')startDebugBattle();
   else if (action === 'settings') openScreen('settings');
   else if (action === 'screen-back') screenBack();
+  else if(action==='content-sort'||action==='content-sort-direction'){if(action==='content-sort'){if(!['rarity','type','element','name'].includes(id))return;game.contentSort=id;game.contentSortReverse=false;}else game.contentSortReverse=!game.contentSortReverse;try{storage.setItem('afterlight.sort.v1',JSON.stringify({key:game.contentSort,reverse:game.contentSortReverse}));}catch(_){toast('排列偏好暫時無法儲存。');}hideTooltip();if(game.modal==='picker')openPicker(game.picker.kind,game.picker.index);else if(game.modal==='run-slot')showRunSlot(game.runPicker.kind,game.runPicker.index);else renderScreen();}
   else if (action === 'setup-tab') { game.setupTab = id; hideTooltip(); renderScreen(); }
   else if (action === 'library-category') { game.category = id; game.selected = null; renderScreen(); }
   else if (action === 'catalog-select') { game.selected = id; renderScreen(); }

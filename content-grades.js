@@ -20,6 +20,7 @@
  }
  function multis(m){return (m.elements||[]).length+(m.multiplier||0)/3;}
  function skillGrade(s){
+  if(s.id==='afterimage')return 'SS';
   if(s.powerGrade)return s.powerGrade;
   if(/^(metal|wood|water|fire|earth|light|dark)_affinity$/.test(s.id))return 'B';
   if(/^element_(metal|wood|water|fire|earth|light|dark)_blessing$/.test(s.id))return 'A';
