@@ -14,6 +14,7 @@
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
+  if(c.anyKind&&!c.anyKind.some(k=>move.specKind===k||move.kind===k||move.damageType===k))return false;
   if(c.kind&&move.specKind!==c.kind&&move.kind!==c.kind&&move.damageType!==c.kind)return false;
   if(c.moveCostMana&&!move.cost?.mana)return false;
   if(c.moveCostStamina&&!move.cost?.stamina)return false;
@@ -27,8 +28,9 @@
   if(c.originalTimeGte!=null&&!(originalTime>=c.originalTimeGte))return false;
   if(c.targetCasting&&!target?.cast)return false;
   if(c.targetStatus&&!target?.statuses[c.targetStatus])return false;
+  if(c.targetAnyStatus&&!c.targetAnyStatus.some(id=>target?.statuses[id]?.expiresAt>battle.time))return false;
   if(c.targetDebuff&&!Object.values(target?.statuses||{}).some(s=>s.polarity==='debuff'&&s.expiresAt>battle.time))return false;
-  if(c.resource){const ratio=actor[c.resource]/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioLte!=null&&!(ratio<=c.ratioLte))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;if(c.ratioGte!=null&&!(ratio>=c.ratioGte))return false;}
+  if(c.resource){const ratio=(c.resourceTiming==='beforeCast'?(move.resourcesBeforeCast?.[c.resource]??actor[c.resource]):actor[c.resource])/Math.max(1,actor.stats[c.resource]);if(c.ratioLt!=null&&!(ratio<c.ratioLt))return false;if(c.ratioLte!=null&&!(ratio<=c.ratioLte))return false;if(c.ratioGt!=null&&!(ratio>c.ratioGt))return false;if(c.ratioGte!=null&&!(ratio>=c.ratioGte))return false;}
   if(c.critical!=null&&ctx.critical!==c.critical)return false;
   if(c.primary&&ctx.secondary)return false;
   if(c.alive&&actor.hp<=0)return false;
@@ -60,10 +62,12 @@
   actor.runtime.emit('OnStatusApplied',{...ctx,status:actor.statuses[s.id]});return true;
  }
  const effects={
+  freeze(b,c,e){const target=c.target;if(target.hp<=0||(target.freezeImmuneUntil||0)>b.time)return false;const boss=target===b.enemy&&(b.enemyDefinition.boss||b.enemyDefinition.balanceRole==='boss'||b.enemyDefinition.balanceRole==='importantBoss'),duration=e.duration*(boss?.5:1);if(target.cast){target.cast.endAt+=duration;target.cast.duration+=duration;}if(target.sequence)target.sequence.nextAt+=duration;applyStatus(b,target,{id:'frozen',name:'凍結',duration,polarity:'debuff',modifiers:[],blocksAction:true},c.actor,c);target.freezeImmuneUntil=b.time+duration+3;c.successfulSupport=true;b.log('freeze','凍結：暫時無法行動',{actorId:c.actor.id,targetId:target.id,moveId:c.move.id,duration});return true;},
+  drain(b,c,e){if(!(c.totalDamage>0)||c.actor.hp<=0)return false;const amount=c.totalDamage*e.ratio,healing=b.recover(c.actor,e.resource||'hp',amount,c);if(healing>0)b.log('heal','吸魂恢復 '+healing.toFixed(1)+' HP',{actorId:c.actor.id,targetId:c.actor.id,moveId:c.move.id,healing});return healing>0;},
   recover(b,c,e){b.recover(c.actor,e.resource,c.actor.stats[e.resource]*e.ratio,c);},
   heal(b,c,e){const amount=c.actor.runtime.modify('healing',c.actor.stats.hp*e.ratio,c),healing=b.recover(c.actor,'hp',amount,c);if(healing>0)b.log('heal',`恢復 ${healing.toFixed(1)} HP`,{actorId:c.actor.id,targetId:c.actor.id,moveId:c.move.id,healing});c.healing=true;c.successfulSupport=true;},
   restore(b,c,e){b.recover(c.actor,e.resource,e.amount,c);},
-  status(b,c,e){const target=e.status.target==='self'?c.actor:c.target;applyStatus(b,target,e.status,c.actor,c);c.successfulSupport=true;},
+  status(b,c,e){const target=e.status.target==='self'?c.actor:c.target;applyStatus(b,target,{...e.status,elements:e.status.elements||c.move?.elements||[]},c.actor,c);c.successfulSupport=true;},
   refresh(b,c,e){const s=c.target.statuses[e.id];if(!s)return false;s.expiresAt=b.time+s.duration;},
   refund(b,c,e){for(const [key,value]of Object.entries(c.spent||{}))b.recover(c.actor,key,value*e.ratio,c);},
   preventInterrupt(b,c){c.prevented=true;},

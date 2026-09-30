@@ -3,7 +3,7 @@
  const elementName={metal:'金',wood:'木',water:'水',fire:'火',earth:'土',light:'光',dark:'闇'};
  const className={WARRIOR:'戰士',MAGE:'魔法師',RANGER:'遊俠',CLERIC:'聖職者',SPELLSWORD:'魔劍士'};
  const unique=o=>[...new Set(Object.values(o||{}))];
- const pct=n=>Math.round(Math.abs(n)*100);
+ const pct=n=>Math.round(Math.abs(n)*10000)/100;
  const skillNames={vigor:'強健體魄',control:'魔力調律',agility:'輕身步法',lucky:'命運眷顧'};
  const moveNames={lesser_heal:'初階治癒術'};
  const subtitles={flame_enchant:'火焰附魔',std_metal_greater_orb:'雷霆巨球',std_wood_greater_orb:'森靈巨球',std_water_greater_orb:'冰海巨球',std_fire_greater_orb:'獄炎巨球',std_earth_greater_orb:'山嶽巨球',std_light_greater_orb:'輝耀巨球',std_dark_greater_orb:'幽冥巨球'};
@@ -18,11 +18,11 @@
  function costText(move){const parts=[];if(move.cost?.stamina)parts.push(move.cost.stamina+' SP');if(move.cost?.mana)parts.push(move.cost.mana+' MP');return parts.length?parts.join(' + '):'無';}
  function statusText(status){
   if(!status)return'';const bits=[];
-  if(status.tick?.ratio)bits.push(`每 ${status.tick.interval||1} 秒造成最大 ${status.tick.stat==='mana'?'MP':'HP'} ${pct(status.tick.ratio)}% 的持續傷害`);
+  if(status.tick?.ratio)bits.push(`每 ${status.tick.interval||1} 秒造成施術者最大 ${status.tick.stat==='mana'?'MP':'HP'} ${pct(status.tick.ratio)}% 的持續傷害`);
   for(const m of status.modifiers||[]){const v=m.value,delta=(v>=1?pct(v-1):pct(1-v));if(m.stage==='agility')bits.push(`敏捷${v>=1?'提高':'降低'} ${delta}%`);else if(m.stage==='incoming')bits.push(`受到的傷害降低 ${delta}%`);else if(m.stage==='accuracy')bits.push(`命中率降低 ${delta}%`);else if(m.stage==='dodgeChance')bits.push(`閃避率提高 ${pct(v)} 個百分點`);else if(m.stage==='critChance')bits.push(`爆擊率提高 ${pct(v)} 個百分點`);else if(m.stage==='damage')bits.push(`${m.conditions?.element?elementName[m.conditions.element]+'屬性':m.conditions?.damageType==='physical'?'物理':''}傷害提高 ${delta}%`);else if(m.stage==='healing')bits.push(`治療量提高 ${delta}%`);}
   return `${status.target==='self'?'自身獲得':'使敵人陷入'}「${status.name}」${status.duration?` ${status.duration} 秒`:''}${bits.length?`（${bits.join('、')}）`:''}`;
  }
- function effectText(effect){if(effect.type==='interrupt')return `中斷敵人讀條${effect.chance&&effect.chance<1?`（成功率 ${pct(effect.chance)}%）`:''}`;if(effect.type==='heal')return `恢復最大 HP 的 ${pct(effect.ratio)}%`;if(effect.type==='shield')return `獲得相當於最大 HP ${pct(effect.ratio)}% 的護盾`;if(effect.type==='restore')return `恢復 ${effect.amount||pct(effect.ratio)+'%'} ${effect.resource==='stamina'?'SP':'MP'}`;if(effect.type==='cleanse')return'移除自身全部負面狀態';if(effect.type==='status')return statusText(effect.status);return'';}
+ function effectText(effect){if(effect.type==='drain')return `恢復本招實際造成傷害 ${pct(effect.ratio)}% 的 HP`;if(effect.type==='freeze')return `凍結 ${effect.duration} 秒，暫停行動（Boss 時間減半；結束後 3 秒內不再凍結）`;if(effect.type==='interrupt')return `中斷敵人讀條${effect.chance&&effect.chance<1?`（成功率 ${pct(effect.chance)}%）`:''}`;if(effect.type==='heal')return `恢復最大 HP 的 ${pct(effect.ratio)}%`;if(effect.type==='shield')return `獲得相當於最大 HP ${pct(effect.ratio)}% 的護盾`;if(effect.type==='restore')return `恢復 ${effect.amount||pct(effect.ratio)+'%'} ${effect.resource==='stamina'?'SP':'MP'}`;if(effect.type==='cleanse')return'移除自身全部負面狀態';if(effect.type==='status')return statusText(effect.status);return'';}
  function damageDescription(move){
   const element=(move.elements||[]).map(x=>elementName[x]).filter(Boolean).join('、');
   const damageType=move.damageType==='physical'?'物理':'魔法';

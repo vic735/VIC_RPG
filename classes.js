@@ -55,7 +55,7 @@
   RANGER_SKILL_003:['裝備弓時，SP 消耗 -10%。',[mod('cost:stamina',.9,{weapon:'bow'})],[]],
   RANGER_SKILL_004:['裝備弓時，爆擊率增加 8 個百分點。',[mod('critChance',.08,{weapon:'bow'},'add')],[]],
   CLERIC_SKILL_001:['治療與防護招式讀條 -10%。',[mod('attackTime',.9,{kind:'heal'}),mod('attackTime',.9,{kind:'defense'})],[]],
-  CLERIC_SKILL_002:['完成治療或防護招式後恢復最大 MP 5%。',[],[hook('OnSkillCastFinished',{successfulSupport:true},[{type:'recover',resource:'mana',ratio:.05}])]],
+  CLERIC_SKILL_002:['完成治療或防護招式後恢復最大 MP 5%。',[],[hook('OnSkillCastFinished',{successfulSupport:true,anyKind:['heal','defense']},[{type:'recover',resource:'mana',ratio:.05}])]],
   CLERIC_SKILL_003:['治療量 +18%。',[mod('healing',1.18)],[]],
   CLERIC_SKILL_004:['完成光屬性輔助招式後獲得最大 HP 8% 的護盾。',[],[hook('OnSkillCastFinished',{element:'light',successfulSupport:true},[{type:'shield',ratio:.08}])]],
   SPELLSWORD_SKILL_001:['裝備劍時，消耗 MP 的物理招式傷害 +12%。',[mod('damage',1.12,{weapon:'sword',damageType:'physical',moveCostMana:true})],[]],

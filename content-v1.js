@@ -181,6 +181,26 @@
   'std_dark_黑幕侵蝕':{combatModifiers:[cm('damage',1.08,{element:'dark',targetDebuff:true})],description:'敵人有 Debuff 時，闇屬性傷害 +8%。'}
  };
  for(const [id,repair]of Object.entries(elementRepairs))if(D.skills[id])Object.assign(D.skills[id],repair);
+ // Keep the declared physical-arrow identity in the actual damage and resource pipeline.
+ for(const m of new Set(Object.values(D.moves)))if(m.specKind==='physical'&&m.damageType!=='physical'){m.damageType='physical';m.cost={stamina:m.baseCost};m.originalResourceCost={...m.cost};}
+ D.moves.wood_4.effects.push({type:'heal',ratio:.2});D.moves.wood_4.description='生命轉化：恢復最大 HP 20%，並獲得 4 秒木之庇護，受到傷害降低 12%。';
+ D.moves.ice_lightning.effects.push({type:'freeze',duration:.6});
+ // Explicit mechanics for names that previously promised more than their runtime delivered.
+ D.moves.freeze.effects.push({type:'freeze',duration:1});
+ D.moves.M083.effects.push({type:'freeze',duration:1.5});
+ D.moves.freeze.description='命中後中斷敵人讀條，凍結 1 秒（暫停行動），並降低敏捷 10% 持續 4 秒。';
+ D.moves.M083.description='命中後中斷敵人讀條，凍結 1.5 秒（暫停行動），並降低敏捷 25% 持續 5 秒。';
+ for(const id of ['freeze','M083'])D.moves[id].description+='Boss 凍結時間減半；凍結結束後 3 秒內不會再次凍結。';
+ D.moves.charge_up.effects[0].status.consume='physical';D.moves.charge_up.description='蓄力後 60 秒內，下一個造成傷害的物理招式威力提高 35%；多段攻擊整招生效，施放時消耗。';
+ D.moves.counter_stance.effects[0].status.counterRatio=.25;D.moves.counter_stance.description='反擊架勢持續 4 秒，受到傷害降低 25%；存活且受到直接傷害時，反擊造成實際扣血量 25% 的物理傷害，不爆擊、不觸發連鎖反擊。';
+ D.moves.M078.effects=[{type:'status',status:{id:'poison',name:'中毒',duration:5,target:'enemy',polarity:'debuff',modifiers:[],tick:{interval:1,ratio:.025,stat:'mana'},elements:['wood']}}];
+ D.moves.M099.effects=[{type:'drain',resource:'hp',ratio:.2}];
+ D.skills.S060.combatModifiers[0].conditions={element:'water',targetAnyStatus:['root','magnetic_bind','sand_bind']};D.skills.S060.description='水屬性攻擊命中樹根束縛、磁縛或砂縛中的敵人時，傷害提高 12%。';
+ D.skills.fast_cast.description='魔法招式讀條值降低 10；最短讀條依各招式的最低時間限制。';
+ D.skills.plain_strike.description='無屬性物理招式的爆擊傷害倍率增加 0.25。';
+ for(const id of ['root_trap','M074','M092'])D.moves[id].description+='降低敏捷會延長敵人後續招式讀條，不會完全停止行動。';
+ D.skills['std_wood_根系共生'].hooks[0].conditions.anyKind=['heal','buff'];
+ D.skills['std_light_光_庇佑'].hooks[0].conditions.anyKind=['heal','buff'];
  D.applyResourceCostBalance();
  if(typeof module!=='undefined')module.exports=D.contentV1;else root.ContentV1=D.contentV1;
 })(globalThis);

@@ -9,13 +9,14 @@ const game = {
   resultDelay: null, recoveryCountdown: null, resultHandled: false, noRandom: false, settings: Audio.settings, castFlashes: {}, wasReady: false
 };
 try { const build = JSON.parse(storage.getItem('afterlight.loadout.v1') || 'null'); if (build) { P.validateBuild(build, game.permanent); game.build = build; } } catch (_) {}
+game.presets=[];try{const saved=JSON.parse(storage.getItem('afterlight.presets.v1')||'[]');if(Array.isArray(saved))game.presets=saved.slice(0,6);}catch(_){}
 const renderer = new GameArt.Renderer($('scene'));
 let last = performance.now(), uiTime = 0, longPressTimer = null, hoverTimer = null, pressOrigin = null, suppressClick = false;
 let saveElapsed=0,saveErrorShown=false;
 function resetAllProgress(){
- const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1',RunSave.KEY],backup={};
+ const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1',RunSave.KEY],backup={};
  try{for(const key of keys)backup[key]=localStorage.getItem(key);for(const key of keys)localStorage.removeItem(key);}catch(_){for(const [key,value]of Object.entries(backup))try{if(value!==null&&value!==undefined)localStorage.setItem(key,value);}catch(_){}toast('重置未完成，請檢查瀏覽器儲存權限。');return;}
- game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
+ game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
 }
 function saveSession(){if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
 function resumeSession(){const loaded=RunSave.load(storage);if(loaded.warning){toast(loaded.warning);return;}const snapshot=loaded.snapshot;if(!snapshot)return;for(const k of ['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom','battle'])if(snapshot[k]!==undefined)game[k]=snapshot[k];const latest=P.loadProgress(storage).progress;if((latest.meta?.revision||0)>(game.permanent.meta?.revision||0))game.permanent=latest;game.eventCursor=0;game.transition=0;game.screen=null;rebuildSkills();renderUI();
@@ -102,6 +103,20 @@ function assignBuild(kind, index, id) {
   } else return false;
   try { P.validateBuild(draft, game.permanent); } catch (_) { return false; }
   game.build = draft; saveBuild(); return true;
+}
+function showPresets(){
+ if(game.run)return;
+ openModal('presets',`<h2 id="modal-title">搭配預設</h2><p>儲存職業、四個招式、四個技能、必殺與裝備。只用於下次出發，不改動目前冒險。</p><div class="preset-list">${Array.from({length:6},(_,i)=>{const preset=game.presets[i],b=preset?.build;return `<article class="preset-card"><strong>${U.escape(preset?.name||'預設 '+(i+1))}</strong><small>${b?U.escape(Classes.classes[b.activeClassId||'ADVENTURER']?.className||'冒險者')+' · '+b.moves.map(id=>U.escape(D.moves[id]?.localizedName||D.moves[id]?.name||id)).join('／'):'尚未儲存'}</small><div><button data-action="preset-edit" data-index="${i}">${b?'覆寫':'儲存目前搭配'}</button><button data-action="preset-apply" data-index="${i}" ${b?'':'disabled'}>套用</button><button data-action="preset-delete" data-index="${i}" ${b?'':'disabled'}>刪除</button></div></article>`;}).join('')}</div><div class="modal-footer">${U.button('返回角色設定','close')}</div>`);
+}
+function commitPresets(next){try{storage.setItem('afterlight.presets.v1',JSON.stringify(next));game.presets=next;return true;}catch(_){toast('預設儲存失敗，請檢查瀏覽器儲存空間。');return false;}}
+function presetAction(action,element){
+ if(game.run||game.screen!=='setup')return;
+ const i=Number(element.dataset.index);if(!Number.isInteger(i)||i<0||i>=6)return;
+ if(action==='preset-edit'&&game.modal==='presets'){game.presetIndex=i;openModal('preset-edit',`<h2 id="modal-title">${game.presets[i]?'覆寫搭配':'儲存搭配'}</h2><p>將目前角色配置存入預設 ${i+1}。</p><label>搭配名稱<input id="preset-name" maxlength="24" value="${U.escape(game.presets[i]?.name||'搭配 '+(i+1))}"></label><div class="modal-footer">${U.button('取消','presets')}<button data-action="preset-save" data-index="${i}">確認儲存</button></div>`);}
+ else if(action==='preset-save'&&game.modal==='preset-edit'&&game.presetIndex===i){const next=JSON.parse(JSON.stringify(game.presets));next[i]={name:($('preset-name').value||'').trim().slice(0,24)||'搭配 '+(i+1),build:JSON.parse(JSON.stringify(game.build))};if(commitPresets(next)){showPresets();toast('搭配已儲存');}}
+ else if(action==='preset-apply'&&game.modal==='presets'&&game.presets[i]){try{const b=JSON.parse(JSON.stringify(game.presets[i].build));P.validateBuild(b,game.permanent);storage.setItem('afterlight.loadout.v1',JSON.stringify(b));game.build=b;renderScreen();showPresets();toast('已套用：'+game.presets[i].name);}catch(error){toast('無法套用搭配：'+error.message);}}
+ else if(action==='preset-delete'&&game.modal==='presets'&&game.presets[i]){openModal('preset-delete',`<h2 id="modal-title">刪除 ${U.escape(game.presets[i].name)}？</h2><p>目前角色配置會保留。</p><div class="modal-footer">${U.button('取消','presets')}<button data-action="preset-delete-confirm" data-index="${i}">確認刪除</button></div>`);}
+ else if(action==='preset-delete-confirm'&&game.modal==='preset-delete'){const next=JSON.parse(JSON.stringify(game.presets));next[i]=null;if(commitPresets(next))showPresets();}
 }
 function openPicker(kind, index) { if (game.run) return; game.picker = { kind, index: kind === 'equipment' ? index : Number(index) }; openModal('picker', S.picker(game, kind, game.picker.index)); }
 function libraryEquip(id) {
@@ -420,6 +435,8 @@ function handleAction(action, id, element) {
   else if (action === 'picker-select' && game.modal === 'picker') { if (assignBuild(game.picker.kind, game.picker.index, id)) { closeModal(); renderScreen(); } }
   else if (action === 'picker-remove' && game.modal === 'picker') { assignBuild(game.picker.kind, game.picker.index, null); closeModal(); renderScreen(); }
   else if (action === 'library-equip') libraryEquip(id);
+  else if(action==='presets'&&game.screen==='setup')showPresets();
+  else if(action.startsWith('preset-'))presetAction(action,element);
   else if (action === 'loadout-replace' && game.modal === 'library-replace') { assignBuild(game.libraryPending.kind, Number(element.dataset.index), game.libraryPending.id); closeModal(); renderScreen(); }
   else if (action === 'stat-explain') openModal('stat', statExplanation(id).replace('<h3>', '<h2 id="modal-title">').replace('</h3>', '</h2>') + `<div class="modal-footer">${U.button('返回', 'close')}</div>`);
   else if (action === 'learn-book' && !game.run && game.screen === 'library') { if (P.understandBook(game.permanent, null, id)) { persist(); Audio.emit('itemGain', { id }); toast('已學會 · ' + D.moves[D.books[id].moveId].name); renderScreen(); } }
