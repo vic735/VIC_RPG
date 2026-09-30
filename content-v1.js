@@ -181,6 +181,7 @@
   'std_dark_黑幕侵蝕':{combatModifiers:[cm('damage',1.08,{element:'dark',targetDebuff:true})],description:'敵人有 Debuff 時，闇屬性傷害 +8%。'}
  };
  for(const [id,repair]of Object.entries(elementRepairs))if(D.skills[id])Object.assign(D.skills[id],repair);
+ for(const m of new Set(Object.values(D.moves)))if(m.family==='ARROW'||/箭/.test(m.specName||m.subtitle||m.name))m.tags=[...new Set([...(m.tags||[]),'arrow'])];
  // Keep the declared physical-arrow identity in the actual damage and resource pipeline.
  for(const m of new Set(Object.values(D.moves)))if(m.specKind==='physical'&&m.damageType!=='physical'){m.damageType='physical';m.cost={stamina:m.baseCost};m.originalResourceCost={...m.cost};}
  D.moves.wood_4.effects.push({type:'heal',ratio:.2});D.moves.wood_4.description='生命轉化：恢復最大 HP 20%，並獲得 4 秒木之庇護，受到傷害降低 12%。';

@@ -415,7 +415,7 @@ function handleAction(action, id, element) {
     openModal('class-achievements',`<div class="eyebrow">CLASS</div><h2 id="modal-title">選擇職業</h2><p>本局開始後不可切換。解鎖條件可至成就頁查看。</p><div class="picker-grid">${rows}</div><div class="modal-footer">${U.button('查看成就','achievements')}${U.button('返回','close')}</div>`,'result-modal');
   }
   else if(action==='class-select'&&game.modal==='class-achievements'){
-    try{Classes.select(game.permanent,game.build,id);saveBuild();closeModal();toast('已選擇職業：'+Classes.classes[id].className);}catch(error){toast(error.message);}
+    try{const draft=JSON.parse(JSON.stringify(game.build));Classes.select(game.permanent,draft,id);draft.moves=draft.moves.filter(key=>Classes.eligible(D.moves[key],id,game.permanent));draft.talents=draft.talents.filter(key=>Classes.eligible(D.skills[key],id,game.permanent));if(draft.ultimate&&!Classes.eligible(D.moves[draft.ultimate],id,game.permanent))draft.ultimate=null;if(!draft.moves.length)draft.moves=P.defaultBuild().moves;P.validateBuild(draft,game.permanent);game.build=draft;saveBuild();closeModal();renderScreen();toast('已選擇職業：'+Classes.classes[id].className);}catch(error){toast(error.message);}
   }
   else if(action==='codex-tab'&&game.screen==='codex'){game.codexTab=id;renderScreen();}
   else if(action==='codex-detail'&&game.screen==='codex')openModal('codex-detail',MetaScreens.codexDetail(game,element.dataset.kind,id),'result-modal');

@@ -60,12 +60,12 @@
     for(const id of run.build.talents){const skill=D.skills[id];for(const [k,v]of Object.entries(skill.statRates||{})){const target=skill.baseOnly?baseRates:finalRates;target[k]=(target[k]||0)+v;}}
     for (const id of run.build.talents) { const s = D.skills[id]; for (const [k, v] of Object.entries(s.modifiers)) bonuses[k] = (bonuses[k] || 0) + v; for (const [k, v] of Object.entries(s.growthRates || {})) rates[k] = (rates[k] || 0) + v; }
     for (const id of Object.values(run.build.equipment)) if (id) for (const [k, v] of Object.entries(D.equipment[id].modifiers)) bonuses[k] = (bonuses[k] || 0) + v;
-    const cls=Classes.active(run);for (const k of Object.keys(D.player)) result[k] = { base: D.adventure.baseStats[k]*cls.baseStatMultipliers[k]*(1+(baseRates[k]||0)) + (bonuses[k] || 0), finalRate: finalRates[k]||0, perLevel: D.adventure.growth[k]*cls.levelGrowthMultipliers[k], bonusRate: rates[k] || 0, allocated: run.allocated[k] * D.balance.pointValues[k] };
+    const cls=Classes.active(run);for (const k of Object.keys(D.player)) result[k] = { base: D.adventure.baseStats[k]*cls.baseStatMultipliers[k]*(1+(baseRates[k]||0)) + (bonuses[k] || 0), finalRate: finalRates[k]||0, classGrowthMultiplier:cls.levelGrowthMultipliers[k], perLevel: D.adventure.growth[k]*cls.levelGrowthMultipliers[k], bonusRate: rates[k] || 0, allocated: run.allocated[k] * D.balance.pointValues[k] };
     return result;
   }
   function statsFor(run, withDebuffs = true) {
     const stats = {}, detail = statBreakdown(run);
-    for (const [k, d] of Object.entries(detail)) {let growth=0,start=1;for(const band of D.adventure.balance50.growth){const end=Math.min(run.level,band.through);growth+=Math.max(0,end-start)*band[k];start=band.through;}growth+=Math.max(0,run.level-50)*d.perLevel;stats[k]=(d.base+growth*(1+d.bonusRate)+d.allocated)*(1+d.finalRate);}
+    for (const [k, d] of Object.entries(detail)) {let growth=0,start=1;for(const band of D.adventure.balance50.growth){const end=Math.min(run.level,band.through);growth+=Math.max(0,end-start)*band[k]*d.classGrowthMultiplier;start=band.through;}growth+=Math.max(0,run.level-50)*d.perLevel;stats[k]=(d.base+growth*(1+d.bonusRate)+d.allocated)*(1+d.finalRate);}
     if (withDebuffs) for (const id of run.debuffIds) { const d = D.debuffs.find(d => d.id === id); stats[d.stat] *= d.factor; }
     return stats;
   }
@@ -164,7 +164,7 @@
   }
   function battleFor(run, encounter, rng = Math.random) {
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, balance50:true, levelGap:LevelProgression.referenceLevel(encounter.level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, classTrait:Classes.active(run).innateTrait, balance50:true, levelGap:LevelProgression.referenceLevel(encounter.level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck

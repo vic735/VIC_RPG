@@ -43,7 +43,7 @@
       this.player = actor('player', stats); this.enemy = actor('enemy', { ...this.enemyDefinition.stats });
       this.player.elements = this.options.elements || []; this.enemy.elements = this.enemyDefinition.elements || [];
       this.player.weaponType = D.equipment[this.build.equipment.weapon]?.weaponType;
-      this.player.runtime = new R.Runtime(this,this.player,[...this.build.talents.map(id=>D.skills[id]).filter(Boolean),...Object.values(this.build.equipment).map(id=>D.equipment[id]).filter(Boolean)]);
+      this.player.runtime = new R.Runtime(this,this.player,[...(this.options.classTrait?[this.options.classTrait]:[]),...this.build.talents.map(id=>D.skills[id]).filter(Boolean),...Object.values(this.build.equipment).map(id=>D.equipment[id]).filter(Boolean)]);
       this.enemy.runtime = new R.Runtime(this,this.enemy,(this.enemyDefinition.skills||[]).map(id=>D.skills[id]).filter(Boolean));
     }
     start() {

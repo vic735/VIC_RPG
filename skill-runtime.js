@@ -14,6 +14,7 @@
   if(c.tag&&!move.tags?.includes(c.tag))return false;
   if(c.anyTag&&!c.anyTag.some(t=>move.tags?.includes(t)))return false;
   if(c.weapon&&actor.weaponType!==c.weapon)return false;
+  if(c.anyWeapon&&!c.anyWeapon.includes(actor.weaponType))return false;
   if(c.anyKind&&!c.anyKind.some(k=>move.specKind===k||move.kind===k||move.damageType===k))return false;
   if(c.kind&&move.specKind!==c.kind&&move.kind!==c.kind&&move.damageType!==c.kind)return false;
   if(c.moveCostMana&&!move.cost?.mana)return false;
@@ -71,7 +72,7 @@
   refresh(b,c,e){const s=c.target.statuses[e.id];if(!s)return false;s.expiresAt=b.time+s.duration;},
   refund(b,c,e){for(const [key,value]of Object.entries(c.spent||{}))b.recover(c.actor,key,value*e.ratio,c);},
   preventInterrupt(b,c){c.prevented=true;},
-  interrupt(b,c,e){if(!c.target.cast)return false;const chance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
+  interrupt(b,c,e){if(!c.target.cast)return false;const baseChance=Math.min(1,c.actor.runtime.modify('interruptChance',e.chance??1,c)),chance=Math.max(0,Math.min(1,c.target.runtime.modify('incomingInterruptChance',baseChance,{move:c.move,target:c.actor})));if(chance<1&&b.rng()>=chance)return false;const received=c.target.runtime.emit('OnInterruptReceived',{move:c.move,target:c.actor});if(received.prevented)return false;c.target.cast=null;c.successfulSupport=true;b.log('interrupt','讀條遭到中斷。',{actorId:c.actor.id,targetId:c.target.id,moveId:c.move.id});c.actor.runtime.emit('OnInterruptSuccess',c);},
   echo(b,c,e){if(c.totalDamage<=0||c.target.hp<=0)return false;return b.queueEcho(c,e.ratio);},
   shield(b,c,e){c.actor.shield=Math.max(c.actor.shield,c.actor.stats.hp*e.ratio);},
   cleanse(b,c,e){const ids=Object.entries(c.actor.statuses).filter(([,s])=>s.polarity==='debuff').map(([id])=>id);for(const id of ids.slice(0,e.count||ids.length))delete c.actor.statuses[id];return ids.length>0;},
