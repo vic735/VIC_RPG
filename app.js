@@ -126,8 +126,8 @@ function beginRun() {
   if (game.run) return;
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
-  game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');
+  game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build);Maps.startStarter(game.run); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');
 }
 function startDebugBattle(){
  try{
@@ -141,11 +141,11 @@ function worldDebugAction(action,id){
  try{
   if(game.scene==='battle')return;
   if(action==='world-debug'){if(!game.run){game.run=P.createRun(game.permanent,game.build);game.scene='explore';}game.screen=null;$('screen').hidden=true;openModal('world-debug',WorldDebug.form(game.run));renderUI();return;}
-  if(action==='world-map'&&game.run){openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
+  if(action==='world-map'&&game.run){if(game.run.starter&&game.run.currentMapId===game.run.starter.mapId&&game.run.starter.phase!=='cleared'){toast('打倒守關者後，地圖邊緣的傳送點才會開啟。');return;}openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
   if(action==='world-region'&&game.run&&['world-map','world-region','world-map-detail'].includes(game.modal)){openModal('world-region',WorldDebug.regionMaps(game.run,id),'world-route-modal');return;}
   if(action==='world-map-detail'&&game.run&&game.modal==='world-region'){openModal('world-map-detail',WorldDebug.mapDetail(game.run,id),'world-route-modal');return;}
   if(action==='world-enter-map'&&game.run&&game.modal==='world-map-detail'){
-    const map=Maps.enter(game.run,id);if(!map){toast('目前無法切換地圖。');return;}
+    const map=Maps.enter(game.run,id);if(!map){toast('目前無法切換地圖。');return;}P.ensureWorldContent(game.run);
     game.keys.clear();game.touch.clear();resetJoystick();game.lastRegion=id;renderer.fx=[];renderer.hits={};renderer.attacks={};closeModal();renderUI();saveSession();toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);return;
   }
   if(game.modal!=='world-debug')return;
@@ -193,6 +193,7 @@ function rankTaskHTML(t){return `<p>${t.value>=t.target?'✓':'◇'} ${U.escape(
 function showRank(){
  if(!game.run||game.scene!=='explore')return;
  const r=Enc.rankView(game.run);
+ if(r.rank==='E'){openModal('adventure-rank',`<h2 id="modal-title">冒險者 E</h2><p>${game.run.starter.phase==='boss'?'晉階任務：打倒守關 Boss，直接升為 D−。':'升至 Lv.9，守關 Boss 將會現身。'}</p><p>新手區最高 Lv.9。擊敗守關者後，前往邊緣傳送點選擇七大區。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);return;}
  openModal('adventure-rank',`<div class="eyebrow">THIS RUN · ADVENTURER</div><h2 id="modal-title">冒險者 ${r.rank}</h2>${r.nextRank?`<p>下一階 ${r.nextRank} · ${r.progress} / ${r.required} 分</p><h3>一般晉階</h3>${r.active?r.normal.map(rankTaskHTML).join(''):'<p>達到分數門檻後，才會出現晉階任務。</p>'}<h3>直接晉階挑戰</h3>${rankTaskHTML(r.challenge)}<p class="quiet-note">不必累積滿分數，也不用完成一般晉階任務。達成即升至 ${r.nextRank}。</p>`:'<p>已達本局最高階級。</p>'}<p class="quiet-note">每局從 D− 開始。每升一小階，分數與討伐任務計數歸零；本局角色等級與地下城通關紀錄可追認。溢出分數不保留。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);
 }
 
@@ -205,6 +206,7 @@ function showDungeon(d) {
   openModal('dungeon', `<div class="eyebrow">DUNGEON · ${d.dungeonType.toUpperCase()}</div><h2 id="modal-title">${d.name}</h2><p>推薦 Lv.${d.recommendedLevel} · 自由進入</p><p>${d.features.join(' ／ ')}</p><div class="dungeon-stages">${d.enemyWaves.map((wave,i)=>`<div><small>${i+1} · ${{normal:'普通',elite:'精英',boss:'首領'}[wave.role]||wave.role}</small><strong>Lv.${wave.level}</strong></div>`).join('')}</div><p>可能獲得：${d.rewardTypes.map(k=>({moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'}[k]||k)).join('、')}<br>通關後依獎勵池抽取；波間不回復資源；通關離開後回滿。</p><div class="modal-footer">${U.button('稍後再來','close')}${U.button('進入地下城 →','enter-dungeon',{id:d.id,primary:true})}</div>`, 'result-modal');
 }
 function travelMapExit(exit){
+ if(exit.starterPortal){game.keys.clear();resetJoystick();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
  const run=game.run,old={...run.position},map=Maps.enter(run,exit.id);if(!map)return;
  const pad=180,xRatio=Math.max(.05,Math.min(.95,old.x/D.world.width)),yRatio=Math.max(.05,Math.min(.95,old.y/D.world.height));
  if(exit.edge==='right')run.position={x:pad,y:Math.round(yRatio*D.world.height)};
@@ -529,7 +531,7 @@ function combatEvent(event) {
 function frame(now) {
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
-    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} if (enemy) startEncounter(enemy); }
+    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} const portal=World.edgeExit(game.run,60);if(portal?.entity.starterPortal)travelMapExit(portal.entity);else if (enemy) startEncounter(enemy); }
     else if (game.scene === 'battle') {
       if (game.transition > 0) { game.transition = Math.max(0, game.transition - dt); if (!game.transition) $('transition').hidden = true; }
       else {

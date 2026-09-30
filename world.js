@@ -14,8 +14,10 @@
   }
   function decorations() {
     const rng = seeded(), items = [];
+    const starterMap=Object.values(D.maps||{}).find(m=>m.starter);
     for (let i = 0; i < 2200; i++) {
       const x = 65 + rng() * (D.world.width - 130), y = 65 + rng() * (D.world.height - 130), region = P.regionAt(x, y);
+      if(starterMap&&(distance({x,y},starterMap.entry)<300||starterMap.spawnPoints.some(p=>distance({x,y},p)<65)))continue;
       if ((D.mapData||[]).some(m=>distance({x,y},m.entry)<125||m.spawnPoints.some(p=>distance({x,y},p)<50)) || (D.explorationObjects || []).some(o => distance({x, y}, o) < 65) || roadDistance(x,y) < 65 || distance({ x, y }, D.world.camp) < 125 || D.dungeons.some(d => distance({ x, y }, d) < 115) || D.world.spawns.some(([mx, my]) => Math.hypot(x - mx, y - my) < 50)) continue;
       items.push({ x, y, kind: ['redrift','obsidian'].includes(region.id) ? (rng() < .7 ? 'rock' : 'deadTree') : rng() < .8 ? 'tree' : 'rock', size: .6 + rng() * .7, variant: rng() });
     }
@@ -27,6 +29,7 @@
   function update(run, dt, input) {
     run.world.time += dt;
     const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt);
+    const currentMap=D.maps?.[run.currentMapId];if(currentMap?.starter){run.position.x=Math.max(35,Math.min(currentMap.width-35,run.position.x));run.position.y=Math.max(35,Math.min(currentMap.height-35,run.position.y));}
     let contact = null;
     for (const e of run.world.enemies) {
       if (run.currentMapId && e.mapId !== run.currentMapId) continue;
@@ -48,13 +51,14 @@
   }
   function edgeExit(run,threshold=150) {
     const map=D.maps?.[run.currentMapId],region=map&&D.regionById?.[map.regionId];if(!map||!region)return null;
+    if(map.starter){if(run.starter?.phase!=='cleared')return null;const [edge,proximity]=[['left',run.position.x],['right',map.width-run.position.x],['top',run.position.y],['bottom',map.height-run.position.y]].sort((a,b)=>a[1]-b[1])[0];return proximity<=threshold?{kind:'map-exit',entity:{id:'starter-portal',name:'選擇七大區',starterPortal:true,edge,forward:true},proximity}:null;}
     const edges=[['left',run.position.x],['right',D.world.width-run.position.x],['top',run.position.y],['bottom',D.world.height-run.position.y]].sort((a,b)=>a[1]-b[1]),index=region.mapIds.indexOf(map.id);
     for(const [edge,proximity] of edges){if(proximity>threshold)break;const forward=edge==='right'||edge==='bottom',targetId=region.mapIds[index+(forward?1:-1)],target=D.maps[targetId];if(target)return {kind:'map-exit',entity:{id:target.id,name:target.name,edge,forward,fromMapId:map.id},proximity};}
     return null;
   }
   function nearby(run) {
     const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
-    const object = (D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
+    const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
     const exit=edgeExit(run);if(exit)return exit;
     const enemy = run.world.enemies.filter(e => (!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && distance(e, run.position) < 85).sort((a, b) => distance(a, run.position) - distance(b, run.position))[0];

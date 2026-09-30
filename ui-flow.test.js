@@ -20,7 +20,7 @@ test('探索HUD僅滿分顯示任務，直接挑戰升階後歸零且存檔保�
  for(let i=0;i<2;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:5});vm.runInContext('renderUI();saveSession()',h.ctx);assert.equal(g.run.adventurerRank.index,1);assert.equal(g.run.adventurerRank.progress,0);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
  const next=harness(h.saved);assert.equal(next.game.run.adventurerRank.index,1);assert.equal(next.game.run.adventurerRank.progress,0);
 });
-function harness(initialSave=[]) {
+function harness(initialSave=[],starterMode=false) {
   const elements = new Map(), events = {}, windowEvents = {}, saved = new Map(initialSave); let now = 0, raf; const timers=new Map();let timerClock=0,timerId=0;
   function advanceTimers(ms){timerClock+=ms;for(const [id,t]of [...timers])if(t.at<=timerClock){timers.delete(id);t.fn();}}
   const canvasContext = new Proxy({}, { get(target, name) { if (name in target) return target[name]; if (['createLinearGradient', 'createRadialGradient'].includes(name)) return () => ({ addColorStop() {} }); return () => {}; }, set(target, name, value) { target[name] = value; return true; } });
@@ -60,14 +60,30 @@ function harness(initialSave=[]) {
     assert.ok(element, 'Missing visible UI action: ' + action + ' ' + (id || '') + JSON.stringify(extra)); assert.ok(!element.disabled, 'Disabled action: ' + action);
     events.click({ target: element, preventDefault() {} });
     if(action==='begin-run'){
-      assert.equal(game.modal,'world-map');
-      click('world-region','north_plains');click('world-map-detail','north_plains_1');click('world-enter-map','north_plains_1');
+      assert.equal(game.modal,null);
+      assert.equal(game.run.starter.phase,'training');
+      // Existing scenarios test the established main-world systems independently.
+      // New starter scenarios below retain and exercise the actual opening flow.
+      if(!starterMode){game.run.starter.phase='cleared';game.run.adventurerRank.index=0;ctx.WorldMaps.enter(game.run,'north_plains_1');ctx.Progression.ensureWorldContent(game.run);vm.runInContext('renderUI()',ctx);}
     }
   }
   function key(key, up = false) { events[up ? 'keyup' : 'keydown']({ key, repeat: false, preventDefault() {}, target: {} }); }
   function forged(action, id) { events.click({ target: new Element(`data-action="${action}" data-id="${id || ''}"`), preventDefault() {} }); }
   return { ctx, game, elements, saved, step, click, key, events, forged, dirs, Element, advanceTimers };
 }
+
+test('新局E階隨機新手區：Lv9停經驗、Boss晉階清場、碰邊緣選七大區',()=>{
+ const h=harness([],true);h.click('begin-run');const r=h.game.run,D=h.ctx.GameData,M=h.ctx.WorldMaps,P=h.ctx.Progression;
+ assert.equal(h.ctx.EncounterFlow.rankView(r).rank,'E');assert.equal(D.maps[r.currentMapId].dungeonIds.length,0);
+ h.click('journal');h.click('world-map');assert.notEqual(h.game.modal,'world-map');h.click('close');
+ while(r.level<9)P.grantExp(r,5,D.maps[r.currentMapId].enemyPoolIds[0]);h.step(2);
+ assert.equal(r.exp,0);assert.equal(P.grantExp(r,8,D.maps[r.currentMapId].enemyPoolIds[0]).amount,0);assert.match(h.elements.get('adventure-rank').innerHTML,/打倒守關 Boss/);
+ const boss=r.world.enemies.find(e=>e.id===r.starter.bossId);r.position={x:boss.x,y:boss.y+40};h.click('interact');h.game.transition=0;h.game.battle.finish(true);h.step(23);
+ assert.equal(r.starter.phase,'cleared');assert.equal(h.ctx.EncounterFlow.rankView(r).rank,'D−');assert.equal(r.world.enemies.length,0);h.click('result-next');
+ const map=D.maps[r.currentMapId];r.position={x:map.width-40,y:map.height/2};h.step(2);assert.equal(h.game.modal,'world-map');
+ for(const region of M.regions)assert.match(h.elements.get('modal').innerHTML,new RegExp(region.name));
+ h.click('world-region','southern_kingdom');h.click('world-map-detail','southern_kingdom_1');h.click('world-enter-map','southern_kingdom_1');assert.equal(r.level,9);assert.ok(P.grantExp(r,10,'greywind_1').amount>0);
+});
 test('獨立成就入口分開職業技能招式，未解鎖職業的專屬成就上鎖',()=>{
  const h=harness();h.click('achievements');assert.equal(h.game.screen,'achievements');assert.match(h.elements.get('screen').innerHTML,/職業解鎖/);
  h.click('achievement-tab','skills');assert.match(h.elements.get('screen').innerHTML,/先解鎖職業：戰士/);assert.match(h.elements.get('screen').innerHTML,/劍勢/);
@@ -241,7 +257,7 @@ test('基礎配置重開需確認，取消不改本局，確認保留收藏',()=
 
 
 test('整局結算呈現本局所有收穫，重整後清單仍在且不重發',()=>{const h=harness();h.click('begin-run');const g=h.game;h.ctx.Progression.grantRewards(g.permanent,g.run,[{kind:'moves',id:'spark'},{kind:'equipment',id:'windboots'},{kind:'books',id:'inferno'},{kind:'talents',id:'economy'}]);g.run.status='failed';g.run.deaths=3;g.result={won:false,exp:null};g.encounter={type:'greywind_0',level:2};vm.runInContext('showResult();saveSession()',h.ctx);const html=h.elements.get('modal').innerHTML;assert.ok(html.includes('冒險結算'));for(const text of ['雷電術','疾風靴','爆炎','節能施法'])assert.ok(html.includes(text));const next=harness(h.saved);assert.ok(next.elements.get('modal').innerHTML.includes('本局收穫'));assert.equal(Object.values(next.game.run.loot).reduce((n,r)=>n+r.count,0),4);next.click('result-next');assert.equal(next.game.scene,'title');next.click('begin-run');assert.equal(Object.keys(next.game.run.loot).length,0);});
-test('實際戰鬥結果流程將充能带往下一場',()=>{const h=harness();h.click('begin-run');h.game.run.position={x:590,y:350};h.click('interact');h.step(12);h.game.battle.charge=8.5;h.game.battle.finish(true);h.step(25);assert.equal(h.game.modal,'result');assert.equal(h.game.run.ultimateCharge,8.5);h.click('result-next');vm.runInContext("startEncounter({type:'greywind_0',level:2})",h.ctx);assert.equal(h.game.battle.charge,8.5);});
+test('實際戰鬥結果流程將充能带往下一場',()=>{const h=harness();h.click('begin-run');vm.runInContext("startEncounter({type:'greywind_0',level:2})",h.ctx);h.step(12);h.game.battle.charge=8.5;h.game.battle.finish(true);h.step(25);assert.equal(h.game.modal,'result');assert.equal(h.game.run.ultimateCharge,8.5);h.click('result-next');vm.runInContext("startEncounter({type:'greywind_0',level:2})",h.ctx);assert.equal(h.game.battle.charge,8.5);});
 
 
 test('Lv.18 大型石頭人在營地附近保持中立，只有點擊互動才進戰鬥',()=>{const h=harness();h.click('begin-run');const run=h.game.run,e=run.world.enemies.find(e=>e.type==='camp_golem'),d=h.ctx.GameData.monsters[e.type];assert.equal(e.level,18);assert.equal(d.sprite,'golem');assert.ok(d.worldScale>1.1);assert.ok(h.ctx.World.distance(e,h.ctx.GameData.world.camp)<300);run.world.enemies=[e];run.position={x:e.x,y:e.y};h.step(30);assert.equal(h.game.scene,'explore');assert.equal(e.x,e.homeX);assert.equal(e.y,e.homeY);assert.equal(e.alert,false);h.click('interact');assert.equal(h.game.scene,'battle');assert.equal(h.game.encounter.type,'camp_golem');});

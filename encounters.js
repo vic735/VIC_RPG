@@ -4,6 +4,7 @@
  const P=typeof module!=='undefined'?require('./progression'):root.Progression;
  const M=typeof module!=='undefined'?require('./meta'):root.GameMeta;
  const Rewards=typeof module!=='undefined'?require('./world-rewards'):root.WorldRewards;
+ const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
  const members=e=>Array.isArray(e?.enemies)?e.enemies:e?[e]:[];
  function records(run,p){run.defeatedEnemyTypesThisRun=[...new Set((run.defeatedEnemyTypesThisRun||[]).filter(id=>D.monsters[id]))];return run.battleStats||=( {kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:p?.meta?.bestHit||0,lastDefeat:null} );}
  function special(e){return !e||e.elite||e.isElite||e.boss||e.isBoss||e.specialEvent||e.isSpecialEvent||e.isEvent||e.special||e.eventId||e.eventType||e.event||e.dungeonId||e.dungeon||e.isDungeon||e.quickBattleAllowed===false||e.forceNormalGroup||['elite','boss','event','special','dungeon'].includes(e.kind)||['elite','boss','event','special','dungeon'].includes(e.source)||['elite','boss','event','special','dungeon'].includes(e.role)||['elite','boss','event','special','dungeon'].includes(e.encounterKind);}
@@ -44,6 +45,7 @@
   return run.adventurerRank;
  }
  function rankView(run){
+  if(run.starter&&run.adventurerRank.index===-1){const active=run.starter.phase==='boss';return {index:-1,rank:'E',tier:'E',nextRank:'D−',progress:run.level,required:9,remaining:Math.max(0,9-run.level),active,normal:active?[{label:'打倒守關 Boss',value:0,target:1}]:[],challenge:{label:active?'打倒守關 Boss':'升至 Lv.9，喚醒守關 Boss',value:active?0:run.level,target:active?1:9}};}
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
@@ -55,6 +57,7 @@
    challenge:cfg?{label:'本階正常擊敗 Lv.'+cfg.challenge.enemyLevel+' 以上魔物（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
  }
  function advanceRank(run,event={}){
+  if(run.starter&&run.adventurerRank.index===-1){if(event.enemy&&!event.quick&&Maps.clearStarter(run,event.enemy))return {from:'E',to:'D−',route:'starter'};return null;}
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run),previous=s.last;
   s.last=metrics;if(!cfg||run.status!=='active')return null;
   const wasActive=s.progress>=cfg.points;

@@ -94,15 +94,16 @@
     }
     drawWorld(game) {
       const c = this.ctx, w = this.width, h = this.height, run = game.run, pos = run?.position || GameData.world.camp;
+      const worldWidth=GameData.maps?.[run?.currentMapId]?.width||GameData.world.width,worldHeight=GameData.maps?.[run?.currentMapId]?.height||GameData.world.height;
       const zoom = w >= 1800 ? 1.4 : w < 650 ? .78 : 1;
-      this.camera.x = Math.max(0, Math.min(GameData.world.width - w / zoom, pos.x - w / (2 * zoom)));
-      this.camera.y = Math.max(0, Math.min(GameData.world.height - h / zoom, pos.y - h / (2 * zoom)));
-      c.save(); c.scale(zoom, zoom); c.translate(-this.camera.x, -this.camera.y); c.fillStyle = '#263b30'; c.fillRect(0, 0, GameData.world.width, GameData.world.height);
+      this.camera.x = Math.max(0, Math.min(worldWidth - w / zoom, pos.x - w / (2 * zoom)));
+      this.camera.y = Math.max(0, Math.min(worldHeight - h / zoom, pos.y - h / (2 * zoom)));
+      c.save(); c.scale(zoom, zoom); c.translate(-this.camera.x, -this.camera.y); c.fillStyle = '#263b30'; c.fillRect(0, 0, worldWidth, worldHeight);
       const activeMap=run&&GameData.maps?.[run.currentMapId];
-      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,GameData.world.width,GameData.world.height);}
+      if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,worldWidth,worldHeight);}
       else for (const r of GameData.world.regions) { c.fillStyle=r.color;c.fillRect(...r.bounds); }
       // Low-contrast terrain marks distinguish regions without taking HUD space.
-      for(const r of activeMap?[{bounds:[0,0,GameData.world.width,GameData.world.height],visualTheme:activeMap.environmentId}]:GameData.world.regions)for(let i=0;i<48;i++){
+      for(const r of activeMap?[{bounds:[0,0,worldWidth,worldHeight],visualTheme:activeMap.environmentId}]:GameData.world.regions)for(let i=0;i<48;i++){
         const x=r.bounds[0]+(i*347+153)%r.bounds[2],y=r.bounds[1]+(i*593+221)%r.bounds[3];
         if(x<this.camera.x-100||x>this.camera.x+w/zoom+100||y<this.camera.y-100||y>this.camera.y+h/zoom+100)continue;
         if(r.visualTheme==='wetland')this.ellipse(x,y,62,26,'#102f3855');
@@ -111,12 +112,12 @@
       }
       for (const p of this.grass) { if (p.x < this.camera.x - 20 || p.x > this.camera.x + w / zoom + 20 || p.y < this.camera.y - 20 || p.y > this.camera.y + h / zoom + 20) continue; c.fillStyle = p.n > .7 ? '#b5b78b33' : '#111d2144'; c.fillRect(p.x, p.y, 2 + p.n * 3, 2); if (p.n > .85) { c.strokeStyle = '#9ba77855'; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - 2, p.y - 6); c.moveTo(p.x, p.y); c.lineTo(p.x + 3, p.y - 4); c.stroke(); } }
       c.lineCap = 'round'; for (const [width, color] of [[89, '#1d30292f'], [75, '#6a695244'], [52, '#98907422']]) { c.strokeStyle = color; c.lineWidth = width; c.beginPath(); for (const road of GameData.world.roads) { c.moveTo(road[0].x,road[0].y); for(const point of road.slice(1))c.lineTo(point.x,point.y); } c.stroke(); } c.lineWidth = 1;
-      c.save();c.strokeStyle='#080f12aa';c.lineWidth=38;c.strokeRect(20,20,GameData.world.width-40,GameData.world.height-40);c.strokeStyle='#d2bd7a88';c.lineWidth=5;c.setLineDash([30,18]);c.strokeRect(42,42,GameData.world.width-84,GameData.world.height-84);c.setLineDash([]);c.restore();
-      const edgeExit=run&&World.edgeExit(run,520);if(edgeExit){const e=edgeExit.entity,vertical=e.edge==='left'||e.edge==='right',x=e.edge==='left'?52:e.edge==='right'?GameData.world.width-52:Math.max(260,Math.min(GameData.world.width-260,pos.x)),y=e.edge==='top'?52:e.edge==='bottom'?GameData.world.height-52:Math.max(130,Math.min(GameData.world.height-130,pos.y));c.save();c.strokeStyle='#f0d487';c.lineWidth=10;c.shadowColor='#e7c66f';c.shadowBlur=22;c.beginPath();if(vertical){c.moveTo(x,y-105);c.lineTo(x,y+105);}else{c.moveTo(x-180,y);c.lineTo(x+180,y);}c.stroke();c.restore();this.text((e.forward?'前往下一區 →':'← 返回上一區'),vertical?(e.edge==='left'?x+105:x-105):x,vertical?y:(e.edge==='top'?y+42:y-42),18,'#f4e2aa');this.text(e.name,vertical?(e.edge==='left'?x+105:x-105):x,vertical?y+26:(e.edge==='top'?y+70:y-70),13,'#d7d5bb');}
+      c.save();c.strokeStyle='#080f12aa';c.lineWidth=38;c.strokeRect(20,20,worldWidth-40,worldHeight-40);c.strokeStyle='#d2bd7a88';c.lineWidth=5;c.setLineDash([30,18]);c.strokeRect(42,42,worldWidth-84,worldHeight-84);c.setLineDash([]);c.restore();
+      const edgeExit=run&&World.edgeExit(run,520);if(edgeExit){const e=edgeExit.entity,vertical=e.edge==='left'||e.edge==='right',x=e.edge==='left'?52:e.edge==='right'?worldWidth-52:Math.max(260,Math.min(worldWidth-260,pos.x)),y=e.edge==='top'?52:e.edge==='bottom'?worldHeight-52:Math.max(130,Math.min(worldHeight-130,pos.y));c.save();c.strokeStyle='#f0d487';c.lineWidth=10;c.shadowColor='#e7c66f';c.shadowBlur=22;c.beginPath();if(vertical){c.moveTo(x,y-105);c.lineTo(x,y+105);}else{c.moveTo(x-180,y);c.lineTo(x+180,y);}c.stroke();c.restore();this.text((e.starterPortal?'傳送點 · 選擇七大區':e.forward?'前往下一區 →':'← 返回上一區'),vertical?(e.edge==='left'?x+105:x-105):x,vertical?y:(e.edge==='top'?y+42:y-42),18,'#f4e2aa');this.text(e.name,vertical?(e.edge==='left'?x+105:x-105):x,vertical?y+26:(e.edge==='top'?y+70:y-70),13,'#d7d5bb');}
       this.camp(GameData.world.camp.x, GameData.world.camp.y);
       const things = World.scenery.filter(t => t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
       for (const d of GameData.dungeons) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
-      if (run) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
+      if (run&&!activeMap?.starter) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
         c.save(); c.translate(o.x, o.y); this.ellipse(0, 4, 22, 7, '#0a191977');
         if (o.kind === 'npc') { this.person(0, 0, 1, false, -1); this.glow(0, -20, 24, '#e6ca781b'); }
@@ -218,7 +219,7 @@
       } this.fx = this.fx.filter(f => f.life > 0);
     }
     minimap(canvas, run) {
-      const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height; c.clearRect(0, 0, w, h); c.fillStyle = '#23362e'; c.fillRect(0, 0, w, h); const sx = w / GameData.world.width, sy = h / GameData.world.height;
+      const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height; c.clearRect(0, 0, w, h); c.fillStyle = '#23362e'; c.fillRect(0, 0, w, h); const sx = w / (GameData.maps?.[run?.currentMapId]?.width||GameData.world.width), sy = h / (GameData.maps?.[run?.currentMapId]?.height||GameData.world.height);
       const activeMap=run&&GameData.maps?.[run.currentMapId];
       if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,w,h);}
       else for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }

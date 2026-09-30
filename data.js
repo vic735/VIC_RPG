@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.19.1', date: '2026-09-30' },
+    release: { version: '0.20.0', date: '2026-09-30' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -78,7 +78,7 @@
     critBase: .05, critPerLuck: .006, critCap: .55, critDamageBase: 1.4, critDamagePerLuck: .008,
     dodgePerAgility: .0015, dodgeCap: .3, expPerLuck: .008, expLuckCap:.25,
     expBase: 24, expPerLevel: 12, levelCost: 90, levelCostGrowth: 30,
-    expPacing:{version:1,levelKnots:[[1,1],[20,1.5],[50,2],[100,3],[300,8],[600,15],[850,24],[999,30]],roleMultipliers:{normal:1,strong:1.2,dungeon:1.1,elite:1.35,boss:1.6,importantBoss:1.67},openingMultiplier:1.25},
+    expPacing:{version:2,legacyThrough:50,surgeFrom:100,earlyExpMultiplier:1.5,levelKnots:[[1,1],[20,1.5],[50,2],[100,3],[300,8],[600,15],[850,24],[999,30]],roleMultipliers:{normal:1,strong:1.2,dungeon:1.1,elite:1.35,boss:1.6,importantBoss:1.67},openingMultiplier:1.25},
     expGap: [[-20, .1], [-10, .35], [-5, .7], [0, 1], [3, 1.15], [5, 1.3], [10, 1.6], [20, 2]],
     moveGrowth: [.18, .09, .035, .012], post50Mastery:[[200,.008],[500,.004],[999,.002]], ultimateCharge: 12,
     pointValues: { hp: 15, stamina: 6, mana: 6, agility: 3, luck: 3 },

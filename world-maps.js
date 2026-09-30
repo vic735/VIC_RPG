@@ -67,12 +67,22 @@
   map.spawnPoints=spawnLayout(map);
  }
  D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ const starterConfig={areaRatio:.5,levelCap:9,expMultiplier:4,bossHpMultiplier:2.6,bossDamageMultiplier:.65};
+ const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=D.world.width*Math.sqrt(starterConfig.areaRatio),height=D.world.height*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
+  for(let i=0;i<36;i++){const angle=i*2.399963,radius=240+Math.floor(i/9)*150;map.spawnPoints.push({x:Math.max(90,Math.min(width-90,map.entry.x+Math.cos(angle)*radius)),y:Math.max(90,Math.min(height-90,map.entry.y+Math.sin(angle)*radius)),level:1+Math.floor(i/5),elite:false});}
+  const bossId=map.id+'_guardian',template=D.monsters[source.enemyPoolIds[1]||source.enemyPoolIds[0]];D.monsters[bossId]={...template,id:bossId,name:region.name+'守關者',boss:true,moves:['goblin','crush'],skills:[],behavior:'neutral',radius:0,worldScale:1.65,labelHeight:88,dropChance:0};map.bossType=bossId;
+  D.maps[map.id]=map;return map;
+ });
+ function startStarter(run,rng=Math.random){const map=starterMaps[Math.min(starterMaps.length-1,Math.floor(rng()*starterMaps.length))];run.starter={version:1,mapId:map.id,phase:'training',bossId:map.id+'-boss'};run.currentMapId=map.id;run.position={...map.entry};run.mapPositions={};run.mapLayoutVersion=layoutVersion;run.world.enemies=[];run.adventurerRank.index=-1;ensureRun(run);return map;}
+ function syncStarter(run){const s=run.starter;if(!s||run.currentMapId!==s.mapId)return;if(s.phase==='cleared'){run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);return;}if(run.level>=starterConfig.levelCap){run.level=starterConfig.levelCap;run.exp=0;s.phase='boss';if(!run.world.enemies.some(e=>e.id===s.bossId)){const map=D.maps[s.mapId],x=map.entry.x,y=map.entry.y-210;run.world.enemies.push({id:s.bossId,mapId:map.id,regionId:map.regionId,type:map.bossType,level:9,boss:true,role:'boss',quickBattleAllowed:false,x,y,homeX:x,homeY:y,discovered:true,defeatedUntil:0});}}}
+ function clearStarter(run,enemy){const s=run.starter;if(!s||s.phase!=='boss'||enemy.id!==s.bossId||enemy.type!==D.maps[s.mapId].bossType)return false;s.phase='cleared';run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);const rank=run.adventurerRank;rank.index=0;rank.progress=0;rank.normalKills=rank.challengeKills=0;rank.last={kills:run.battleStats.kills,dungeons:run.battleStats.clearedDungeonIds.length,level:run.level};rank.history.push({from:'E',to:'D−',route:'starter'});return true;}
  function inferLegacy(run){
   const dungeon=D.dungeons.find(d=>d.id===run.dungeon?.id);if(dungeon?.mapId)return dungeon.mapId;
   const legacy=D.world.regions.find(r=>run.position.x>=r.bounds[0]&&run.position.x<r.bounds[0]+r.bounds[2]&&run.position.y>=r.bounds[1]&&run.position.y<r.bounds[1]+r.bounds[3])||D.world.regions[0];
   return legacyToRegion[legacy.id]+'_1';
  }
  function ensureRun(run){
+  if(run.starter&&run.currentMapId===run.starter.mapId){run.mapPositions||={};if(run.starter.phase!=='cleared')populate(run,D.maps[run.currentMapId]);syncStarter(run);return run;}
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
   if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.world.enemies=run.world.enemies.filter(e=>!e.id?.includes('-patrol-'));run.mapLayoutVersion=layoutVersion;}
   run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
@@ -97,11 +107,12 @@
  }
  function enter(run,id){
   const map=D.maps[id];if(!map||!map.isAvailable||run.dungeon)return false;
+  if(map.starter||run.starter&&run.currentMapId===run.starter.mapId&&run.starter.phase!=='cleared')return false;
   ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
   run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
   populate(run,map);
   return map;
  }
- const api={regions,maps,byId:D.maps,layoutVersion,safeRadius,ensureRun,enter,inferLegacy};
+ const api={regions,maps,byId:D.maps,layoutVersion,safeRadius,starterConfig,starterMaps,startStarter,syncStarter,clearStarter,ensureRun,enter,inferLegacy};
  if(typeof module!=='undefined')module.exports=api;else root.WorldMaps=api;
 })(globalThis);
