@@ -139,6 +139,16 @@
       if (!game.settings?.reducedMotion) for (let i = 0; i < 22; i++) { const x = pos.x - 470 + ((i * 157 + this.time * 8) % 940), y = pos.y - 320 + (i * 93 % 640) + Math.sin(this.time + i) * 15; this.ellipse(x, y, 1.3, 1.3, `rgba(212,220,153,${.15 + .3 * Math.sin(this.time + i) ** 2})`); }
       c.restore();
       const vignette = c.createRadialGradient(w / 2, h / 2, h * .15, w / 2, h / 2, Math.max(w, h) * .67); vignette.addColorStop(0, '#050b0d00'); vignette.addColorStop(1, '#050b0d9c'); c.fillStyle = vignette; c.fillRect(0, 0, w, h);
+      this.drawBossGuide(game,zoom);
+    }
+    drawBossGuide(game,zoom){
+      const run=game.run;if(run?.starter?.phase!=='boss'||run.currentMapId!==run.starter.mapId)return;
+      const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(!boss)return;
+      const c=this.ctx,bx=(boss.x-this.camera.x)*zoom,by=(boss.y-this.camera.y)*zoom,x=Math.max(64,Math.min(this.width-64,bx)),y=Math.max(135,Math.min(this.height-220,by-82)),dx=boss.x-run.position.x,dy=boss.y-run.position.y,near=Math.hypot(dx,dy)<100;
+      c.save();c.translate(x,y);c.fillStyle='#f5d68b';c.strokeStyle='#ffe5a5';c.shadowColor='#e9bb53';c.shadowBlur=12;
+      if(!near){c.save();c.rotate(Math.atan2(dy,dx));c.beginPath();c.moveTo(15,0);c.lineTo(-9,-8);c.lineTo(-4,0);c.lineTo(-9,8);c.closePath();c.fill();c.restore();}
+      else {c.beginPath();c.arc(0,0,13,0,Math.PI*2);c.stroke();}
+      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');c.restore();
     }
     drawTitle(game) {
       const c = this.ctx, w = this.width, h = this.height, motion = game.settings?.reducedMotion ? 0 : this.time;

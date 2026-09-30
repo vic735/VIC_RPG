@@ -85,6 +85,10 @@ test('新局E階隨機新手區：Lv9停經驗、Boss晉階清場、碰邊緣選
  for(const region of M.regions)assert.match(h.elements.get('modal').innerHTML,new RegExp(region.name));
  h.click('world-region','southern_kingdom');h.click('world-map-detail','southern_kingdom_1');h.click('world-enter-map','southern_kingdom_1');assert.equal(r.level,9);assert.ok(P.grantExp(r,10,'greywind_1').amount>0);
 });
+test('Lv9守關Boss現身顯示位置通知，探索箭頭指路並於清場消失',()=>{
+ const h=harness([],true);h.click('begin-run');const r=h.game.run;r.level=8;r.exp=h.ctx.Progression.levelCost(8)-1;vm.runInContext("startEncounter({type:'greywind_0',level:8})",h.ctx);h.game.transition=0;h.game.battle.finish(true);h.step(23);assert.equal(r.level,9);assert.match(h.elements.get('modal').innerHTML,/守關 Boss 已現身/);assert.match(h.elements.get('modal').innerHTML,/出生點北側/);h.click('result-next');const labels=[],renderer=h.ctx.GameApp.renderer,original=renderer.text;renderer.text=(text)=>labels.push(text);renderer.drawBossGuide(h.game,.78);assert.ok(labels.some(t=>t.includes('守關 Boss')));labels.length=0;r.starter.phase='cleared';renderer.drawBossGuide(h.game,.78);assert.equal(labels.length,0);renderer.text=original;
+});
+
 test('選區及邊缘入口資格不足才出公告，B普通階可通行',()=>{
  const h=harness([],true);h.click('begin-run');const r=h.game.run;r.starter.phase='cleared';r.adventurerRank.index=6;h.ctx.WorldMaps.enter(r,'north_plains_2');h.click('journal');h.click('world-map');h.click('world-region','north_plains');h.click('world-map-detail','north_plains_3');assert.doesNotMatch(h.elements.get('modal').innerHTML,/B 級以上/);h.click('world-enter-map','north_plains_3');assert.equal(h.game.modal,'map-permit');assert.match(h.elements.get('modal').innerHTML,/B 級以上/);assert.equal(r.currentMapId,'north_plains_2');h.click('close');r.position={x:h.ctx.GameData.world.width-40,y:2000};h.step(2);h.click('interact');assert.equal(h.game.modal,'map-permit');h.click('close');r.adventurerRank.index=7;h.click('interact');assert.equal(r.currentMapId,'north_plains_3');
 });
