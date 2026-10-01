@@ -21,7 +21,7 @@
   else if(kind==='statuses'){body=`<div class="eyebrow">${d.polarity==='buff'?'BUFF':'DEBUFF'}</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>持續 ${d.duration} 秒</p><p class="effect-note">${U.escape(statusText(d))}</p><p>${U.escape(d.description)}</p>`;}
   else if(kind==='monsters'){body=`<div class="eyebrow">BESTIARY</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>屬性：${(d.elements||[]).map(elementName).join('＋')||'無'} · 行動：${U.escape(d.behavior||'未知')}</p><p>招式：${(d.moves||[]).map(x=>D.moves[x]?.name).filter(Boolean).map(U.escape).join('、')}</p>`;}
   else body=`<div class="eyebrow">DUNGEON RECORD</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>建議 Lv.${d.recommendedLevel||d.level} · ${U.escape(d.description)}</p><p>特色：${(d.features||[]).map(U.escape).join('／')}</p>`;
-  return `${body}<div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;
+  return `${body}<p class="quiet-note">取得線索：${U.escape(entry.hint)}</p><div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;
  }
  function settlement(run){const r=M.ledger(run);return `<section class="meta-settlement"><small>本局帶回 · 旅者徽記</small><strong>＋${r.total} ◇</strong><p>戰鬥 ${r.combat} · 探索 ${r.exploration} · 地下城 ${r.dungeons}</p><small>已存入局外商店錢包</small></section>`;}
  root.MetaScreens={shop,codex,codexDetail,settlement};

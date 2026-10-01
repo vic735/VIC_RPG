@@ -127,6 +127,11 @@
         if (near && !used) { this.text('◇',0,-65,19,'#e3d39e'); this.text(o.name,0,24,13,'#e0dec5'); }
         c.restore();
       } });
+      if(run)for(const o of RunExploration.objects(run))if(Math.abs(o.x-pos.x)<w/zoom+80&&Math.abs(o.y-pos.y)<h/zoom+80)things.push({y:o.y,draw:()=>{c.save();c.translate(o.x,o.y);this.ellipse(0,5,24,8,'#08171999');const near=World.distance(o,pos)<90,color=o.visual==='book'?'#b9a5ee':o.visual==='altar'?'#c6aa76':'#a9c6ae';
+        if(o.visual==='spring'){this.ellipse(0,-2,23,12,'#3d8c8977');this.ellipse(0,-3,15,7,'#8ac6bf99');}
+        else if(o.visual==='chest'||o.visual==='book'){c.fillStyle='#3a3430';c.fillRect(-20,-22,40,25);c.strokeStyle=color;c.lineWidth=2;c.strokeRect(-20,-22,40,25);c.fillStyle=color;c.fillRect(-3,-16,6,10);}
+        else{this.poly([[-19,3],[-14,-37],[8,-42],[19,3]],'#3d4944',color);this.text(o.visual==='altar'?'✦':'⋄',0,-17,22,color);}
+        this.glow(0,-18,30,color+'22');if(near){this.text('◇',0,-62,18,color);this.text(o.name,0,28,13,'#dedccb');}c.restore();}});
       if (run) for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
         this.monster(e.type, e.x, e.y, GameData.monsters[e.type].worldScale||1.1);
 
@@ -148,7 +153,7 @@
       c.save();c.translate(x,y);c.fillStyle='#f5d68b';c.strokeStyle='#ffe5a5';c.shadowColor='#e9bb53';c.shadowBlur=12;
       if(!near){c.save();c.rotate(Math.atan2(dy,dx));c.beginPath();c.moveTo(15,0);c.lineTo(-9,-8);c.lineTo(-4,0);c.lineTo(-9,8);c.closePath();c.fill();c.restore();}
       else {c.beginPath();c.arc(0,0,13,0,Math.PI*2);c.stroke();}
-      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');c.restore();
+      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');this.text(game.permanent?.meta?.starterRewardLocked?'收藏獎勵已領取':'收藏獎勵可領取',0,49,11,'#d6c99e');c.restore();
     }
     drawTitle(game) {
       const c = this.ctx, w = this.width, h = this.height, motion = game.settings?.reducedMotion ? 0 : this.time;

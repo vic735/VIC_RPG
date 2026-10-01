@@ -1,6 +1,7 @@
 (function (root) {
   const D = typeof module !== 'undefined' ? require('./data.js') : root.GameData;
   const P = typeof module !== 'undefined' ? require('./progression.js') : root.Progression;
+  const X=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function seeded(seed = 917) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
   const roadY = x => 1090 - (x - 370) * .34 + Math.sin(x / 180) * 45;
@@ -57,6 +58,7 @@
     return null;
   }
   function nearby(run) {
+    const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
     const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
@@ -72,6 +74,7 @@
     return { text: object.text, reward: object.reward || null };
   }
   function threat(playerLevel, enemyLevel) { const gap = enemyLevel - playerLevel; return gap >= 6 ? { color: '#ff7374', label: '☠ 極度危險' } : gap >= 3 ? { color: '#ee8a77', label: '危險' } : gap >= -1 ? { color: '#edcf8d', label: '勢均力敵' } : { color: '#e4e8d7', label: '較弱' }; }
+  X.setPositionValidator(blocked);
   const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, edgeExit, interactObject, threat, distance };
   if (typeof module !== 'undefined') module.exports = api; else root.World = api;
 })(globalThis);

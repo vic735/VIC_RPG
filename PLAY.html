@@ -116,6 +116,8 @@
 .preset-list{display:grid;gap:12px}.preset-card{padding:14px;border:1px solid #a58c5355;border-radius:12px;background:#171b21}.preset-card strong,.preset-card small{display:block}.preset-card small{margin:8px 0;color:#b9b4a9;line-height:1.6}.preset-card>div{display:flex;gap:8px;flex-wrap:wrap}.preset-card button{min-height:44px;padding:8px 12px}.preset-card button:disabled{opacity:.35}#preset-name{display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:12px;background:#171b21;color:#eee;border:1px solid #a58c5388;border-radius:8px}
 
 .content-sort{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0 16px}.content-sort>span{font-size:12px;color:#b9b4a9;margin-right:4px}.content-sort button{min-height:44px;padding:8px 12px;border:1px solid #a58c5344;border-radius:8px;background:#171b21;color:#c8c4b9;font-size:13px}.content-sort button.selected{background:#594c2e;color:#fff0bf;border-color:#c0a465}.content-sort button:last-child{margin-left:auto}
+
+.exploration-modal{text-align:left;max-height:82dvh;overflow-y:auto}.exploration-modal .modal-footer{display:flex;flex-wrap:wrap;gap:10px}.exploration-modal .modal-footer button{min-height:48px;flex:1}.exploration-card{padding:16px;margin:12px 0;border:1px solid #b7b18a44;border-radius:12px;background:linear-gradient(135deg,#263a3277,#142825aa)}.exploration-card h3{margin:6px 0;color:#edd5a2}.exploration-card p{font-size:14px!important;line-height:1.7}.exploration-card small{display:block;color:#b7c5b4;font-size:12px;line-height:1.6}.exploration-card>b{color:#c6dabb}.exploration-effects{padding:12px;border-top:1px solid #a6b59933}.exploration-effects h3{font-size:15px;color:#cbb998}.exploration-effects p{margin:10px 0}.exploration-effects small{display:block;line-height:1.6;color:#b9c7b3}.discovery-ready{color:#bde1b3!important}.exploration-list{margin:12px 0}
 </style></head>
 <body><div id="viewport"><main id="game" data-mode="title" aria-label="餘光 RPG 遊戲">
 <canvas id="scene" aria-label="奇幻冒險遊戲場景"></canvas><div class="scene-grain"></div><div class="frame-corner corner-tl"></div><div class="frame-corner corner-br"></div>
@@ -422,7 +424,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.20.11', date: '2026-10-01' },
+    release: { version: '0.21.0', date: '2026-10-01' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -1384,7 +1386,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       this.player = actor('player', stats); this.enemy = actor('enemy', { ...this.enemyDefinition.stats });
       this.player.elements = this.options.elements || []; this.enemy.elements = this.enemyDefinition.elements || [];
       this.player.weaponType = D.equipment[this.build.equipment.weapon]?.weaponType;
-      this.player.runtime = new R.Runtime(this,this.player,[...(this.options.classTrait?[this.options.classTrait]:[]),...this.build.talents.map(id=>D.skills[id]).filter(Boolean),...Object.values(this.build.equipment).map(id=>D.equipment[id]).filter(Boolean)]);
+      this.player.runtime = new R.Runtime(this,this.player,[...(this.options.classTrait?[this.options.classTrait]:[]),...(this.options.extraSources||[]),...this.build.talents.map(id=>D.skills[id]).filter(Boolean),...Object.values(this.build.equipment).map(id=>D.equipment[id]).filter(Boolean)]);
       this.enemy.runtime = new R.Runtime(this,this.enemy,(this.enemyDefinition.skills||[]).map(id=>D.skills[id]).filter(Boolean));
     }
     start() {
@@ -1511,15 +1513,16 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function(root){
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
  function pick(entries,rng){const total=entries.reduce((n,e)=>n+e.weight,0);if(!entries.length||total<=0)throw Error('獎勵池沒有有效候選');let value=Math.max(0,Math.min(.999999999,rng()))*total;return entries.find(e=>(value-=e.weight)<0)||entries.at(-1);}
- function pool(id,rng=Math.random,options={}){const source=D.rewardPools[id];if(!source)throw Error('未知獎勵池');const entries=source.entries.filter(e=>(!options.type||e.rewardType===options.type)&&(!e.requirements?.minLevel||(options.level||1)>=e.requirements.minLevel));const entry=pick(entries,rng),ids=entry.rewardIds;if(!ids.length)throw Error('空獎勵定義');return {kind:entry.rewardType,id:ids[Math.min(ids.length-1,Math.floor(rng()*ids.length))],rarity:entry.rarity,poolId:id};}
- function dungeon(id,rng=Math.random,options={}){const d=D.dungeons.find(d=>d.id===id);if(!d)throw Error('未知地下城');const rule=options.combination?d.rewardCombinationRules.find(r=>r.id===options.combination):pick(d.rewardCombinationRules,rng);if(!rule)throw Error('未知獎勵組合');return {dungeonId:id,combination:rule.id,rewards:rule.draws.map(draw=>pool(draw.pool,rng,{type:draw.type,level:options.level||d.level}))};}
+ function owned(p,kind,id){const source=kind==='moves'?D.moves:D.skills,item=source[id];return kind==='moves'?Object.keys(p.moves||{}).some(key=>source[key]===item):(p.skills||[]).some(key=>source[key]===item);}
+ function pool(id,rng=Math.random,options={}){const source=D.rewardPools[id];if(!source)throw Error('未知獎勵池');const entries=source.entries.filter(e=>(e.rewardIds.length&&(!options.type||e.rewardType===options.type))&&(!e.requirements?.minLevel||(options.level||1)>=e.requirements.minLevel));let entry=pick(entries,rng),ids=entry.rewardIds;if(options.preferUnowned&&options.permanent&&['moves','talents'].includes(entry.rewardType)){const candidates=entries.filter(e=>e.rewardType===entry.rewardType&&e.rarity===entry.rarity).map(e=>({...e,rewardIds:e.rewardIds.filter(id=>!owned(options.permanent,e.rewardType,id))})).filter(e=>e.rewardIds.length);if(candidates.length){entry=pick(candidates,rng);ids=entry.rewardIds;}}if(!ids.length)throw Error('空獎勵定義');return {kind:entry.rewardType,id:ids[Math.min(ids.length-1,Math.floor(rng()*ids.length))],rarity:entry.rarity,poolId:id};}
+ function dungeon(id,rng=Math.random,options={}){const d=D.dungeons.find(d=>d.id===id);if(!d)throw Error('未知地下城');const rule=options.combination?d.rewardCombinationRules.find(r=>r.id===options.combination):pick(d.rewardCombinationRules,rng);if(!rule)throw Error('未知獎勵組合');const permanent=options.permanent?JSON.parse(JSON.stringify(options.permanent)):null;return {dungeonId:id,combination:rule.id,rewards:rule.draws.map(draw=>{const reward=pool(draw.pool,rng,{type:draw.type,level:options.level||d.level,permanent,preferUnowned:options.preferUnowned});if(permanent){if(reward.kind==='moves')permanent.moves[reward.id]=1;else if(reward.kind==='talents')permanent.skills.push(reward.id);}return reward;})};}
  function enemy(type,rng=Math.random,mapId=null,run=null){
   const e=D.monsters[type],map=D.maps?.[mapId],dropPool=map?.rewardPoolIds?.[0]||e?.dropPool;if(!dropPool)return [];
   const pity=D.balance.wildRewards?.pityBattles||Infinity,count=Math.max(0,Number(run?.wildRewardPity)||0),hit=count+1>=pity||rng()<(e?.dropChance||0);
   if(run)run.wildRewardPity=hit?0:count+1;
   return hit?[pool(dropPool,rng)]:[];
  }
- const api={pick,pool,dungeon,enemy};if(typeof module!=='undefined')module.exports=api;else root.WorldRewards=api;
+ const api={owned,pick,pool,dungeon,enemy};if(typeof module!=='undefined')module.exports=api;else root.WorldRewards=api;
 })(globalThis);
 
 </script><!-- inline-module:meta.js --><script>
@@ -1572,25 +1575,83 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function enter(p,id){const m=normalize(p);if(!m.enteredDungeons.includes(id)){m.enteredDungeons.push(id);m.revision++;}}
  function clear(p,run,id){const r=ledger(run);if(!r.settled&&!r.clears.includes(id)){r.clears.push(id);r.dungeons+=20;}enter(p,id);}
  function settle(p,run){const r=ledger(run);if(r.settled)return r.total;discover(p,run);const m=normalize(p);r.total=r.combat+r.exploration+r.dungeons;r.settled=true;m.marks+=r.total;m.earned+=r.total;m.runs++;m.revision++;return r.total;}
+ function starterEligible(p){return normalize(p).starterRewardLocked!==true;}
+ function completeStarterCycle(p,run){if(run.status!=='failed'||run.deaths<3||run.endedVoluntarily||run.starterRewardCycleCompleted)return false;run.starterRewardCycleCompleted=true;const m=normalize(p);m.starterRewardLocked=false;m.revision++;return true;}
+ function claimStarter(p,rng=Math.random){if(!starterEligible(p))return null;const pools=['moves','talents'].map(kind=>({kind,items:[...new Set(Object.values(kind==='moves'?D.moves:D.skills))].filter(x=>x.powerGrade==='C'&&x.contentScope!=='classExclusive'&&x.kind!=='ultimate'&&(kind==='moves'?!Object.keys(p.moves).some(id=>D.moves[id]===x):!p.skills.some(id=>D.skills[id]===x)))})).filter(x=>x.items.length);const m=normalize(p);m.starterRewardLocked=true;m.revision++;if(!pools.length){m.marks+=5;m.earned+=5;return {kind:'marks',id:'starter-compensation',amount:5,isNew:false};}const pool=pools[Math.min(pools.length-1,Math.floor(rng()*pools.length))],item=pool.items[Math.min(pool.items.length-1,Math.floor(rng()*pool.items.length))];return {kind:pool.kind,id:item.id};}
  function collection(p){const m=normalize(p),moves=new Set(D.startingMoves),skills=new Set(D.startingSkills);
   for(const pool of Object.values(D.rewardPools))for(const e of pool.entries){if(e.rewardType==='moves')e.rewardIds.forEach(id=>moves.add(id));if(e.rewardType==='talents')e.rewardIds.forEach(id=>skills.add(id));}
   for(const b of Object.values(D.books))moves.add(b.moveId);for(const c of catalog)(c.kind==='moves'?moves:skills).add(c.id);Object.keys(p.moves).forEach(id=>moves.add(id));for(const id of p.skills)skills.add(id);for(const id of p.ultimates||[])moves.add(id);
   for(const x of Object.values(D.moves))if(x.contentScope==='classExclusive')moves.add(x.id);for(const x of Object.values(D.skills))if(x.contentScope==='classExclusive')skills.add(x.id);
   const enemyIds=new Set([...D.enemySpawnData.map(e=>monsterId(e.type)),...D.dungeons.flatMap(d=>d.enemyWaves.map(w=>monsterId(w.type)))]);
-  function hint(kind,id){const c=catalog.find(c=>c.kind===kind&&c.id===id);if(c)return `旅者商店 · 通關 ${tiers[c.tier].clears} 座不同地下城後可能上架`;const d=D.dungeons.find(d=>d.rewardPoolIds?.some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardIds.includes(id))));return d?`探索 ${d.name}`:'探索世界與地下城、收集魔法書';}
+  function hint(kind,id){const source=kind==='moves'?D.moves:D.skills,item=source[id],ds=D.dungeons.filter(d=>d.rewardPoolIds?.some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardType===(kind==='moves'?'moves':'talents')&&e.rewardIds.some(key=>source[key]===item))));const c=catalog.find(c=>c.kind===kind&&source[c.id]===item),parts=[];if(ds.length)parts.push('地下城：'+ds.map(d=>d.name).join('／'));if(c)parts.push(`旅者商店：通關 ${tiers[c.tier].clears} 座不同地下城後可能上架`);if(kind==='moves'){const books=Object.values(D.books).filter(b=>D.moves[b.moveId]===item);if(books.length)parts.push('研讀魔法書：'+books.map(b=>b.name).join('／')+'；野外藏書稀有且必須完成前置任務');}return parts.join('。')||'探索世界與地下城，或完成對應職業成就';}
   const moveRows=[...moves].filter(id=>D.moves[id]).map(id=>({id,data:D.moves[id],known:!!p.moves[id]||!!p.ultimateUnlocked&&(p.ultimates||[]).includes(id),hint:hint('moves',id)}));
   const skillRows=[...skills].filter(id=>D.skills[id]).map(id=>({id,data:D.skills[id],known:p.skills.includes(id),hint:hint('skills',id)}));
-  const books=Object.values(D.books).map(data=>({id:data.id,data,known:p.books.includes(data.id),hint:'通關對應地下城，從魔法書獎勵池取得'}));
+  const books=Object.values(D.books).map(data=>({id:data.id,data,known:p.books.includes(data.id),hint:(typeof module!=='undefined'?require('./run-exploration'):root.RunExploration).bookHint(data.id)}));
   const equipment=Object.values(D.equipment).map(data=>({id:data.id,data,known:p.equipment.includes(data.id),hint:data.acquisitionTier==='easy'?'前期地下城或初始裝備':data.sourceDungeons?.length?'探索 '+data.sourceDungeons.map(id=>D.dungeons.find(d=>d.id===id)?.name).filter(Boolean).join('／'):'探索地下城裝備池'}));
   const statusMap=new Map();for(const row of moveRows)for(const e of row.data.effects||[])if(e.status){const x=statusMap.get(e.status.id)||{data:e.status,sources:[],known:false};x.sources.push(row.data.name);x.known||=row.known;statusMap.set(e.status.id,x);}for(const row of skillRows)for(const h of row.data.hooks||[])for(const e of h.effects||[])if(e.status){const x=statusMap.get(e.status.id)||{data:e.status,sources:[],known:false};x.sources.push(row.data.name);x.known||=row.known;statusMap.set(e.status.id,x);}
   for(const row of moveRows)for(const e of row.data.effects||[])if(e.type==='freeze'){const x=statusMap.get('frozen')||{data:{id:'frozen',name:'凍結',polarity:'debuff',duration:e.duration,blocksAction:true},sources:[],known:false};x.sources.push(row.data.name);x.known||=row.known;statusMap.set('frozen',x);}
   const statuses=[...statusMap.entries()].map(([id,x])=>({id,data:{...x.data,description:(x.data.polarity==='buff'?'Buff':'Debuff')+' · 來源：'+[...new Set(x.sources)].join('、')},known:x.known,hint:'先取得能施加這個狀態的招式或技能'}));
   return {moves:moveRows,skills:skillRows,books,equipment,statuses,monsters:[...enemyIds].map(id=>({id,data:D.monsters[id],known:m.seenMonsters.includes(id),complete:m.defeatedMonsters.includes(id),hint:'探索各地野外與地下城'})),dungeons:D.dungeons.map(d=>({id:d.id,data:d,known:m.foundDungeons.includes(d.id)||m.enteredDungeons.includes(d.id)||(p.dungeonCompletions?.[d.id]||0)>0,complete:(p.dungeonCompletions?.[d.id]||0)>0,entered:m.enteredDungeons.includes(d.id),hint:'探索世界地圖，尋找未知入口'}))};
  }
- const api={PERIOD,tiers,catalog,normalize,tier,stock,buy,ledger,encounter,discover,enter,clear,settle,collection};if(typeof module!=='undefined')module.exports=api;else root.GameMeta=api;
+ const api={starterEligible,claimStarter,completeStarterCycle,PERIOD,tiers,catalog,normalize,tier,stock,buy,ledger,encounter,discover,enter,clear,settle,collection};if(typeof module!=='undefined')module.exports=api;else root.GameMeta=api;
 })(globalThis);
 
 </script><!-- /inline-module --><script>
+/* Run-only discoveries, contracts, sealed books and stable dungeon encounters. */
+(function(root){
+ const D=typeof module!=='undefined'?require('./data'):root.GameData;
+ const copy=x=>JSON.parse(JSON.stringify(x)),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ const config={version:1,eventCountWeights:[.1,.3,.4,.2],emptyChance:.12,bookCountWeights:[.5,.45,.05],discoveryRadius:150,interactionRadius:80};
+ const effects={
+  shelter:{id:'shelter',name:'行旅庇護',description:'本局最大 HP +4%。',statRates:{hp:.04}},
+  insight:{id:'insight',name:'靜心符文',description:'本局 MP 消耗 -4%。',combatModifiers:[{stage:'cost:mana',op:'multiply',value:.96}]},
+  vigor:{id:'vigor',name:'復甦之息',description:'本局最大 SP +5%。',statRates:{stamina:.05}},
+  mana_pact:{id:'mana_pact',name:'魔力契約',description:'本局最大 MP +10%，最大 SP -10%。',group:'capacity',statRates:{mana:.1,stamina:-.1}},
+  stamina_pact:{id:'stamina_pact',name:'體能契約',description:'本局最大 SP +10%，最大 MP -10%。',group:'capacity',statRates:{stamina:.1,mana:-.1}},
+  calm_pact:{id:'calm_pact',name:'沉穩契約',description:'本局 MP 消耗 -8%，所有招式讀條值 +5%。',group:'casting',combatModifiers:[{stage:'cost:mana',op:'multiply',value:.92},{stage:'attackTime',op:'multiply',value:1.05}]}
+ };
+ const definitions=[
+  {id:'wayside',name:'旅人的遺贈',category:'positive',kind:'chest',effect:'shelter',text:'石匣裡留著一枚微暖的護符。帶上它，餘光將護佑這段旅程。'},
+  {id:'rune',name:'靜心石碑',category:'positive',kind:'investigate',effect:'insight',text:'指尖掠過碑文，古老的詠唱方法逐漸清晰。'},
+  {id:'spring',name:'復甦泉眼',category:'positive',kind:'spring',effect:'vigor',text:'泉水映著微光，一股溫暖的力量流入身體。'},
+  {id:'mana_altar',name:'魔力祭壇',category:'exchange',kind:'altar',effect:'mana_pact',text:'祭壇願以體能換取魔力。契約持續至本輪冒險結束。'},
+  {id:'stamina_altar',name:'體能祭壇',category:'exchange',kind:'altar',effect:'stamina_pact',text:'祭壇願以魔力換取體能。契約持續至本輪冒險結束。'},
+  {id:'calm_altar',name:'沉穩祭壇',category:'exchange',kind:'altar',effect:'calm_pact',text:'放慢詠唱，節省魔力。是否接受這份有代價的祝福？'}
+ ];
+ let blocked=()=>false;
+ const rngFor=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ const hash=s=>[...s].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917);
+ const sample=(xs,r)=>xs[Math.min(xs.length-1,Math.floor(r()*xs.length))];
+ function weighted(weights,r){let n=r()*weights.reduce((a,b)=>a+b,0);return weights.findIndex(w=>(n-=w)<0);}
+ function point(map,quadrant,r,occupied){const w=map.width||D.world.width,h=map.height||D.world.height;for(let i=0;i<160;i++){const p={x:Math.round((quadrant%2)*w/2+180+r()*(w/2-360)),y:Math.round(Math.floor(quadrant/2)*h/2+180+r()*(h/2-360))};if(distance(p,map.entry)<700||blocked(p.x,p.y)||occupied.some(x=>distance(x,p)<180)||D.dungeons.some(d=>d.mapId===map.id&&distance(d,p)<180)||map.spawnPoints?.some(x=>distance(x,p)<90))continue;occupied.push(p);return p;}return null;}
+ function dungeonPools(d){const map=D.maps[d.mapId];const pools={normal:[],elite:[]};for(const role of ['normal','elite']){const ids=[...new Set([...d.enemyWaves.filter(w=>w.role===role).map(w=>w.type),...(role==='normal'?map?.enemyPoolIds||[]:map?.elitePoolIds||[])])];pools[role]=ids.filter(id=>D.monsters[id]&&!D.monsters[id].boss&&(role==='elite'?D.monsters[id].elite:!D.monsters[id].elite));}return pools;}
+ function stableWaves(d,r){const pools=dungeonPools(d);let previous=null;return d.enemyWaves.map(w=>{if(w.role==='boss')return copy(w);const base=D.enemyBalance.species[D.monsters[w.type]?.sprite]||D.enemyBalance.species.default;let ids=(pools[w.role]||[]).filter(id=>{const s=D.enemyBalance.species[D.monsters[id].sprite]||D.enemyBalance.species.default;return s.hp/base.hp>=.7&&s.hp/base.hp<=1.4&&s.damage/s.cycle/(base.damage/base.cycle)>=.7&&s.damage/s.cycle/(base.damage/base.cycle)<=1.4;});if(ids.length>1)ids=ids.filter(id=>id!==previous);const type=ids.length?sample(ids,r):w.type;previous=type;return {...copy(w),type};});}
+ function ensure(run,options={}){if(!run||!D.mapData)return null;if(run.exploration?.version===config.version)return run.exploration;
+  const seed=Math.floor((options.rng||Math.random)()*4294967296)>>>0,s={version:config.version,seed,maps:{},dungeons:{},books:[],effects:[],history:[]};run.exploration=s;
+  for(const map of D.mapData){if(map.starter)continue;const r=rngFor(seed^hash(map.id)),occupied=[],count=weighted(config.eventCountWeights,r),quadrants=[0,1,2,3].sort(()=>0);for(let i=3;i>0;i--){const j=Math.floor(r()*(i+1));[quadrants[i],quadrants[j]]=[quadrants[j],quadrants[i]];}let emptyPlaced=false;const events=[];for(const q of quadrants.slice(0,count)){const p=point(map,q,r,occupied);if(!p)continue;const empty=!emptyPlaced&&r()<config.emptyChance;if(empty)emptyPlaced=true;const category=r()<.5?'positive':'exchange',def=sample(definitions.filter(x=>x.category===category),r);events.push({id:map.id+'-event-'+q,mapId:map.id,quadrant:q,...p,definitionId:def.id,name:def.name,visual:def.kind,empty,state:'unseen',action:'調查'});}s.maps[map.id]={events};}
+  for(const d of D.dungeons)s.dungeons[d.id]=run.dungeon?.id===d.id?copy(d.enemyWaves):stableWaves(d,rngFor(seed^hash(d.id)));
+  const r=rngFor(seed^0x734ad9),bookCount=weighted(config.bookCountWeights,r),available=D.mapData.filter(m=>!m.starter);for(let i=0;i<bookCount&&available.length;i++){const map=sample(available,r);available.splice(available.indexOf(map),1);const ids=[...new Set(map.dungeonIds.flatMap(id=>{const d=D.dungeons.find(x=>x.id===id);return (d?.rewardPoolIds||[d?.primaryRewardPool,d?.secondaryRewardPool,d?.rareRewardPool]).flatMap(pid=>(D.rewardPools[pid]?.entries||[]).filter(e=>e.rewardType==='books').flatMap(e=>e.rewardIds));}))].filter(id=>D.books[id]);if(!ids.length)continue;const novel=ids.filter(id=>!options.permanent?.books?.includes(id)),bookId=sample(novel.length?novel:ids,r),occupied=s.maps[map.id].events.map(e=>({...e})),start=point(map,Math.floor(r()*4),r,occupied),finish=point(map,Math.floor(r()*4),r,occupied);if(!start||!finish)continue;const questType=sample(['hunt','elite','dungeon','research'],r),enemyType=questType==='elite'?map.elitePoolIds[0]:map.enemyPoolIds[0],target=questType==='hunt'?3:questType==='research'?2:1,research=[];if(questType==='research'){for(let n=0;n<2;n++){const p=point(map,Math.floor(r()*4),r,occupied);if(p)research.push({id:map.id+'-rubbing-'+n,...p});}if(research.length!==2)continue;}s.books.push({id:'sealed-book-'+i,mapId:map.id,bookId,questType,enemyType,dungeonId:map.dungeonIds[0],target,progress:0,state:'unseen',start,finish,research,visited:[],clue:`${['西北','東北','西南','東南'][(finish.x<(map.width||D.world.width)/2?0:1)+(finish.y<(map.height||D.world.height)/2?0:2)]}方有一座封印石匣；完成前置任務後才能開啟。`});}
+  return s;
+ }
+ function waves(run,id){return ensure(run)?.dungeons[id]||D.dungeons.find(d=>d.id===id)?.enemyWaves||[];}
+ function sources(run){return (ensure(run)?.effects||[]).map(id=>effects[id]).filter(Boolean);}
+ function statFactor(run,key){return sources(run).reduce((v,e)=>v*(1+(e.statRates?.[key]||0)),1);}
+ function objects(run){const s=ensure(run),map=D.maps[run?.currentMapId];if(!s||!map||map.starter)return [];const out=(s.maps[map.id]?.events||[]).filter(e=>e.state!=='done').map(e=>({...e,kind:'run-event'}));for(const b of s.books.filter(b=>b.mapId===map.id&&b.state!=='claimed')){if(['unseen','offered'].includes(b.state))out.push({id:b.id,...b.start,name:'殘卷石碑',visual:'clue',kind:'book-clue',action:'讀取'});if(b.state==='active'&&b.questType==='research')for(const p of b.research)if(!b.visited.includes(p.id))out.push({...p,name:'古代碑文',visual:'clue',kind:'book-research',bookQuestId:b.id,action:'拓印'});if(b.state==='ready')out.push({id:b.id+'-cache',...b.finish,name:'封印藏書',visual:'book',kind:'sealed-book',bookQuestId:b.id,action:'開啟'});}return out;}
+ function nearby(run){return objects(run).filter(o=>distance(o,run.position)<config.interactionRadius).sort((a,b)=>distance(a,run.position)-distance(b,run.position))[0]||null;}
+ function discover(run){let changed=false;for(const o of objects(run))if(distance(o,run.position)<config.discoveryRadius){if(o.kind==='run-event'){const e=run.exploration.maps[run.currentMapId].events.find(e=>e.id===o.id);if(e.state==='unseen'){e.state='seen';changed=true;}}else if(o.kind==='book-clue'){const b=run.exploration.books.find(b=>b.id===o.id);if(b.state==='unseen'){b.state='offered';changed=true;}}}return changed;}
+ function event(run,id){return ensure(run)?.maps[run.currentMapId]?.events.find(e=>e.id===id);}
+ function takeEvent(run,id){const e=event(run,id);if(!e||e.state==='done'||run.status!=='active'||distance(e,run.position)>=config.interactionRadius)return {ok:false,text:'請靠近事件地點。'};const def=definitions.find(d=>d.id===e.definitionId),fx=effects[def.effect],s=run.exploration;if(!e.empty&&s.effects.includes(fx.id))return {ok:false,text:'已獲得相同效果，本局不重複疊加。'};if(!e.empty){s.effects=s.effects.filter(id=>!fx.group||effects[id]?.group!==fx.group);s.effects.push(fx.id);}e.state='done';const text=e.empty?'這裡早已失去力量，調查後沒有發現任何收穫。':fx.description;s.history.push({kind:'event',id,name:def.name,text});return {ok:true,text,empty:e.empty,effect:fx};}
+ function quest(run,id){return ensure(run)?.books.find(b=>b.id===id);}
+ function accept(run,id){const b=quest(run,id);if(!b||b.mapId!==run.currentMapId||!['unseen','offered'].includes(b.state)||distance(b.start,run.position)>=config.interactionRadius)return false;b.state='active';return true;}
+ function record(run,kind,value){const s=ensure(run);for(const b of s.books){if(b.state!=='active')continue;const match=kind==='kill'&&b.mapId===run.currentMapId&&['hunt','elite'].includes(b.questType)&&value.type===b.enemyType&&!run.dungeon&&!value.boss&&(b.questType==='elite'?!!value.elite&&!value.quick:!value.elite)||kind==='dungeon'&&b.questType==='dungeon'&&b.dungeonId===value;if(match){b.progress=Math.min(b.target,b.progress+1);if(b.progress>=b.target)b.state='ready';}}}
+ function research(run,id){const o=nearby(run);if(!o||o.kind!=='book-research'||o.id!==id)return false;const b=quest(run,o.bookQuestId);if(b.visited.includes(id))return false;b.visited.push(id);b.progress=b.visited.length;if(b.progress>=b.target)b.state='ready';return true;}
+ function collect(run,id){const b=quest(run,id);if(!b||b.state!=='ready'||b.mapId!==run.currentMapId||distance(b.finish,run.position)>=config.interactionRadius||!D.books[b.bookId])return null;b.state='claimed';run.exploration.history.push({kind:'book',id,name:D.books[b.bookId].name,text:'完成前置任務並取得藏書。'});return {kind:'books',id:b.bookId};}
+ function taskText(b){if(b.questType==='research')return '依線索調查兩處古代碑文';if(b.questType==='dungeon')return '接下任務後通關 '+(D.dungeons.find(d=>d.id===b.dungeonId)?.name||b.dungeonId);return '接下任務後在此地圖'+(b.questType==='elite'?'正常擊敗菁英 ':'擊敗 ')+(D.monsters[b.enemyType]?.name||'指定魔物')+' '+b.target+' 次';}
+ function bookHint(id){const ds=D.dungeons.filter(d=>(d.rewardPoolIds||[]).some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardType==='books'&&e.rewardIds.includes(id))));const maps=[...new Set(ds.map(d=>D.maps[d.mapId]?.regionId).filter(Boolean))];return '地下城：'+(ds.map(d=>d.name).join('／')||'對應魔法書獎勵池')+'。稀有藏書可能出現在'+(maps.map(id=>D.regionById[id]?.name).join('／')||'正式地圖')+'；必須先找到線索並完成前置任務，每局不保證出現。';}
+ const api={config,effects,definitions,ensure,waves,dungeonPools,sources,statFactor,objects,nearby,discover,event,takeEvent,quest,accept,record,research,collect,taskText,bookHint,setPositionValidator:fn=>blocked=fn};if(typeof module!=='undefined')module.exports=api;else root.RunExploration=api;
+})(globalThis);
+
+</script><script>
 (function (root) {
   const D = typeof module !== 'undefined' ? require('./data.js') : root.GameData;
   const C = typeof module !== 'undefined' ? require('./engine.js') : root.BattleCore;
@@ -1601,6 +1662,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(typeof module!=='undefined')require('./content-v1');
   const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
   const LevelProgression=typeof module!=='undefined'?require('./level-progression'):root.LevelProgression;if(typeof module!=='undefined')LevelProgression.apply(D);
+  const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
   function loadProgress(storage) {
@@ -1642,9 +1704,9 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function createRun(permanent, build = defaultBuild(), rng = Math.random) {
     validateBuild(build, permanent);
     const run={ adventurerRank:{version:1,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
-    ensureWorldContent(run);return run;
+    Exploration.ensure(run,{rng,permanent});ensureWorldContent(run);return run;
   }
-  function ensureWorldContent(run){Maps.ensureRun(run);if(run.starter&&run.currentMapId===run.starter.mapId)return;LevelProgression?.migrateRun(D,run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(!run.starter&&s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
+  function ensureWorldContent(run){Maps.ensureRun(run);Exploration.ensure(run);if(run.starter&&run.currentMapId===run.starter.mapId)return;LevelProgression?.migrateRun(D,run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(!run.starter&&s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
   function regionAt(x,y){return D.world.regions.find(r=>x>=r.bounds[0]&&x<r.bounds[0]+r.bounds[2]&&y>=r.bounds[1]&&y<r.bounds[1]+r.bounds[3])||D.world.regions[0];}
   function regionDepth(r,x,y){return Math.max(0,Math.min(1,1-Math.max(Math.abs(x-r.x)/(r.bounds[2]/2),Math.abs(y-r.y)/(r.bounds[3]/2))));}
   function regionLevel(x,y){const r=regionAt(x,y),p=regionDepth(r,x,y),index=Math.min(3,Math.floor(p*4)),band=r.subAreaLevelRanges[index],within=Math.min(1,p*4-index);return Math.round(band.min+(band.max-band.min)*within);}
@@ -1660,7 +1722,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const stats = {}, detail = statBreakdown(run);
     for (const [k, d] of Object.entries(detail)) {let growth=0,start=1;for(const band of D.adventure.balance50.growth){const end=Math.min(run.level,band.through);growth+=Math.max(0,end-start)*band[k]*d.classGrowthMultiplier;start=band.through;}growth+=Math.max(0,run.level-50)*d.perLevel;stats[k]=(d.base+growth*(1+d.bonusRate)+d.allocated)*(1+d.finalRate);}
     if (withDebuffs) for (const id of run.debuffIds) { const d = D.debuffs.find(d => d.id === id); stats[d.stat] *= d.factor; }
-    return stats;
+    for(const key of Object.keys(stats))stats[key]*=Exploration.statFactor(run,key);return stats;
   }
   function moveScale(level) { const knots=D.adventure.balance50.mastery;for(let i=1;i<knots.length;i++){const [a,x]=knots[i-1],[b,y]=knots[i];if(level<=b)return x+(Math.max(a,level)-a)/(b-a)*(y-x);}let value=knots.at(-1)[1],start=50;for(const [through,rate]of D.balance.post50Mastery){const end=Math.min(level,through);value+=Math.max(0,end-start)*rate;start=through;if(level<=through)break;}return value; }
   function expMultiplier(gap) {
@@ -1731,11 +1793,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function normalizeUltimateCharge(run){const cap=ultimateChargeCost(run);if(run.ultimateChargeVersion!==2){run.ultimateCharge=Math.max(0,Math.min(1,(Number(run.ultimateCharge)||0)/12))*cap;run.ultimateChargeVersion=2;}else run.ultimateCharge=Math.max(0,Math.min(cap,Number(run.ultimateCharge)||0));return run.ultimateCharge;}
   function carryBattleCharge(run,battle){const cap=ultimateChargeCost(run);run.ultimateChargeVersion=2;run.ultimateCharge=Math.max(0,Math.min(cap,Number.isFinite(battle.charge)?battle.charge:0));}
   function grantRewards(permanent,run,rewards){return rewards.map(reward=>{if(['moves','talents'].includes(reward.kind))return {...reward,...receiveAbility(permanent,run,reward.kind,reward.id)};const collection=permanent[reward.kind],source=reward.kind==='books'?D.books:D.equipment;if(!collection||!source[reward.id])throw Error('未知獎勵內容');const isNew=!collection.includes(reward.id);if(isNew)collection.push(reward.id);const receipt={...reward,isNew};recordLoot(run,receipt);return receipt;});}
+  function starterReward(permanent,run,enemy,rng=Math.random){if(!run.starter||run.starter.phase!=='cleared'||enemy.id!==run.starter.bossId||run.starter.rewardProcessed)return [];run.starter.rewardProcessed=true;const reward=Meta.claimStarter(permanent,rng);if(!reward)return [];if(reward.kind==='marks'){recordLoot(run,reward);return [reward];}return grantRewards(permanent,run,[reward]);}
   function dungeonReward(permanent,run,rng=Math.random,options={}){
     if(!run.dungeon)throw Error('不在地下城');const d=D.dungeons.find(d=>d.id===run.dungeon.id);
     if(run.dungeon.stage!==d.enemyWaves.length-1)throw Error('尚未完成所有波次');
     if(run.dungeon.rewardClaimed)return [];
-    const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
+    const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level,permanent,preferUnowned:D.maps[d.mapId]?.sortOrder===0}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
   function enemyProfile(type,options={}){
     const m=D.monsters[type]||{},cfg=D.enemyBalance;
@@ -1757,15 +1820,15 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function battleFor(run, encounter, rng = Math.random) {
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, classTrait:Classes.active(run).innateTrait, balance50:true, levelGap:LevelProgression.referenceLevel(encounter.level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, extraSources:Exploration.sources(run), classTrait:Classes.active(run).innateTrait, balance50:true, levelGap:LevelProgression.referenceLevel(encounter.level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
     } });
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
-  function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?.enemyWaves[run.dungeon.stage];if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
+  function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
+  const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);
 
@@ -1773,6 +1836,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const D = typeof module !== 'undefined' ? require('./data.js') : root.GameData;
   const P = typeof module !== 'undefined' ? require('./progression.js') : root.Progression;
+  const X=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function seeded(seed = 917) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
   const roadY = x => 1090 - (x - 370) * .34 + Math.sin(x / 180) * 45;
@@ -1829,6 +1893,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     return null;
   }
   function nearby(run) {
+    const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
     const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
@@ -1844,6 +1909,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     return { text: object.text, reward: object.reward || null };
   }
   function threat(playerLevel, enemyLevel) { const gap = enemyLevel - playerLevel; return gap >= 6 ? { color: '#ff7374', label: '☠ 極度危險' } : gap >= 3 ? { color: '#ee8a77', label: '危險' } : gap >= -1 ? { color: '#edcf8d', label: '勢均力敵' } : { color: '#e4e8d7', label: '較弱' }; }
+  X.setPositionValidator(blocked);
   const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, edgeExit, interactObject, threat, distance };
   if (typeof module !== 'undefined') module.exports = api; else root.World = api;
 })(globalThis);
@@ -1978,6 +2044,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
         if (near && !used) { this.text('◇',0,-65,19,'#e3d39e'); this.text(o.name,0,24,13,'#e0dec5'); }
         c.restore();
       } });
+      if(run)for(const o of RunExploration.objects(run))if(Math.abs(o.x-pos.x)<w/zoom+80&&Math.abs(o.y-pos.y)<h/zoom+80)things.push({y:o.y,draw:()=>{c.save();c.translate(o.x,o.y);this.ellipse(0,5,24,8,'#08171999');const near=World.distance(o,pos)<90,color=o.visual==='book'?'#b9a5ee':o.visual==='altar'?'#c6aa76':'#a9c6ae';
+        if(o.visual==='spring'){this.ellipse(0,-2,23,12,'#3d8c8977');this.ellipse(0,-3,15,7,'#8ac6bf99');}
+        else if(o.visual==='chest'||o.visual==='book'){c.fillStyle='#3a3430';c.fillRect(-20,-22,40,25);c.strokeStyle=color;c.lineWidth=2;c.strokeRect(-20,-22,40,25);c.fillStyle=color;c.fillRect(-3,-16,6,10);}
+        else{this.poly([[-19,3],[-14,-37],[8,-42],[19,3]],'#3d4944',color);this.text(o.visual==='altar'?'✦':'⋄',0,-17,22,color);}
+        this.glow(0,-18,30,color+'22');if(near){this.text('◇',0,-62,18,color);this.text(o.name,0,28,13,'#dedccb');}c.restore();}});
       if (run) for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId) && e.defeatedUntil <= run.world.time && Math.abs(e.x - pos.x) < w / zoom && Math.abs(e.y - pos.y) < h / zoom) things.push({ y: e.y, draw: () => {
         this.monster(e.type, e.x, e.y, GameData.monsters[e.type].worldScale||1.1);
 
@@ -1999,7 +2070,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       c.save();c.translate(x,y);c.fillStyle='#f5d68b';c.strokeStyle='#ffe5a5';c.shadowColor='#e9bb53';c.shadowBlur=12;
       if(!near){c.save();c.rotate(Math.atan2(dy,dx));c.beginPath();c.moveTo(15,0);c.lineTo(-9,-8);c.lineTo(-4,0);c.lineTo(-9,8);c.closePath();c.fill();c.restore();}
       else {c.beginPath();c.arc(0,0,13,0,Math.PI*2);c.stroke();}
-      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');c.restore();
+      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');this.text(game.permanent?.meta?.starterRewardLocked?'收藏獎勵已領取':'收藏獎勵可領取',0,49,11,'#d6c99e');c.restore();
     }
     drawTitle(game) {
       const c = this.ctx, w = this.width, h = this.height, motion = game.settings?.reducedMotion ? 0 : this.time;
@@ -2300,7 +2371,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   else if(kind==='statuses'){body=`<div class="eyebrow">${d.polarity==='buff'?'BUFF':'DEBUFF'}</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>持續 ${d.duration} 秒</p><p class="effect-note">${U.escape(statusText(d))}</p><p>${U.escape(d.description)}</p>`;}
   else if(kind==='monsters'){body=`<div class="eyebrow">BESTIARY</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>屬性：${(d.elements||[]).map(elementName).join('＋')||'無'} · 行動：${U.escape(d.behavior||'未知')}</p><p>招式：${(d.moves||[]).map(x=>D.moves[x]?.name).filter(Boolean).map(U.escape).join('、')}</p>`;}
   else body=`<div class="eyebrow">DUNGEON RECORD</div><h2 id="modal-title">${U.escape(d.name)}</h2><p>建議 Lv.${d.recommendedLevel||d.level} · ${U.escape(d.description)}</p><p>特色：${(d.features||[]).map(U.escape).join('／')}</p>`;
-  return `${body}<div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;
+  return `${body}<p class="quiet-note">取得線索：${U.escape(entry.hint)}</p><div class="modal-footer">${U.button('返回圖鑑','close')}</div>`;
  }
  function settlement(run){const r=M.ledger(run);return `<section class="meta-settlement"><small>本局帶回 · 旅者徽記</small><strong>＋${r.total} ◇</strong><p>戰鬥 ${r.combat} · 探索 ${r.exploration} · 地下城 ${r.dungeons}</p><small>已存入局外商店錢包</small></section>`;}
  root.MetaScreens={shop,codex,codexDetail,settlement};
@@ -2385,7 +2456,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 
 </script><!-- /inline-module --><script>
 /* Scene and interaction controller. Static content, simulation and UI templates remain separate. */
-const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps;
+const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps, Explore = RunExploration;
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) };
 const loaded = P.loadProgress(storage);
 const game = {
@@ -2588,7 +2659,7 @@ function showSuppression(){
 function completeSuppression(){
   const result=Enc.finishQuick(game.permanent,game.run);if(!result)return;
   if(result.fallback){closeModal();startEncounter({enemies:result.fallback});return;}
-  game.fieldRewards=result.rewards;game.encounter={...result.enemies[0]};game.result={won:true,exp:result.exp,beforeLevel:result.exp.beforeLevel,quick:true,countsForCombatChallenges:false,enemyNames:result.enemies.map(e=>D.monsters[e.type].name).join('、')};game.resultHandled=true;
+  for(const e of result.enemies)Explore.record(game.run,'kill',{...e,quick:true});game.fieldRewards=result.rewards;game.encounter={...result.enemies[0]};game.result={won:true,exp:result.exp,beforeLevel:result.exp.beforeLevel,quick:true,countsForCombatChallenges:false,enemyNames:result.enemies.map(e=>D.monsters[e.type].name).join('、')};game.resultHandled=true;
   showResult();saveSession();persist();
 }
 function ratingHTML(r,partial){return `<section class="run-rating" data-tier="${r.tier}" aria-label="本局評級 ${r.rank}"><small>本局冒險者階級</small><strong class="rating-rank">${r.rank}</strong><b>${r.nextRank?r.progress+' / '+r.required+' 晉階進度':'最高階級'}</b><p>${r.nextRank?r.active?'晉階任務尚未完成':'距離 '+r.nextRank+' 任務門檻還差 '+r.remaining+' 分':'已達最高評級'}</p><details><summary>晉階規則</summary><p>擊敗敵人 +${D.runRating.kills.points}、通關不同地下城 +${D.runRating.dungeons.points}、角色每升一級 +${D.runRating.levels.points}。分數滿後完成晉階任務，或直接完成較難挑戰，都可升一小階。滿分後不再累積，升階歸零，溢出不保留。</p></details>${partial?'<p>舊存檔僅依已記錄戰績計算。</p>':''}</section>`;}
@@ -2596,7 +2667,7 @@ function rankTaskHTML(t){return `<p>${t.value>=t.target?'✓':'◇'} ${U.escape(
 function showRank(){
  if(!game.run||game.scene!=='explore')return;
  const r=Enc.rankView(game.run);
- if(r.rank==='E'){openModal('adventure-rank',`<h2 id="modal-title">冒險者 E</h2><p>${game.run.starter.phase==='boss'?'晉階任務：打倒守關 Boss，直接升為 D−。':'升至 Lv.9，守關 Boss 將會現身。'}</p><p>新手區最高 Lv.9。擊敗守關者後，前往邊緣傳送點選擇七大區。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);return;}
+ if(r.rank==='E'){openModal('adventure-rank',`<h2 id="modal-title">冒險者 E</h2><p>${game.run.starter.phase==='boss'?'晉階任務：打倒守關 Boss，直接升為 D−。':'升至 Lv.9，守關 Boss 將會現身。'}</p><p>${Meta.starterEligible(game.permanent)?'守關者收藏獎勵可領取：未收藏 C 級招式／技能。':'收藏獎勵已領取；第三次倒下完成整輪後恢復資格。'}</p><p>新手區最高 Lv.9。擊敗守關者後，前往邊緣傳送點選擇七大區。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);return;}
  openModal('adventure-rank',`<div class="eyebrow">THIS RUN · ADVENTURER</div><h2 id="modal-title">冒險者 ${r.rank}</h2>${r.nextRank?`<p>下一階 ${r.nextRank} · ${r.progress} / ${r.required} 分</p><h3>一般晉階</h3>${r.active?r.normal.map(rankTaskHTML).join(''):'<p>達到分數門檻後，才會出現晉階任務。</p>'}<h3>直接晉階挑戰</h3>${rankTaskHTML(r.challenge)}<p class="quiet-note">不必累積滿分數，也不用完成一般晉階任務。達成即升至 ${r.nextRank}。</p>`:'<p>已達本局最高階級。</p>'}<p class="quiet-note">每局從 D− 開始。每升一小階，分數與討伐任務計數歸零；本局角色等級與地下城通關紀錄可追認。溢出分數不保留。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);
 }
 
@@ -2606,7 +2677,7 @@ return ratingHTML(s.rating,run.battleStatsPartial)+`<section class="journey-summ
 }
 function currentDungeon() { return D.dungeons.find(d=>d.id===game.run?.dungeon?.id); }
 function showDungeon(d) {
-  openModal('dungeon', `<div class="eyebrow">DUNGEON · ${d.dungeonType.toUpperCase()}</div><h2 id="modal-title">${d.name}</h2><p>推薦 Lv.${d.recommendedLevel} · 自由進入</p><p>${d.features.join(' ／ ')}</p><div class="dungeon-stages">${d.enemyWaves.map((wave,i)=>`<div><small>${i+1} · ${{normal:'普通',elite:'精英',boss:'首領'}[wave.role]||wave.role}</small><strong>Lv.${wave.level}</strong></div>`).join('')}</div><p>可能獲得：${d.rewardTypes.map(k=>({moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'}[k]||k)).join('、')}<br>通關後依獎勵池抽取；波間不回復資源；通關離開後回滿。</p><div class="modal-footer">${U.button('稍後再來','close')}${U.button('進入地下城 →','enter-dungeon',{id:d.id,primary:true})}</div>`, 'result-modal');
+  openModal('dungeon', `<div class="eyebrow">DUNGEON · ${d.dungeonType.toUpperCase()}</div><h2 id="modal-title">${d.name}</h2><p>推薦 Lv.${d.recommendedLevel} · 自由進入</p><p>${d.features.join(' ／ ')}</p><div class="dungeon-stages">${Explore.waves(game.run,d.id).map((wave,i)=>`<div><small>${i+1} · ${{normal:'普通',elite:'精英',boss:'首領'}[wave.role]||wave.role}</small><strong>${U.escape(D.monsters[wave.type]?.name||wave.type)} · Lv.${wave.level}</strong></div>`).join('')}</div><p>可能獲得：${d.rewardTypes.map(k=>({moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'}[k]||k)).join('、')}<br>${D.maps[d.mapId]?.sortOrder===0?'招式／技能優先抽取未收藏內容。<br>':''}通關後依獎勵池抽取；波間不回復資源；通關離開後回滿。</p><div class="modal-footer">${U.button('稍後再來','close')}${U.button('進入地下城 →','enter-dungeon',{id:d.id,primary:true})}</div>`, 'result-modal');
 }
 function travelMapExit(exit){
  if(exit.starterPortal){game.keys.clear();resetJoystick();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
@@ -2620,7 +2691,17 @@ function travelMapExit(exit){
  run.mapPositions[map.id]={...run.position};game.lastRegion=map.id;renderer.fx=[];renderer.hits={};renderer.attacks={};saveSession();toast((exit.forward?'前往 ':'返回 ')+map.name+' · Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);
 }
 function checkMapAccess(id){const permit=Maps.access(game.run,id);if(permit.ok)return true;openModal('map-permit',`<div class="eyebrow">ADVENTURERS GUILD</div><h2 id="modal-title">冒險者公會通行通知</h2><p>${U.escape(permit.message)}</p><div class="modal-footer">${U.button('知道了','close',{primary:true})}</div>`);return false;}
+function explorationEffectsHTML(){const effects=Explore.sources(game.run);return effects.length?`<section class="exploration-effects"><h3>本局奇遇效果</h3>${effects.map(e=>`<p><strong>${U.escape(e.name)}</strong><small>${U.escape(e.description)}</small></p>`).join('')}</section>`:'';}
+function showExplorationJournal(){if(!game.run||game.scene==='battle')return;const s=Explore.ensure(game.run),known=s.books.filter(b=>b.state!=='unseen'),history=s.history;openModal('exploration-journal',`<div class="eyebrow">TRACES · THIS JOURNEY</div><h2 id="modal-title">探索線索</h2><p class="quiet-note">藏書稀有，必須先取得線索並完成前置任務。任務只記錄接下後的進度。</p><div class="exploration-list">${known.map(b=>`<article class="exploration-card"><small>${U.escape(D.maps[b.mapId].name)} · ${{offered:'尚未接下',active:'進行中',ready:'封印已解除',claimed:'已取得'}[b.state]}</small><h3>${b.state==='claimed'?U.escape(D.books[b.bookId].name):'封印殘卷'}</h3><p>${U.escape(Explore.taskText(b))}</p><b>${b.progress} / ${b.target}</b><p>${U.escape(b.clue)}</p>${b.state==='ready'?'<p class="discovery-ready">前往石匣開啟藏書。</p>':''}</article>`).join('')||'<p>尚未發現藏書線索。留意旅途中的殘卷石碑。</p>'}</div>${explorationEffectsHTML()}${history.length?`<details><summary>本局探索紀錄（${history.length}）</summary>${history.map(h=>`<p>${U.escape(h.name)}<br><small>${U.escape(h.text)}</small></p>`).join('')}</details>`:''}<div class="modal-footer">${U.button('角色狀態','journal')}${U.button('繼續探索','close',{primary:true})}</div>`,'exploration-modal');saveSession();}
+function interactDiscovery(o){
+ if(o.kind==='run-event'){const e=Explore.event(game.run,o.id),def=Explore.definitions.find(d=>d.id===e.definitionId),fx=Explore.effects[def.effect];if(e.empty){const result=Explore.takeEvent(game.run,e.id);if(result.ok){saveSession();toast(result.text);}return;}const replacement=Explore.sources(game.run).find(x=>fx.group&&x.group===fx.group&&x.id!==fx.id);game.discoveryId=e.id;openModal('run-event',`<div class="eyebrow">${def.category==='exchange'?'A PACT ON THE ROAD':'A LIGHT ON THE ROAD'}</div><h2 id="modal-title">${U.escape(def.name)}</h2><p>${U.escape(def.text)}</p><div class="exploration-card"><strong>${U.escape(fx.name)}</strong><p>${U.escape(fx.description)}</p>${replacement?`<p>接受後取代「${U.escape(replacement.name)}」。</p>`:''}<small>本局限定；相同效果不重複疊加。最大資源提升不會自動補滿地下城中的資源。</small></div><div class="modal-footer">${U.button('稍後再來','close')}${U.button(def.category==='exchange'?'接受契約':'領取祝福','event-accept',{id:e.id,primary:true,disabled:Explore.sources(game.run).some(x=>x.id===fx.id)})}</div>`,'exploration-modal');return;}
+ if(o.kind==='book-clue'){const b=Explore.quest(game.run,o.id);game.discoveryId=b.id;openModal('book-quest',`<div class="eyebrow">A SEALED MANUSCRIPT</div><h2 id="modal-title">殘卷的封印</h2><p>碑文提及一份被封印的魔法書。完成記載的條件，才能開啟藏書。</p><div class="exploration-card"><h3>前置任務</h3><p>${U.escape(Explore.taskText(b))}</p><p>${U.escape(b.clue)}</p><small>魔法書內容在取得後揭露。研讀仍需符合原有條件。</small></div><div class="modal-footer">${U.button('稍後再來','close')}${U.button('記錄線索並接下任務','book-accept',{id:b.id,primary:true})}</div>`,'exploration-modal');return;}
+ if(o.kind==='book-research'){if(Explore.research(game.run,o.id)){saveSession();const b=Explore.quest(game.run,o.bookQuestId);toast(b.state==='ready'?'碑文已拼合，藏書封印解除。':'已拓印碑文 '+b.progress+' / '+b.target);}return;}
+ if(o.kind==='sealed-book'){const reward=Explore.collect(game.run,o.bookQuestId);if(!reward)return;game.rewards=P.grantRewards(game.permanent,game.run,[reward]);persist();saveSession();Audio.emit('itemGain');showReward();}
+}
+
 function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
+  else if(['run-event','book-clue','book-research','sealed-book'].includes(target.kind))interactDiscovery(target.entity);
   else if (target.kind === 'enemy') startEncounter(target.entity);
   else { const result = World.interactObject(game.run, target.entity.id); if (!result) return;
     if (result.reward) Audio.emit('itemGain');
@@ -2634,7 +2715,7 @@ function chooseMove(id, asUltimate = false) {
 function showJournal() {
   if (!game.run || game.scene === 'battle') return;
   const run = game.run, stats = P.statsFor(run);
-  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p><p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('任務／成就','achievements')}${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
+  openModal('journal', `<div class="eyebrow">THIS JOURNEY · CHARACTER STATUS</div><h2 id="modal-title">旅人的此刻</h2><p>Lv.${run.level} · 倒下 ${run.deaths} / 3<br>${run.debuffIds.length ? run.debuffIds.map(id => D.debuffs.find(d => d.id === id).name).join(' ／ ') : '尚未留下舊傷。'}</p><div class="journal-grid">${Object.keys(S.statNames).map(k => `<div class="journal-stat">${U.icon(S.statIcons[k], 26)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><div class="journal-abilities">${run.build.moves.map(id => `<div>${U.icon(D.moves[id].icon, 22)} ${D.moves[id].name}<small>本局 Lv.${run.moveLevels[id]} · 永久 ${U.stars(game.permanent.moves[id])}</small></div>`).join('')}</div><p>本局待結算徽記：◇ ${Meta.ledger(run).combat+Meta.ledger(run).exploration+Meta.ledger(run).dungeons}</p><p>探索收藏：${run.world.inventory?.length ? run.world.inventory.map(U.escape).join("、") : "尚未收集"}</p>${explorationEffectsHTML()}<p class="quiet-note">可隨時調整本局已取得的招式、技能與必殺指向。</p><div class="modal-footer">${U.button('探索線索','exploration-journal')}${U.button('任務／成就','achievements')}${U.button('世界地圖','world-map')}${U.button('調整招式技能','run-loadout')}${U.button('結束本局','end-run')}${U.button('繼續探索', 'close', { primary: true })}</div>`);
 }
 function showRunLoadout(){
  if(!game.run||game.scene==='battle')return;
@@ -2666,18 +2747,18 @@ function finishEncounter() {
   if(run.status==='failed'&&!game.debugBattle&&!game.permanent.ultimateUnlocked){game.permanent.ultimateUnlocked=true;persist();}
   if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type,game.encounter) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
-  if(!game.debugBattle){if(won)Enc.victory(game.permanent,run,game.encounter);else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
-  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId,run)) : []; if(game.fieldRewards.length)persist();
+  if(!game.debugBattle){if(won){Enc.victory(game.permanent,run,game.encounter);Explore.record(run,'kill',game.encounter);} else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
+  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId,run)) : []; if(won&&!run.dungeon&&!game.debugBattle)game.fieldRewards.push(...P.starterReward(game.permanent,run,game.encounter));if(game.fieldRewards.length)persist();
  game.result = { won, exp, beforeLevel, bossAppeared: won&&run.starter?.phase==='boss'&&beforeLevel<9 }; game.resultDelay = 1.05;
 
 }
 function runLootHTML(run){
- const kinds={moves:['招式',D.moves],talents:['技能',D.skills],equipment:['裝備',D.equipment],books:['魔法書',D.books]},rows=Object.values(run.loot||{}),count=rows.reduce((n,r)=>n+r.count,0);
+ const kinds={moves:['招式',D.moves],talents:['技能',D.skills],equipment:['裝備',D.equipment],books:['魔法書',D.books],marks:['餘光點',{'starter-compensation':{name:'收藏完成獎勵：餘光點 ＋5'}}]},rows=Object.values(run.loot||{}),count=rows.reduce((n,r)=>n+r.count,0);
  return `<section class="run-loot"><h3>本局收穫 <small>${count} 次取得</small></h3>${run.lootHistoryPartial?'<p class="quiet-note">舊存檔僅記錄更新後的收穫。</p>':''}${rows.length?Object.entries(kinds).map(([kind,[name,source]])=>{const list=rows.filter(r=>r.kind===kind);return list.length?`<h4>${name}</h4>${list.map(r=>`<div class="run-loot-row"><div><strong>${U.escape(source[r.id]?.name||r.id)}</strong><small>${r.isNew?'本局首次學會／解鎖':'既有收藏'}${kind==='moves'&&r.after!==undefined?' · 本局 Lv.'+r.before+' → '+r.after:''}</small></div><b>×${r.count}</b></div>`).join('')}`:'';}).join(''):'<p>這次尚未取得物品或能力。</p>'}<p class="quiet-note">收穫已加入永久收藏；重複招式的本局等級加成不帶到下一局。</p></section>`;
 }
 function showResult() {
   const r = game.result, run = game.run, dead = run.status === 'failed';
-  if(dead&&!game.debugBattle){Meta.settle(game.permanent,run);Ach.settleJourney(game.permanent,run);saveSession();persist();}
+  if(dead&&!game.debugBattle){Meta.completeStarterCycle(game.permanent,run);Meta.settle(game.permanent,run);Ach.settleJourney(game.permanent,run);saveSession();persist();}
   if(dead&&!game.debugBattle&&!game.permanent.ultimateUnlocked){game.permanent.ultimateUnlocked=true;persist();}
   game.recoveryCountdown=!r.won&&!dead?D.balance.recoverySeconds:null;
   openModal('result', `<div class="eyebrow">${r.won ? 'THE JOURNEY CONTINUES' : dead ? 'THE LAST LIGHT FADES' : 'REST, THEN RISE'}</div><div class="result-seal">${U.icon(r.won ? 'star' : 'hood', 60)}</div><h2 id="modal-title" class="result-title">${r.won ? r.exp?.levels ? '等級提升' : r.quick?'壓制成功':'戰鬥勝利' : dead ? '冒險結算' : '休養之後'}</h2>${r.won&&r.exp?.levels?LevelUp.html(r.exp):''}${r.bossAppeared?'<p class="boss-location-notice"><strong>守關 Boss 已現身</strong><br>位於出生點北側。<br>返回探索，跟隨金色箭頭前往挑戰。</p>':''}${r.won ? `<div class="exp-reward">＋${r.exp.amount} <small>EXP</small></div>` : ''}<p>${r.won ? `${r.quick?'壓制':'擊敗'} ${U.escape(r.enemyNames||D.monsters[game.encounter.type].name)}<br>${run.dungeon?'保留 HP／MP／SP，繼續深入。':'HP、MP、SP 已完全恢復。'}` : dead ? `${run.endedVoluntarily?'這段旅途暫告一段落。':'第三次倒下，你的腳步終於停下。'}<br>必殺槽已永久解鎖。<br>下次出發前，可指定已學會招式為必殺。` : `第 ${run.deaths} 次倒下，你回營地休養。<br>留下【${D.debuffs.find(d => d.id === run.debuffIds.at(-1)).name}】<br>休養後恢復至新的能力上限。`}</p>${!r.won&&!dead?'<p class="recovery-countdown">約 <strong id="recovery-countdown">3.0</strong> 秒後返回探索</p>':''}${dead?runSummaryHTML(run)+MetaScreens.settlement(run)+journeyRewardHTML(run)+runLootHTML(run):''}${r.won && run.dungeon ? `<p>${currentDungeon().name} ${run.dungeon.stage + 1} / ${currentDungeon().enemyWaves.length} 場完成</p>` : ''}<div class="modal-footer">${U.button(dead ? '返回主選單' : !r.won ? '立即返回探索' : run.dungeon ? run.dungeon.stage === currentDungeon().enemyWaves.length-1 ? '查看封存的獎勵' : '走向下一間石室 →' : '繼續探索 →', 'result-next', { primary: true })}</div>`, r.won&&r.exp?.levels?'result-modal growth-result':dead?'result-modal journey-result':'result-modal');
@@ -2690,15 +2771,15 @@ function continueResult() {
   if (run.status === 'failed') { closeModal(); game.scene = 'title'; game.run = null; game.battle = null; saveSession(); renderUI(); return; }
   if (game.result.won && run.dungeon) {
     if (run.dungeon.stage < currentDungeon().enemyWaves.length-1) { run.dungeon.stage++; game.scene = 'explore'; startEncounter(P.dungeonEncounter(run)); return; }
-    game.rewards = P.dungeonReward(game.permanent, run); Ach.dungeonClear(game.permanent,run,run.dungeon.id); Meta.clear(game.permanent,run,run.dungeon.id);Enc.clear(game.permanent,run,run.dungeon.id); saveSession();persist(); Audio.emit('itemGain', { rewards: game.rewards }); showReward(); return;
+    game.rewards = P.dungeonReward(game.permanent, run); Ach.dungeonClear(game.permanent,run,run.dungeon.id); Meta.clear(game.permanent,run,run.dungeon.id);Enc.clear(game.permanent,run,run.dungeon.id);Explore.record(run,'dungeon',run.dungeon.id); saveSession();persist(); Audio.emit('itemGain', { rewards: game.rewards }); showReward(); return;
   }
   if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...(D.maps[run.currentMapId]?.entry||D.world.camp) }; run.dungeon = null; delete run.dungeonResources; }
   if(game.result.won && game.fieldRewards?.length){game.rewards=game.fieldRewards;game.fieldRewards=[];showReward();return;}
   returnExplore();
 }
 function showReward() {
-  const names={moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'};
-  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${data.name} ${U.gradeBadge(data)}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
+  const names={moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書',marks:'餘光點'};
+  openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=r.kind==='marks'?{name:'餘光點 ＋'+r.amount,icon:'star'}:({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${U.escape(data.name)} ${r.kind==='marks'?'':U.gradeBadge(data)}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
 }
 function acquisitionNext() {
   const ticket = game.run.pendingAcquisitions?.[0];
@@ -2829,6 +2910,9 @@ function handleAction(action, id, element) {
   else if (action === 'stat-explain') openModal('stat', statExplanation(id).replace('<h3>', '<h2 id="modal-title">').replace('</h3>', '</h2>') + `<div class="modal-footer">${U.button('返回', 'close')}</div>`);
   else if (action === 'learn-book' && !game.run && game.screen === 'library') { if (P.understandBook(game.permanent, null, id)) { persist(); Audio.emit('itemGain', { id }); toast('已學會 · ' + D.moves[D.books[id].moveId].name); renderScreen(); } }
   else if (action === 'begin-run') beginRun();
+  else if(action==='exploration-journal'&&game.run&&game.scene==='explore')showExplorationJournal();
+  else if(action==='event-accept'&&game.modal==='run-event'&&id===game.discoveryId){const result=Explore.takeEvent(game.run,id);if(result.ok){saveSession();closeModal();renderUI();toast(result.text);}else toast(result.text);}
+  else if(action==='book-accept'&&game.modal==='book-quest'&&id===game.discoveryId){if(Explore.accept(game.run,id)){saveSession();closeModal();toast('線索已記錄，前置任務開始。');}}
   else if (action === 'close') { if (!['result', 'reward', 'acquire', 'replace', 'replace-confirm'].includes(game.modal)) closeModal(); }
   else if (action === 'journal') showJournal();
   else if (action === 'run-loadout') showRunLoadout();
@@ -2939,7 +3023,7 @@ function combatEvent(event) {
 function frame(now) {
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
-    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} const portal=World.edgeExit(game.run,60);if(portal?.entity.starterPortal)travelMapExit(portal.entity);else if (enemy) startEncounter(enemy); }
+    if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(Explore.discover(game.run))saveSession();if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} const portal=World.edgeExit(game.run,60);if(portal?.entity.starterPortal)travelMapExit(portal.entity);else if (enemy) startEncounter(enemy); }
     else if (game.scene === 'battle') {
       if (game.transition > 0) { game.transition = Math.max(0, game.transition - dt); if (!game.transition) $('transition').hidden = true; }
       else {
