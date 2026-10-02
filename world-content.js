@@ -125,6 +125,10 @@
  D.rewardPools.abandoned_mine_rare.entries.find(e=>e.rewardType==='equipment').rewardIds.push('greatsword','bow');
  D.worldContentVersion=1;
  D.balance.rewardSourceTargets={dungeonSkillShare:.82,wildSkillShare:.18,ordinaryAbilityDropChance:[.025,.035],eliteAbilityDropChance:.35};
+
+ D.equipment.mercy_mantle={id:'mercy_mantle',name:'餘光聖衣',slot:'chest',icon:'armor',modifiers:{hp:30,mana:18},rarity:'rare',powerGrade:'A',specialEquipment:true,preferredDungeon:'sunken_temple',acquisitionTier:'rare-only',overhealShield:{ratio:.5,cap:.12},description:'HP +30；MP +18。招式治療的溢出量有 50% 轉為護盾，護盾最多為最大 HP 的 12%；每場重置，其他被動回復與戰後補滿不觸發。'};
+ D.equipment.echo_bracers={id:'echo_bracers',name:'追響護腕',slot:'arms',icon:'armor',modifiers:{stamina:20},rarity:'rare',powerGrade:'A',specialEquipment:true,preferredDungeon:'giant_ruins',acquisitionTier:'rare-only',finisherEcho:.15,description:'SP +20。多段攻擊最後一擊命中且敵人仍存活時，追加該擊實際傷害 15% 的追響；不爆擊、不再觸發殘影或其他追擊。'};
+ D.equipment.breaker_boots={id:'breaker_boots',name:'斷詠戰靴',slot:'feet',icon:'boot',modifiers:{agility:8},rarity:'rare',powerGrade:'A',specialEquipment:true,preferredDungeon:'frozen_tower',acquisitionTier:'rare-only',hooks:[{event:'OnInterruptSuccess',effects:[{type:'recover',resource:'stamina',ratio:.03}]}],description:'敏捷 +8。成功中斷敵人讀條後恢復最大 SP 的 3%；沒有實際中斷時不觸發。'};
  D.startingSkills=[];
  D.startingMoves=['quick','fire'];
 }

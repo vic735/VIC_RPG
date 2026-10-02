@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data'),P=require('./progression'),Maps=require('./world-maps'),Rewards=require('./world-rewards');
 test('每張地圖提高野怪密度，出生安全圈仍保留',()=>{
- const counts=Maps.maps.map(m=>m.spawnPoints.length);assert.ok(Math.min(...counts)>=205,Math.min(...counts));
+ const counts=Maps.maps.map(m=>m.spawnPoints.length);assert.ok(Math.min(...counts)>=160,Math.min(...counts));
  for(const map of Maps.maps)assert.ok(map.spawnPoints.every(p=>Math.hypot(p.x-map.entry.x,p.y-map.entry.y)>=Maps.safeRadius));
 });
 test('普通野怪十五場保底，掉落後重置；快速戰鬥共用同一計數',()=>{

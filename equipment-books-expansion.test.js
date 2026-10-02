@@ -5,10 +5,10 @@ const newEquipment=['hunter_cowl','ember_visor','stone_mask','scout_leathers','t
 const newBooks=['thunder_grimoire','verdant_grimoire','glacial_grimoire','inferno_grimoire','titan_grimoire','radiance_grimoire','void_grimoire'];
 const rewardIds=type=>new Set(Object.values(D.rewardPools).flatMap(pool=>pool.entries.filter(entry=>entry.rewardType===type).flatMap(entry=>entry.rewardIds)));
 
-test('四個防具部位各 10 件，武器依類型各至少 3 件',()=>{
- assert.equal(Object.keys(D.equipment).length,54);
+test('四個防具部位至少 10 件，武器依類型各至少 3 件',()=>{
+ assert.equal(Object.keys(D.equipment).length,57);
  for(const id of newEquipment)assert.ok(D.equipment[id]?.description,id);
- for(const slot of ['head','chest','arms','feet'])assert.equal(Object.values(D.equipment).filter(item=>item.slot===slot).length,10,slot);
+ for(const slot of ['head','chest','arms','feet'])assert.ok(Object.values(D.equipment).filter(item=>item.slot===slot).length>=10,slot);
  for(const type of ['sword','bow','blunt','staff'])assert.ok(Object.values(D.equipment).filter(item=>item.slot==='weapon'&&item.weaponType===type).length>=3,type);
  const obtainable=rewardIds('equipment');for(const id of newEquipment)assert.ok(obtainable.has(id),id+' 必須能由地下城取得');
 });
