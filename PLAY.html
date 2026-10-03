@@ -180,6 +180,8 @@
 .reduced-motion .growth-celebration.racing .growth-row:nth-child(even)>strong,
 .reduced-motion .growth-celebration.racing .growth-row:nth-child(even)>b span{animation-delay:.055s!important}
 .reduced-motion .growth-celebration.landed .growth-level>strong{animation:number-land .42s cubic-bezier(.18,.85,.25,1.35)!important}
+
+.modal.tutorial-modal{width:408px;text-align:center;border-radius:16px;padding:26px 24px;background:linear-gradient(155deg,#2c4136,#112127);border-color:#c5b47a77}.tutorial-modal .eyebrow{font-size:10px;letter-spacing:2px;color:#9fb7a3}.tutorial-symbol{display:grid;place-items:center;margin:18px auto;width:90px;height:90px;border-radius:50%;color:#e4ce8d;border:1px solid #c3b17a44;background:radial-gradient(ellipse,#b9a14c30,transparent)}.tutorial-modal h2{font-size:24px;letter-spacing:2px;margin:14px 0}.tutorial-modal p{font-size:15px;line-height:1.9;text-align:left;color:#d4decd}.tutorial-modal .tutorial-tip{font-size:12px;color:#a9beaa;background:#829a5b15;border-left:2px solid #b5a56855;padding:12px}.tutorial-dots{display:flex;justify-content:center;gap:7px;margin-top:20px}.tutorial-dots i{width:5px;height:5px;border-radius:50%;background:#829b7d44}.tutorial-dots i.active{background:#e2c982;width:17px;border-radius:4px}.tutorial-modal .modal-footer{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}.tutorial-modal button{min-height:48px;font-size:14px;padding:10px}
 </style></head>
 <body><div id="viewport"><main id="game" data-mode="title" aria-label="餘光 RPG 遊戲">
 <canvas id="scene" aria-label="奇幻冒險遊戲場景"></canvas><div class="scene-grain"></div><div class="frame-corner corner-tl"></div><div class="frame-corner corner-br"></div>
@@ -490,7 +492,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.22.5', date: '2026-10-02' },
+    release: { version: '0.23.0', date: '2026-10-03' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -2362,7 +2364,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function settings(settings) {
    const toggle=(id,title,description)=>`<div class="setting-row"><div><h3>${title}</h3><p>${description}</p></div><button class="toggle ${settings[id]?'selected':''}" data-action="setting-toggle" data-id="${id}" aria-label="${title}" aria-pressed="${!!settings[id]}">${settings[id]?'開啟':'關閉'}</button></div>`;
-   return `<div class="polished-page settings-page">${header('設定','PREFERENCES')}<div class="preferences-version"><span>遊戲版本</span><strong>v${U.escape(D.release.version)}</strong><small>${U.escape(D.release.date)}</small></div><section class="preference-group"><h2>冒險</h2>${toggle('autoQuickBattle','自動壓制低等野怪',`本局已正常擊敗的普通野怪，領先 ${D.balance.quickBattleLevelGap} 級時自動結算。菁英、Boss 與地下城除外。`)}<div class="setting-row"><div><h3>沉浸式全螢幕</h3><p>以直式畫面專注探索。</p></div>${U.button('切換','fullscreen')}</div></section><section class="preference-group"><h2>聲音與畫面</h2>${toggle('sound','介面與戰鬥音效','保留攻擊、收穫與升級的聲音回饋。')}<label class="setting-row"><div><h3>音效音量</h3><p id="volume-label">${Math.round(settings.volume*100)}%</p></div><input type="range" id="volume" aria-label="音效音量" min="0" max="100" value="${Math.round(settings.volume*100)}"></label>${toggle('reducedMotion','減少動態效果','減少場景粒子與鏡頭震動；升級跳字與閃光保留。')}${toggle('contrast','提高介面對比','讓文字與重要資訊更容易辨識。')}</section><section class="preference-group"><h2>存檔與離線</h2><div class="setting-row"><div><h3>自動保存旅程</h3><p id="offline-detail">${U.escape(root.GameOffline?.status||'正在確認離線狀態。')}</p><p>重整後可接續冒險。清除網站資料會刪除收藏與存檔。</p></div></div></section><details class="utility-section"><summary>操作說明與進階選項</summary><div class="control-reference"><span>移動 <b>W A S D</b></span><span>招式 <b>W A S D／方向鍵</b></span><span>必殺 <b>Space</b></span></div><div class="utility-actions">${U.button('世界測試','world-debug')}${U.button('戰鬥測試','debug-lab')}${U.button('基礎配置重新出發','restart-basic')}${U.button('完全重置','full-reset')}</div></details>${footer('設定自動保存於目前瀏覽器。',U.button('返回','screen-back',{primary:true}))}</div>`;
+   return `<div class="polished-page settings-page">${header('設定','PREFERENCES')}<div class="preferences-version"><span>遊戲版本</span><strong>v${U.escape(D.release.version)}</strong><small>${U.escape(D.release.date)}</small></div><section class="preference-group"><h2>冒險</h2><div class="setting-row"><div><h3>新手教學</h3><p>重看移動、戰鬥與旅途規則。</p></div>${U.button('重看','tutorial-review')}</div>${toggle('autoQuickBattle','自動壓制低等野怪',`本局已正常擊敗的普通野怪，領先 ${D.balance.quickBattleLevelGap} 級時自動結算。菁英、Boss 與地下城除外。`)}<div class="setting-row"><div><h3>沉浸式全螢幕</h3><p>以直式畫面專注探索。</p></div>${U.button('切換','fullscreen')}</div></section><section class="preference-group"><h2>聲音與畫面</h2>${toggle('sound','介面與戰鬥音效','保留攻擊、收穫與升級的聲音回饋。')}<label class="setting-row"><div><h3>音效音量</h3><p id="volume-label">${Math.round(settings.volume*100)}%</p></div><input type="range" id="volume" aria-label="音效音量" min="0" max="100" value="${Math.round(settings.volume*100)}"></label>${toggle('reducedMotion','減少動態效果','減少場景粒子與鏡頭震動；升級跳字與閃光保留。')}${toggle('contrast','提高介面對比','讓文字與重要資訊更容易辨識。')}</section><section class="preference-group"><h2>存檔與離線</h2><div class="setting-row"><div><h3>自動保存旅程</h3><p id="offline-detail">${U.escape(root.GameOffline?.status||'正在確認離線狀態。')}</p><p>重整後可接續冒險。清除網站資料會刪除收藏與存檔。</p></div></div></section><details class="utility-section"><summary>操作說明與進階選項</summary><div class="control-reference"><span>移動 <b>W A S D</b></span><span>招式 <b>W A S D／方向鍵</b></span><span>必殺 <b>Space</b></span></div><div class="utility-actions">${U.button('世界測試','world-debug')}${U.button('戰鬥測試','debug-lab')}${U.button('基礎配置重新出發','restart-basic')}${U.button('完全重置','full-reset')}</div></details>${footer('設定自動保存於目前瀏覽器。',U.button('返回','screen-back',{primary:true}))}</div>`;
   }
   function picker(game, kind, index) {
     if(kind==='ultimate'&&game.permanent.ultimateUnlocked===false)return `<h2 id="modal-title">必殺槽尚未解鎖</h2><p>首次冒險第三次倒下、完成整局結算後永久解鎖。</p><div class="modal-footer">${U.button('返回','close')}</div>`;
@@ -2564,10 +2566,30 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 })(globalThis);
 
 </script><!-- /inline-module --><script>
+/* First-visit guidance is independent of player progression and run saves. */
+(function(root){
+ const KEY='afterlight.tutorial.v1';
+ const cards={
+ welcome:{title:'歡迎來到餘光',icon:'star',text:'每一局都是一段新的旅途。探索地圖、擊敗敵人，將學會的能力留給下一次出發。',tip:'教學可以隨時跳過，之後也能在設定重看。'},
+ moveIntro:{title:'先走出第一步',icon:'wind',text:'拖曳畫面下方中央的搖桿移動，放手就會停止。',tip:'電腦可使用 WASD 或方向鍵。先試著走一小段。'},
+ interactIntro:{title:'靠近，才會發現',icon:'book',text:'靠近可互動的敵人、地下城或探索物件，搖桿上方才會出現互動鍵。點一下就能挑戰或調查。',tip:'會追擊的敵人接觸你時也會進入戰鬥；電腦可按 E 互動。'},
+ battleActions:{title:'四個方向，四個招式',icon:'sword',text:'下半部的大型操作區對應 A／B／C／D 四個招式。點按已配置的招式即可施放，空欄位目前不能使用。',tip:'電腦使用 WASD／方向鍵或 1～4。手機長按、電腦停留一會可查看效果。'},
+ battleTiming:{title:'看讀條，再出招',icon:'orb',text:'招式會先消耗 MP 或 SP，再開始讀條；讀條完成才發揮效果。敵人的讀條也會顯示在畫面上。',tip:'MP 是魔力、SP 是體力。留意剩餘資源；具中斷效果的招式才有機會打斷敵人。'},
+ battleUltimate:{title:'中央是你的必殺',icon:'star',text:'中央圓形按鈕是必殺技。首次完整冒險結算後才會永久解鎖，之後可在角色設定指定招式。',tip:'能量在本局各場戰鬥間保留。充滿後仍需足夠 MP／SP；電腦按 Space 施放。'},
+ journeyIntro:{title:'讓收穫陪你再出發',icon:'hood',text:'升級會自動提升五項能力，不需要配點。新手區升至 Lv.9 後會出現守關 Boss，擊敗後走到地圖邊緣，選擇七大區。',tip:'前兩次倒下會休養，第三次結束本局。收藏永久保留，結算的旅者徽記可到商店換取能力。'}
+ };
+ const order=Object.keys(cards),stages=[...order,'moving','awaitBattle','awaitResult','done'];
+ function load(storage){try{const raw=storage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s.version===1&&stages.includes(s.stage))return s;}const veteran=!!(storage.getItem('afterlight.progress.v2')||storage.getItem('afterlight.session.v1'));return {version:1,stage:veteran?'done':'welcome'};}catch(_){return {version:1,stage:'welcome'};}}
+ function save(storage,state){try{storage.setItem(KEY,JSON.stringify(state));return true;}catch(_){return false;}}
+ const api={KEY,cards,order,load,save};if(typeof module!=='undefined')module.exports=api;else root.GameTutorial=api;
+})(globalThis);
+
+</script><script>
 /* Scene and interaction controller. Static content, simulation and UI templates remain separate. */
 const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps, Explore = RunExploration;
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) };
 const loaded = P.loadProgress(storage);
+const tutorialState=GameTutorial.load(storage);
 const game = {
   scene: 'title', screen: null, modal: null, run: null, permanent: loaded.progress, build: P.defaultBuild(),
   setupTab: 'stats', category: 'moves', selected: 'fire', battle: null, encounter: null,
@@ -2581,9 +2603,9 @@ const renderer = new GameArt.Renderer($('scene'));
 let last = performance.now(), uiTime = 0, longPressTimer = null, hoverTimer = null, pressOrigin = null, suppressClick = false;
 let saveElapsed=0,saveErrorShown=false;
 function resetAllProgress(){
- const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1','afterlight.sort.v1',RunSave.KEY],backup={};
+ const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1','afterlight.sort.v1',RunSave.KEY,GameTutorial.KEY],backup={};
  try{for(const key of keys)backup[key]=localStorage.getItem(key);for(const key of keys)localStorage.removeItem(key);}catch(_){for(const [key,value]of Object.entries(backup))try{if(value!==null&&value!==undefined)localStorage.setItem(key,value);}catch(_){}toast('重置未完成，請檢查瀏覽器儲存權限。');return;}
- game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
+ tutorialState.stage='welcome';delete tutorialState.origin;game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
 }
 function saveSession(){if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
 function resumeSession(){const loaded=RunSave.load(storage);if(loaded.warning){toast(loaded.warning);return;}const snapshot=loaded.snapshot;if(!snapshot)return;for(const k of ['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom','battle'])if(snapshot[k]!==undefined)game[k]=snapshot[k];const latest=P.loadProgress(storage).progress;if((latest.meta?.revision||0)>(game.permanent.meta?.revision||0))game.permanent=latest;game.eventCursor=0;game.transition=0;game.screen=null;rebuildSkills();renderUI();
@@ -2614,6 +2636,25 @@ function openModal(kind, content, className = '') {
   $('modal').scrollTop = 0; $('modal').focus({ preventScroll: true });
 }
 function closeModal() { game.modal = null; $('modal-backdrop').hidden = true; hideTooltip(); }
+function saveTutorial(){if(!GameTutorial.save(storage,tutorialState))toast('教學進度暫時無法儲存。');}
+function showTutorial(replay=false){
+ if(replay){game.tutorialReplay=0;}const stage=game.tutorialReplay!==undefined?GameTutorial.order[game.tutorialReplay]:tutorialState.stage,card=GameTutorial.cards[stage];if(!card)return;
+ const index=GameTutorial.order.indexOf(stage),label=game.tutorialReplay!==undefined?'下一頁':stage==='welcome'?'開始冒險':stage==='moveIntro'?'試著移動':stage==='battleUltimate'?'開始戰鬥':stage==='journeyIntro'?'繼續旅途':'知道了';
+ openModal('tutorial',`<div class="eyebrow">${game.tutorialReplay!==undefined?'冒險指南':'第一次的旅途'} · ${index+1} / ${GameTutorial.order.length}</div><div class="tutorial-symbol">${U.icon(card.icon,54)}</div><h2 id="modal-title">${card.title}</h2><p>${card.text}</p><p class="tutorial-tip">${card.tip}</p><div class="tutorial-dots" aria-hidden="true">${GameTutorial.order.map((_,i)=>`<i class="${i===index?'active':''}"></i>`).join('')}</div><div class="modal-footer">${U.button(game.tutorialReplay!==undefined?'關閉':'跳過教學','tutorial-skip')}${U.button(game.tutorialReplay===GameTutorial.order.length-1?'完成':label,'tutorial-next',{primary:true})}</div>`,'tutorial-modal');
+}
+function advanceTutorial(){
+ if(game.tutorialReplay!==undefined){game.tutorialReplay++;if(game.tutorialReplay>=GameTutorial.order.length){delete game.tutorialReplay;closeModal();return;}showTutorial();return;}
+ const stage=tutorialState.stage;closeModal();
+ if(stage==='welcome'){beginRun();return;}
+ tutorialState.stage={moveIntro:'moving',interactIntro:'awaitBattle',battleActions:'battleTiming',battleTiming:'battleUltimate',battleUltimate:'awaitResult',journeyIntro:'done'}[stage]||'done';
+ if(tutorialState.stage==='moving')tutorialState.origin={...game.run.position};saveTutorial();if(GameTutorial.cards[tutorialState.stage])showTutorial();
+}
+function checkTutorial(){
+ if(game.debugBattle||game.modal||game.screen||game.transition>0)return;
+ if(game.scene==='battle'&&game.battle?.phase==='fighting'&&['moveIntro','moving','interactIntro','awaitBattle'].includes(tutorialState.stage)){tutorialState.stage='battleActions';saveTutorial();}
+ if(game.scene==='explore'&&tutorialState.stage==='moving'){const p=tutorialState.origin;if(!p)tutorialState.origin={...game.run.position};else if(Math.hypot(game.run.position.x-p.x,game.run.position.y-p.y)>=70){tutorialState.stage='interactIntro';saveTutorial();}}
+ if(GameTutorial.cards[tutorialState.stage])showTutorial();
+}
 function journeyRewardHTML(run){
  const s=run.journeySettlement;if(!s)return '';
  return `<section class="run-loot"><h3>任務與成就獎勵</h3><p>額外獲得 ◇ ${s.total} 旅者徽記</p>${s.receipts.map(r=>`<p><strong>${U.escape(r.name)}</strong> · ＋${r.marks} 徽記${r.ability?'<br>'+ (r.duplicate?'已擁有「'+U.escape(r.ability.name)+'」，含折換 25 徽記':'新解鎖'+(r.ability.type==='moves'?'招式':'技能')+'：'+U.escape(r.ability.name)):''}</p>`).join('')}<p class="quiet-note">已自動存入商店錢包與永久收藏；獎勵不增加本局評分。</p></section>`;
@@ -2709,7 +2750,7 @@ function beginRun() {
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
   game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build);Maps.startStarter(game.run); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');if(tutorialState.stage!=='done'){tutorialState.stage='moveIntro';saveTutorial();showTutorial();}
 }
 function startDebugBattle(){
  try{
@@ -2923,7 +2964,7 @@ function applyAcquisition(index) {
   Audio.emit('itemGain', { id: t.id, equipped: index !== null }); if (index !== null) toast('已裝備 · ' + (D.moves[t.id] || D.skills[t.id]).name);
   rebuildSkills(); $('skillbar').classList.remove('acquisition-insert'); void $('skillbar').offsetWidth; $('skillbar').classList.add('acquisition-insert'); game.offered = null; acquisitionNext();
 }
-function returnExplore() { if(!game.run.dungeon)delete game.run.dungeonResources;game.scene = 'explore'; game.battle = null; game.resultDelay = null; game.recoveryCountdown=null; closeModal(); rebuildSkills(); renderUI();if(game.run.fieldEncounterQueue?.length)startEncounter(game.run.fieldEncounterQueue.shift()); }
+function returnExplore() {if(tutorialState.stage==='awaitResult'){tutorialState.stage='journeyIntro';saveTutorial();} if(!game.run.dungeon)delete game.run.dungeonResources;game.scene = 'explore'; game.battle = null; game.resultDelay = null; game.recoveryCountdown=null; closeModal(); rebuildSkills(); renderUI();if(game.run.fieldEncounterQueue?.length)startEncounter(game.run.fieldEncounterQueue.shift()); }
 function pause() { if(game.debugBattle){openModal('debug-lab',GameDebug.form(game.debugBattle));return;} if (!game.run || game.modal || game.screen) return; openModal('pause', `<div class="eyebrow">A MOMENT OF STILLNESS</div><h2 id="modal-title">旅途暫歇</h2><p>時間已暫停。整理呼吸，再繼續前行。</p><div class="modal-footer">${U.button('設定', 'settings')}${U.button('繼續旅途', 'close', { primary: true })}</div>`, 'result-modal'); }
 function renderUI() {
   $('game').dataset.mode = game.scene; $('title-screen').hidden = game.scene !== 'title' || !!game.screen;
@@ -3013,6 +3054,9 @@ function handleAction(action, id, element) {
   else if(action==='debug-lab'){ $('debug').hidden=true;openModal('debug-lab',GameDebug.form(game.debugBattle)); }
   else if(action==='debug-end'&&game.debugBattle){game.debugBattle=false;game.run=null;game.battle=null;game.scene='title';game.screen=null;$('screen').hidden=true;closeModal();renderUI();}
   else if(action==='debug-start')startDebugBattle();
+  else if(action==='tutorial-next'&&game.modal==='tutorial')advanceTutorial();
+  else if(action==='tutorial-skip'&&game.modal==='tutorial'){if(game.tutorialReplay!==undefined)delete game.tutorialReplay;else{tutorialState.stage='done';saveTutorial();}closeModal();}
+  else if(action==='tutorial-review')showTutorial(true);
   else if (action === 'settings') openScreen('settings');
   else if (action === 'screen-back') screenBack();
   else if(action==='content-sort'||action==='content-sort-direction'){if(action==='content-sort'){if(!['rarity','type','element','name'].includes(id))return;game.contentSort=id;game.contentSortReverse=false;}else game.contentSortReverse=!game.contentSortReverse;try{storage.setItem('afterlight.sort.v1',JSON.stringify({key:game.contentSort,reverse:game.contentSortReverse}));}catch(_){toast('排列偏好暫時無法儲存。');}hideTooltip();if(game.modal==='picker')openPicker(game.picker.kind,game.picker.index);else if(game.modal==='run-slot')showRunSlot(game.runPicker.kind,game.runPicker.index);else renderScreen();}
@@ -3141,6 +3185,7 @@ function combatEvent(event) {
   if (event.type === 'interrupt') { game.castFlashes[event.targetId] = { type: 'interrupted', until: renderer.time + .42 }; Audio.emit('interrupt', event); }
 }
 function frame(now) {
+  checkTutorial();
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
     if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(Explore.discover(game.run))saveSession();if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} const portal=World.edgeExit(game.run,60);if(portal?.entity.starterPortal)travelMapExit(portal.entity);else if (enemy) startEncounter(enemy); }
@@ -3166,6 +3211,7 @@ $('portrait').innerHTML = U.icon('hood', 41);
 resizeStage(); applySettings(); renderUI(); if (loaded.warning) toast(loaded.warning);
 window.addEventListener('pagehide',saveSession);
 resumeSession();
+if(!game.run&&tutorialState.stage==='welcome'){saveTutorial();showTutorial();}
 window.GameApp = { game, renderer };
 requestAnimationFrame(frame);
 

@@ -20,8 +20,8 @@ test('探索HUD僅滿分顯示任務，直接挑戰升階後歸零且存檔保�
  for(let i=0;i<2;i++)E.victory(g.permanent,g.run,{type:'greywind_0',level:5});vm.runInContext('renderUI();saveSession()',h.ctx);assert.equal(g.run.adventurerRank.index,1);assert.equal(g.run.adventurerRank.progress,0);assert.doesNotMatch(h.elements.get('adventure-rank').innerHTML,/rank-hud-task/);
  const next=harness(h.saved);assert.equal(next.game.run.adventurerRank.index,1);assert.equal(next.game.run.adventurerRank.progress,0);
 });
-function harness(initialSave=[],starterMode=false) {
-  const elements = new Map(), events = {}, windowEvents = {}, saved = new Map(initialSave); let now = 0, raf; const timers=new Map();let timerClock=0,timerId=0;
+function harness(initialSave=[],starterMode=false,tutorialMode=false) {
+  const elements = new Map(), events = {}, windowEvents = {}, saved = new Map(initialSave); let now = 0, raf; const timers=new Map();let timerClock=0,timerId=0;if(!tutorialMode&&!saved.has('afterlight.tutorial.v1'))saved.set('afterlight.tutorial.v1',JSON.stringify({version:1,stage:'done'}));
   function advanceTimers(ms){timerClock+=ms;for(const [id,t]of [...timers])if(t.at<=timerClock){timers.delete(id);t.fn();}}
   const canvasContext = new Proxy({}, { get(target, name) { if (name in target) return target[name]; if (['createLinearGradient', 'createRadialGradient'].includes(name)) return () => ({ addColorStop() {} }); return () => {}; }, set(target, name, value) { target[name] = value; return true; } });
   class Element {
@@ -50,7 +50,7 @@ function harness(initialSave=[],starterMode=false) {
   const math = Object.create(Math); math.random = () => .5;
   const ctx = { document: doc, devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080, Math: math, Date, performance: { now: () => now }, requestAnimationFrame: fn => raf = fn, localStorage: { getItem: k => saved.get(k), setItem: (k, v) => saved.set(k, v), removeItem:k=>saved.delete(k) }, console, setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,at:timerClock+ms});return id;}, clearTimeout:id=>timers.delete(id) };
   ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = (name, fn) => windowEvents[name] = fn; vm.createContext(ctx);
-  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'world-maps', 'level-progression', 'classes', 'achievements', 'skill-runtime', 'build-journey', 'engine', 'world-rewards', 'meta', 'run-exploration', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
+  for (const file of ['combat-content', 'world-content', 'data', 'content-v1', 'world-maps', 'level-progression', 'classes', 'achievements', 'skill-runtime', 'build-journey', 'engine', 'world-rewards', 'meta', 'run-exploration', 'progression', 'world', 'renderer', 'ui', 'audio', 'screens', 'debug-lab', 'world-debug', 'run-save', 'level-up', 'meta-screens', 'encounters', 'tutorial', 'app']) vm.runInContext(fs.readFileSync(path.join(__dirname, file + '.js'), 'utf8'), ctx, { filename: file + '.js' });
   const game = ctx.GameApp.game;
   function step(count = 1) { for (let i = 0; i < count; i++) { now += 50; raf(now); } }
   function click(action, id, extra = {}) {
@@ -60,7 +60,7 @@ function harness(initialSave=[],starterMode=false) {
     assert.ok(element, 'Missing visible UI action: ' + action + ' ' + (id || '') + JSON.stringify(extra)); assert.ok(!element.disabled, 'Disabled action: ' + action);
     if(action==='world-enter-map'&&!starterMode){game.run.adventurerRank.index=17;game.run.battleStats.clearedDungeonIds=ctx.GameData.dungeons.map(d=>d.id);}
     events.click({ target: element, preventDefault() {} });
-    if(action==='begin-run'){
+    if(action==='begin-run'&&!tutorialMode){
       assert.equal(game.modal,null);
       assert.equal(game.run.starter.phase,'training');
       // Existing scenarios test the established main-world systems independently.
@@ -306,3 +306,14 @@ test('地下城入口呈現本局抽出的敵人、Boss固定，圖鑑顯示藏�
 
 test('移除收藏規劃入口，保留圖鑑與搭配預設，舊規劃存檔返回結算',()=>{const h=harness();h.game.permanent.meta||={};h.game.permanent.meta.collectionTarget={kind:'moves',id:'spark'};h.click('setup');assert.doesNotMatch(h.elements.get('screen').innerHTML,/next-build/);assert.match(h.elements.get('screen').innerHTML,/搭配預設/);h.click('screen-back');h.click('codex');h.click('codex-detail','spark',{kind:'moves'});assert.doesNotMatch(h.elements.get('modal').innerHTML,/collection-target|collection-clear/);h.click('close');h.click('screen-back');h.click('begin-run');h.click('journal');h.click('end-run');h.click('end-run-confirm');assert.doesNotMatch(h.elements.get('modal').innerHTML,/next-build|收藏目標/);const raw=JSON.parse(h.saved.get('afterlight.session.v1'));raw.modal='next-build';h.saved.set('afterlight.session.v1',JSON.stringify(raw));const n=harness(h.saved);assert.equal(n.game.modal,'result');assert.equal(n.game.permanent.meta.collectionTarget.id,'spark');n.click('result-next');assert.equal(n.game.scene,'title');});
 test('真實戰鬥累計報告，結算顯示搭配戰績，重整不重複計算',()=>{const h=harness();h.click('begin-run');vm.runInContext("startEncounter({type:'greywind_0',level:1})",h.ctx);h.game.transition=0;const b=h.game.battle;b.receiveDamage(b.player,b.enemy,5,h.ctx.GameData.moves.quick);b.finish(true);h.step(23);assert.equal(h.game.run.buildReport.damage,5);assert.equal(h.game.run.buildReport.battles,1);h.click('result-next');h.click('journal');h.click('end-run');h.click('end-run-confirm');assert.match(h.elements.get('modal').innerHTML,/本局搭配戰績/);const n=harness(h.saved);assert.equal(n.game.run.buildReport.damage,5);assert.equal(n.game.run.buildReport.battles,1);});
+
+test('首次教學：移動練習、第一場戰鬥暫停、戰後完成與重整保留',()=>{
+ const h=harness([],true,true);assert.equal(h.game.modal,'tutorial');assert.match(h.elements.get('modal').innerHTML,/歡迎來到餘光/);h.click('tutorial-next');assert.equal(h.game.scene,'explore');assert.match(h.elements.get('modal').innerHTML,/先走出第一步/);h.click('tutorial-next');const p={...h.game.run.position};h.key('d');h.step(12);h.key('d',true);assert.ok(h.game.run.position.x>p.x+70);assert.match(h.elements.get('modal').innerHTML,/靠近，才會發現/);h.click('tutorial-next');vm.runInContext("startEncounter({type:'greywind_0',level:1})",h.ctx);h.step(14);assert.equal(h.game.modal,'tutorial');const time=h.game.battle.time;h.step(10);assert.equal(h.game.battle.time,time);h.click('tutorial-next');assert.match(h.elements.get('modal').innerHTML,/看讀條/);h.click('tutorial-next');assert.match(h.elements.get('modal').innerHTML,/中央是你的必殺/);h.click('tutorial-next');h.game.battle.finish(true);h.step(23);h.click('result-next');h.step(1);assert.match(h.elements.get('modal').innerHTML,/讓收穫陪你再出發/);h.click('tutorial-next');assert.equal(h.game.modal,null);assert.equal(JSON.parse(h.saved.get('afterlight.tutorial.v1')).stage,'done');const n=harness(h.saved,true,true);assert.notEqual(n.game.modal,'tutorial');
+});
+test('教學可跳過且不重複；設定重看不改冒險、收藏或完成記錄',()=>{
+ const h=harness([],true,true);h.click('tutorial-skip');assert.equal(h.game.scene,'title');assert.equal(JSON.parse(h.saved.get('afterlight.tutorial.v1')).stage,'done');const n=harness(h.saved,true,true);assert.equal(n.game.modal,null);n.click('begin-run');n.click('settings');const run=JSON.stringify(n.game.run),progress=JSON.stringify(n.game.permanent);n.click('tutorial-review');for(let i=0;i<7;i++)n.click('tutorial-next');assert.equal(n.game.screen,'settings');assert.equal(JSON.stringify(n.game.run),run);assert.equal(JSON.stringify(n.game.permanent),progress);assert.equal(JSON.parse(n.saved.get('afterlight.tutorial.v1')).stage,'done');
+});
+test('已有進度的玩家升版不強制教學，未完成戰鬥教學重整後可接續',()=>{
+ const h=harness([['afterlight.progress.v2',JSON.stringify({moves:{quick:1,fire:1},skills:[],equipment:[],books:[],ultimates:[]})]],true,true);assert.equal(h.game.modal,null);
+ const first=harness([],true,true);first.click('tutorial-next');first.click('tutorial-next');vm.runInContext("startEncounter({type:'greywind_0',level:1})",first.ctx);first.step(14);first.click('tutorial-next');vm.runInContext('saveSession()',first.ctx);const next=harness(first.saved,true,true);assert.equal(next.game.modal,'pause');next.click('close');next.step(1);assert.match(next.elements.get('modal').innerHTML,/看讀條/);
+});

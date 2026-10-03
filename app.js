@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id), D = GameData, P = Progression, U = GameUI, S = GameScreens, Audio = GameAudio, Meta = GameMeta, Enc = EncounterFlow, Classes = ClassSystem, Ach = Achievements, Maps = WorldMaps, Explore = RunExploration;
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) };
 const loaded = P.loadProgress(storage);
+const tutorialState=GameTutorial.load(storage);
 const game = {
   scene: 'title', screen: null, modal: null, run: null, permanent: loaded.progress, build: P.defaultBuild(),
   setupTab: 'stats', category: 'moves', selected: 'fire', battle: null, encounter: null,
@@ -15,9 +16,9 @@ const renderer = new GameArt.Renderer($('scene'));
 let last = performance.now(), uiTime = 0, longPressTimer = null, hoverTimer = null, pressOrigin = null, suppressClick = false;
 let saveElapsed=0,saveErrorShown=false;
 function resetAllProgress(){
- const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1','afterlight.sort.v1',RunSave.KEY],backup={};
+ const keys=['afterlight.progress.v2','afterlight.loadout.v1','afterlight.settings.v1','afterlight.presets.v1','afterlight.sort.v1',RunSave.KEY,GameTutorial.KEY],backup={};
  try{for(const key of keys)backup[key]=localStorage.getItem(key);for(const key of keys)localStorage.removeItem(key);}catch(_){for(const [key,value]of Object.entries(backup))try{if(value!==null&&value!==undefined)localStorage.setItem(key,value);}catch(_){}toast('重置未完成，請檢查瀏覽器儲存權限。');return;}
- game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
+ tutorialState.stage='welcome';delete tutorialState.origin;game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
 }
 function saveSession(){if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
 function resumeSession(){const loaded=RunSave.load(storage);if(loaded.warning){toast(loaded.warning);return;}const snapshot=loaded.snapshot;if(!snapshot)return;for(const k of ['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom','battle'])if(snapshot[k]!==undefined)game[k]=snapshot[k];const latest=P.loadProgress(storage).progress;if((latest.meta?.revision||0)>(game.permanent.meta?.revision||0))game.permanent=latest;game.eventCursor=0;game.transition=0;game.screen=null;rebuildSkills();renderUI();
@@ -48,6 +49,25 @@ function openModal(kind, content, className = '') {
   $('modal').scrollTop = 0; $('modal').focus({ preventScroll: true });
 }
 function closeModal() { game.modal = null; $('modal-backdrop').hidden = true; hideTooltip(); }
+function saveTutorial(){if(!GameTutorial.save(storage,tutorialState))toast('教學進度暫時無法儲存。');}
+function showTutorial(replay=false){
+ if(replay){game.tutorialReplay=0;}const stage=game.tutorialReplay!==undefined?GameTutorial.order[game.tutorialReplay]:tutorialState.stage,card=GameTutorial.cards[stage];if(!card)return;
+ const index=GameTutorial.order.indexOf(stage),label=game.tutorialReplay!==undefined?'下一頁':stage==='welcome'?'開始冒險':stage==='moveIntro'?'試著移動':stage==='battleUltimate'?'開始戰鬥':stage==='journeyIntro'?'繼續旅途':'知道了';
+ openModal('tutorial',`<div class="eyebrow">${game.tutorialReplay!==undefined?'冒險指南':'第一次的旅途'} · ${index+1} / ${GameTutorial.order.length}</div><div class="tutorial-symbol">${U.icon(card.icon,54)}</div><h2 id="modal-title">${card.title}</h2><p>${card.text}</p><p class="tutorial-tip">${card.tip}</p><div class="tutorial-dots" aria-hidden="true">${GameTutorial.order.map((_,i)=>`<i class="${i===index?'active':''}"></i>`).join('')}</div><div class="modal-footer">${U.button(game.tutorialReplay!==undefined?'關閉':'跳過教學','tutorial-skip')}${U.button(game.tutorialReplay===GameTutorial.order.length-1?'完成':label,'tutorial-next',{primary:true})}</div>`,'tutorial-modal');
+}
+function advanceTutorial(){
+ if(game.tutorialReplay!==undefined){game.tutorialReplay++;if(game.tutorialReplay>=GameTutorial.order.length){delete game.tutorialReplay;closeModal();return;}showTutorial();return;}
+ const stage=tutorialState.stage;closeModal();
+ if(stage==='welcome'){beginRun();return;}
+ tutorialState.stage={moveIntro:'moving',interactIntro:'awaitBattle',battleActions:'battleTiming',battleTiming:'battleUltimate',battleUltimate:'awaitResult',journeyIntro:'done'}[stage]||'done';
+ if(tutorialState.stage==='moving')tutorialState.origin={...game.run.position};saveTutorial();if(GameTutorial.cards[tutorialState.stage])showTutorial();
+}
+function checkTutorial(){
+ if(game.debugBattle||game.modal||game.screen||game.transition>0)return;
+ if(game.scene==='battle'&&game.battle?.phase==='fighting'&&['moveIntro','moving','interactIntro','awaitBattle'].includes(tutorialState.stage)){tutorialState.stage='battleActions';saveTutorial();}
+ if(game.scene==='explore'&&tutorialState.stage==='moving'){const p=tutorialState.origin;if(!p)tutorialState.origin={...game.run.position};else if(Math.hypot(game.run.position.x-p.x,game.run.position.y-p.y)>=70){tutorialState.stage='interactIntro';saveTutorial();}}
+ if(GameTutorial.cards[tutorialState.stage])showTutorial();
+}
 function journeyRewardHTML(run){
  const s=run.journeySettlement;if(!s)return '';
  return `<section class="run-loot"><h3>任務與成就獎勵</h3><p>額外獲得 ◇ ${s.total} 旅者徽記</p>${s.receipts.map(r=>`<p><strong>${U.escape(r.name)}</strong> · ＋${r.marks} 徽記${r.ability?'<br>'+ (r.duplicate?'已擁有「'+U.escape(r.ability.name)+'」，含折換 25 徽記':'新解鎖'+(r.ability.type==='moves'?'招式':'技能')+'：'+U.escape(r.ability.name)):''}</p>`).join('')}<p class="quiet-note">已自動存入商店錢包與永久收藏；獎勵不增加本局評分。</p></section>`;
@@ -143,7 +163,7 @@ function beginRun() {
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
   game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build);Maps.startStarter(game.run); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');if(tutorialState.stage!=='done'){tutorialState.stage='moveIntro';saveTutorial();showTutorial();}
 }
 function startDebugBattle(){
  try{
@@ -357,7 +377,7 @@ function applyAcquisition(index) {
   Audio.emit('itemGain', { id: t.id, equipped: index !== null }); if (index !== null) toast('已裝備 · ' + (D.moves[t.id] || D.skills[t.id]).name);
   rebuildSkills(); $('skillbar').classList.remove('acquisition-insert'); void $('skillbar').offsetWidth; $('skillbar').classList.add('acquisition-insert'); game.offered = null; acquisitionNext();
 }
-function returnExplore() { if(!game.run.dungeon)delete game.run.dungeonResources;game.scene = 'explore'; game.battle = null; game.resultDelay = null; game.recoveryCountdown=null; closeModal(); rebuildSkills(); renderUI();if(game.run.fieldEncounterQueue?.length)startEncounter(game.run.fieldEncounterQueue.shift()); }
+function returnExplore() {if(tutorialState.stage==='awaitResult'){tutorialState.stage='journeyIntro';saveTutorial();} if(!game.run.dungeon)delete game.run.dungeonResources;game.scene = 'explore'; game.battle = null; game.resultDelay = null; game.recoveryCountdown=null; closeModal(); rebuildSkills(); renderUI();if(game.run.fieldEncounterQueue?.length)startEncounter(game.run.fieldEncounterQueue.shift()); }
 function pause() { if(game.debugBattle){openModal('debug-lab',GameDebug.form(game.debugBattle));return;} if (!game.run || game.modal || game.screen) return; openModal('pause', `<div class="eyebrow">A MOMENT OF STILLNESS</div><h2 id="modal-title">旅途暫歇</h2><p>時間已暫停。整理呼吸，再繼續前行。</p><div class="modal-footer">${U.button('設定', 'settings')}${U.button('繼續旅途', 'close', { primary: true })}</div>`, 'result-modal'); }
 function renderUI() {
   $('game').dataset.mode = game.scene; $('title-screen').hidden = game.scene !== 'title' || !!game.screen;
@@ -447,6 +467,9 @@ function handleAction(action, id, element) {
   else if(action==='debug-lab'){ $('debug').hidden=true;openModal('debug-lab',GameDebug.form(game.debugBattle)); }
   else if(action==='debug-end'&&game.debugBattle){game.debugBattle=false;game.run=null;game.battle=null;game.scene='title';game.screen=null;$('screen').hidden=true;closeModal();renderUI();}
   else if(action==='debug-start')startDebugBattle();
+  else if(action==='tutorial-next'&&game.modal==='tutorial')advanceTutorial();
+  else if(action==='tutorial-skip'&&game.modal==='tutorial'){if(game.tutorialReplay!==undefined)delete game.tutorialReplay;else{tutorialState.stage='done';saveTutorial();}closeModal();}
+  else if(action==='tutorial-review')showTutorial(true);
   else if (action === 'settings') openScreen('settings');
   else if (action === 'screen-back') screenBack();
   else if(action==='content-sort'||action==='content-sort-direction'){if(action==='content-sort'){if(!['rarity','type','element','name'].includes(id))return;game.contentSort=id;game.contentSortReverse=false;}else game.contentSortReverse=!game.contentSortReverse;try{storage.setItem('afterlight.sort.v1',JSON.stringify({key:game.contentSort,reverse:game.contentSortReverse}));}catch(_){toast('排列偏好暫時無法儲存。');}hideTooltip();if(game.modal==='picker')openPicker(game.picker.kind,game.picker.index);else if(game.modal==='run-slot')showRunSlot(game.runPicker.kind,game.runPicker.index);else renderScreen();}
@@ -575,6 +598,7 @@ function combatEvent(event) {
   if (event.type === 'interrupt') { game.castFlashes[event.targetId] = { type: 'interrupted', until: renderer.time + .42 }; Audio.emit('interrupt', event); }
 }
 function frame(now) {
+  checkTutorial();
   const dt = Math.min((now - last) / 1000, .05); last = now; game.moving = false;
   if (!game.modal && !game.screen && $('debug').hidden && game.run) {
     if (game.scene === 'explore') { const direction = input(); game.moving = !!(direction.x || direction.y); if (direction.x) game.facing = direction.x > 0 ? 1 : -1; const enemy = World.update(game.run, dt, direction);if(Explore.discover(game.run))saveSession();if(!game.debugBattle&&Meta.discover(game.permanent,game.run))persist();const map=D.maps[game.run.currentMapId];if(map&&game.lastRegion!==map.id){game.lastRegion=map.id;toast(map.name+' · 推薦 Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);} const portal=World.edgeExit(game.run,60);if(portal?.entity.starterPortal)travelMapExit(portal.entity);else if (enemy) startEncounter(enemy); }
@@ -600,5 +624,6 @@ $('portrait').innerHTML = U.icon('hood', 41);
 resizeStage(); applySettings(); renderUI(); if (loaded.warning) toast(loaded.warning);
 window.addEventListener('pagehide',saveSession);
 resumeSession();
+if(!game.run&&tutorialState.stage==='welcome'){saveTutorial();showTutorial();}
 window.GameApp = { game, renderer };
 requestAnimationFrame(frame);
