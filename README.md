@@ -1,4 +1,4 @@
-# AFTERLIGHT · 網頁版 v0.24.1
+# AFTERLIGHT · 網頁版 v0.25.0
 
 9:16 手機直式 Roguelite RPG，使用原生 JavaScript 與 Canvas。
 
@@ -26,8 +26,8 @@
 ## 現行內容
 
 - 七大區各五張正式地圖，另有七種隨機新手地圖與一張首次教學地圖。通行規則與配置見 `world-maps.js`。
-- 當前內容表：[完整品級與取得來源](CONTENT-GRADES-DETAILED-0.24.1.html)。
-- 最新更新：[v0.24.1 說明](UPDATE-0.24.1.md)。
+- 當前內容表：[完整品級與取得來源](CONTENT-GRADES-DETAILED-0.25.0.html)。
+- 最新更新：[v0.25.0 說明](UPDATE-0.25.0.md)。
 - 角色設定支援能力、配置、裝備與搭配預設；冒險中角色頁可調整本局已取得的招式和技能。
 - 升級自動提升五項能力，數字快速累加；整局结算列出成果、收穫與可展開的搭配戰績。
 
@@ -36,7 +36,7 @@
 - `data.js`、`combat-content.js`、`world-content.js`、`content-v1.js`：資料與內容。`content-v1.js` 仍是現行遊戲依賴。
 - `engine.js`、`skill-runtime.js`：時間軸戰鬥與技能效果。
 - `progression.js`、`level-progression.js`、`encounters.js`：成長、獎勵與冒險者階級。
-- `world.js`、`world-maps.js`、`training-map.js`、`run-exploration.js`：探索、地圖與局內事件。
+- `world.js`、`world-maps.js`、`map-routes.js`、`training-map.js`、`run-exploration.js`：探索、地圖與局內事件。
 - `app.js`、`screens.js`、`meta-screens.js`、`ui.js`、`style.css`：流程與介面。
 - `run-save.js`、`meta.js`、`offline.js`、`sw.js`：存檔、局外進度與離線快取。
 - `build-journey.js`：仍提供真實戰鬥統計，不能隨收藏規劃入口一起移除。
@@ -53,3 +53,11 @@
 遊戲資源與玩家存檔分開保存；整理檔案和更新快取不可清除 LocalStorage 或 IndexedDB。
 
 本版新增首次教學地圖與獨立練習；既有存檔保留。
+
+## 道路與怪物分層
+
+正式地圖以入口低等段 → 前進主路 → 深入支路配置野怪；等級由固定路段決定，不隨玩家等級提高。相鄰地圖東西出入口相接，從地圖選單首次進場仍在中央。中央半徑450、門前深900／寬600為安全區，防止刷怪與追擊。每張圖180隻野怪，其中5隻菁英固定在深入段。
+
+四象限各有一個目的地：有地下城的象限通往原地下城，其餘各一個可調查的深入點。深入點暫時只記錄探索足跡，不額外送獎勵，不占用0～3個探索事件，稀有藏書仍須前置任務。B／A／S通行、推薦地下城等級與獎勵池不變。
+
+既有正式圖巡邏位置遷移到新道路，保留死亡冷卻與發現狀態；玩家成長、配置、地圖落點、地下城進度與藏書任務保留。首次教學、獨立練習和隨機新手區維持原本配置。

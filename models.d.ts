@@ -81,7 +81,7 @@ export interface RunState {
   pendingAcquisitions?: AcquisitionTicket[];
   moveLevels: Record<string, number>; // no hard cap, copied from permanent levels on new run
   build: Build; position: Position;
-  world: { time: number; enemies: WorldEnemy[]; discoveredDungeons: string[]; usedObjects?: string[]; inventory?: string[] };
+  world: { time: number; enemies: WorldEnemy[]; discoveredDungeons: string[]; discoveredDeepPoints?: string[]; usedObjects?: string[]; inventory?: string[] };
   dungeon: { id: string; stage: number; rewardClaimed?: boolean; rewardCombination?: string } | null; // indexed by DungeonData.enemyWaves
 }
 export interface SkillContent {

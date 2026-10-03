@@ -497,7 +497,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.24.1', date: '2026-10-03' },
+    release: { version: '0.25.0', date: '2026-10-04' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -972,10 +972,51 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  if(typeof module!=='undefined')module.exports=apply;else root.ResourceDistribution=apply;
 })(globalThis);
 
-</script><!-- inline-module:world-maps.js --><script>
+</script><!-- inline-module:map-routes.js --><script>
+/* Fixed map routes: level bands are spatial, never scaled to the player. */
+(function(root){
+ const plans={"north_plains_1":{"routeName":"驛站草甸","mainRoad":[[0,50],[18,53.5],[34,57],[50,50],[66,43],[84,37.666666666666664],[100,40]],"arrival":{"edge":"west","point":[0,50],"fromMapId":null},"departure":{"edge":"east","point":[100,40],"toMapId":"north_plains_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"north_plains_2":{"routeName":"牧野曲道","mainRoad":[[0,40],[18,36.5],[34,43],[50,50],[66,57],[84,58.333333333333336],[100,56]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"north_plains_1"},"departure":{"edge":"east","point":[100,56],"toMapId":"north_plains_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"north_plains_3":{"routeName":"風蝕隘口","mainRoad":[[0,56],[18,59.5],[34,57],[50,50],[66,43],[84,41.666666666666664],[100,44]],"arrival":{"edge":"west","point":[0,56],"fromMapId":"north_plains_2"},"departure":{"edge":"east","point":[100,44],"toMapId":"north_plains_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"north_plains_4":{"routeName":"古戰場道","mainRoad":[[0,44],[18,40.5],[34,43],[50,50],[66,57],[84,60.333333333333336],[100,58]],"arrival":{"edge":"west","point":[0,44],"fromMapId":"north_plains_3"},"departure":{"edge":"east","point":[100,58],"toMapId":"north_plains_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"north_plains_5":{"routeName":"王陵邊境","mainRoad":[[0,58],[18,61.5],[34,57],[50,50],[66,43],[84,47.666666666666664],[100,50]],"arrival":{"edge":"west","point":[0,58],"fromMapId":"north_plains_4"},"departure":{"edge":"east","point":[100,50],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"northern_kingdom_1":{"routeName":"霜原驛道","mainRoad":[[0,62],[18,58.0],[34,42],[50,50],[66,58],[84,42.666666666666664],[100,40]],"arrival":{"edge":"west","point":[0,62],"fromMapId":null},"departure":{"edge":"east","point":[100,40],"toMapId":"northern_kingdom_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"northern_kingdom_2":{"routeName":"冰湖堤路","mainRoad":[[0,40],[18,44.0],[34,58],[50,50],[66,42],[84,55.333333333333336],[100,58]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"northern_kingdom_1"},"departure":{"edge":"east","point":[100,58],"toMapId":"northern_kingdom_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"northern_kingdom_3":{"routeName":"雷痕峽谷","mainRoad":[[0,58],[18,54.0],[34,42],[50,50],[66,58],[84,40.666666666666664],[100,38]],"arrival":{"edge":"west","point":[0,58],"fromMapId":"northern_kingdom_2"},"departure":{"edge":"east","point":[100,38],"toMapId":"northern_kingdom_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"northern_kingdom_4":{"routeName":"雙塔山路","mainRoad":[[0,38],[18,42.0],[34,58],[50,50],[66,42],[84,59.333333333333336],[100,62]],"arrival":{"edge":"west","point":[0,38],"fromMapId":"northern_kingdom_3"},"departure":{"edge":"east","point":[100,62],"toMapId":"northern_kingdom_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"northern_kingdom_5":{"routeName":"極光高原","mainRoad":[[0,62],[18,58.0],[34,42],[50,50],[66,58],[84,50.666666666666664],[100,48]],"arrival":{"edge":"west","point":[0,62],"fromMapId":"northern_kingdom_4"},"departure":{"edge":"east","point":[100,48],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"mirewood_1":{"routeName":"蘆葦堤道","mainRoad":[[0,44],[18,48.5],[34,59],[50,50],[66,41],[84,59.0],[100,62]],"arrival":{"edge":"west","point":[0,44],"fromMapId":null},"departure":{"edge":"east","point":[100,62],"toMapId":"mirewood_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"mirewood_2":{"routeName":"雙岔濕地","mainRoad":[[0,62],[18,57.5],[34,41],[50,50],[66,59],[84,45.0],[100,42]],"arrival":{"edge":"west","point":[0,62],"fromMapId":"mirewood_1"},"departure":{"edge":"east","point":[100,42],"toMapId":"mirewood_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"mirewood_3":{"routeName":"盤根木橋","mainRoad":[[0,42],[18,46.5],[34,59],[50,50],[66,41],[84,55.0],[100,58]],"arrival":{"edge":"west","point":[0,42],"fromMapId":"mirewood_2"},"departure":{"edge":"east","point":[100,58],"toMapId":"mirewood_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"mirewood_4":{"routeName":"迷霧高堤","mainRoad":[[0,58],[18,53.5],[34,41],[50,50],[66,59],[84,43.0],[100,40]],"arrival":{"edge":"west","point":[0,58],"fromMapId":"mirewood_3"},"departure":{"edge":"east","point":[100,40],"toMapId":"mirewood_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"mirewood_5":{"routeName":"古樹腹地","mainRoad":[[0,40],[18,44.5],[34,59],[50,50],[66,41],[84,51.0],[100,54]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"mirewood_4"},"departure":{"edge":"east","point":[100,54],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"central_mines_1":{"routeName":"採石坡道","mainRoad":[[0,60],[18,56.5],[34,43],[50,50],[66,57],[84,48.333333333333336],[100,46]],"arrival":{"edge":"west","point":[0,60],"fromMapId":null},"departure":{"edge":"east","point":[100,46],"toMapId":"central_mines_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"central_mines_2":{"routeName":"礦車廊道","mainRoad":[[0,46],[18,49.5],[34,57],[50,50],[66,43],[84,57.666666666666664],[100,60]],"arrival":{"edge":"west","point":[0,46],"fromMapId":"central_mines_1"},"departure":{"edge":"east","point":[100,60],"toMapId":"central_mines_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"central_mines_3":{"routeName":"熔岩外堤","mainRoad":[[0,60],[18,56.5],[34,43],[50,50],[66,57],[84,40.333333333333336],[100,38]],"arrival":{"edge":"west","point":[0,60],"fromMapId":"central_mines_2"},"departure":{"edge":"east","point":[100,38],"toMapId":"central_mines_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"central_mines_4":{"routeName":"巨人階道","mainRoad":[[0,38],[18,41.5],[34,57],[50,50],[66,43],[84,51.666666666666664],[100,54]],"arrival":{"edge":"west","point":[0,38],"fromMapId":"central_mines_3"},"departure":{"edge":"east","point":[100,54],"toMapId":"central_mines_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"central_mines_5":{"routeName":"地心斷崖","mainRoad":[[0,54],[18,50.5],[34,43],[50,50],[66,57],[84,46.333333333333336],[100,44]],"arrival":{"edge":"west","point":[0,54],"fromMapId":"central_mines_4"},"departure":{"edge":"east","point":[100,44],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"dark_empire_1":{"routeName":"荒城外道","mainRoad":[[0,48],[18,52.0],[34,58],[50,50],[66,42],[84,57.333333333333336],[100,60]],"arrival":{"edge":"west","point":[0,48],"fromMapId":null},"departure":{"edge":"east","point":[100,60],"toMapId":"dark_empire_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"dark_empire_2":{"routeName":"暮影街巷","mainRoad":[[0,60],[18,56.0],[34,42],[50,50],[66,58],[84,42.666666666666664],[100,40]],"arrival":{"edge":"west","point":[0,60],"fromMapId":"dark_empire_1"},"departure":{"edge":"east","point":[100,40],"toMapId":"dark_empire_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"dark_empire_3":{"routeName":"黑石長橋","mainRoad":[[0,40],[18,44.0],[34,58],[50,50],[66,42],[84,53.333333333333336],[100,56]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"dark_empire_2"},"departure":{"edge":"east","point":[100,56],"toMapId":"dark_empire_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"dark_empire_4":{"routeName":"祭儀環道","mainRoad":[[0,56],[18,52.0],[34,42],[50,50],[66,58],[84,44.666666666666664],[100,42]],"arrival":{"edge":"west","point":[0,56],"fromMapId":"dark_empire_3"},"departure":{"edge":"east","point":[100,42],"toMapId":"dark_empire_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"dark_empire_5":{"routeName":"終末廣場","mainRoad":[[0,42],[18,46.0],[34,58],[50,50],[66,42],[84,47.333333333333336],[100,50]],"arrival":{"edge":"west","point":[0,42],"fromMapId":"dark_empire_4"},"departure":{"edge":"east","point":[100,50],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"southern_kingdom_1":{"routeName":"餘燼驛路","mainRoad":[[0,54],[18,49.5],[34,41],[50,50],[66,59],[84,43.0],[100,40]],"arrival":{"edge":"west","point":[0,54],"fromMapId":null},"departure":{"edge":"east","point":[100,40],"toMapId":"southern_kingdom_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"southern_kingdom_2":{"routeName":"火山側道","mainRoad":[[0,40],[18,44.5],[34,59],[50,50],[66,41],[84,53.0],[100,56]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"southern_kingdom_1"},"departure":{"edge":"east","point":[100,56],"toMapId":"southern_kingdom_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"southern_kingdom_3":{"routeName":"聖光台階","mainRoad":[[0,56],[18,51.5],[34,41],[50,50],[66,59],[84,45.0],[100,42]],"arrival":{"edge":"west","point":[0,56],"fromMapId":"southern_kingdom_2"},"departure":{"edge":"east","point":[100,42],"toMapId":"southern_kingdom_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"southern_kingdom_4":{"routeName":"壁壘巡路","mainRoad":[[0,42],[18,46.5],[34,59],[50,50],[66,41],[84,55.0],[100,58]],"arrival":{"edge":"west","point":[0,42],"fromMapId":"southern_kingdom_3"},"departure":{"edge":"east","point":[100,58],"toMapId":"southern_kingdom_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"southern_kingdom_5":{"routeName":"日輪高台","mainRoad":[[0,58],[18,53.5],[34,41],[50,50],[66,59],[84,51.0],[100,48]],"arrival":{"edge":"west","point":[0,58],"fromMapId":"southern_kingdom_4"},"departure":{"edge":"east","point":[100,48],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}},"southern_forest_1":{"routeName":"林緣獵徑","mainRoad":[[0,42],[18,45.5],[34,57],[50,50],[66,43],[84,53.666666666666664],[100,56]],"arrival":{"edge":"west","point":[0,42],"fromMapId":null},"departure":{"edge":"east","point":[100,56],"toMapId":"southern_forest_2"},"bands":{"arrival":[9,12],"main":[12,16],"deep":[18,25]}},"southern_forest_2":{"routeName":"溪谷木橋","mainRoad":[[0,56],[18,52.5],[34,43],[50,50],[66,57],[84,42.333333333333336],[100,40]],"arrival":{"edge":"west","point":[0,56],"fromMapId":"southern_forest_1"},"departure":{"edge":"east","point":[100,40],"toMapId":"southern_forest_3"},"bands":{"arrival":[16,25],"main":[30,50],"deep":[55,80]}},"southern_forest_3":{"routeName":"樹冠岔路","mainRoad":[[0,40],[18,43.5],[34,57],[50,50],[66,43],[84,59.666666666666664],[100,62]],"arrival":{"edge":"west","point":[0,40],"fromMapId":"southern_forest_2"},"departure":{"edge":"east","point":[100,62],"toMapId":"southern_forest_4"},"bands":{"arrival":[50,80],"main":[95,150],"deep":[180,250]}},"southern_forest_4":{"routeName":"古林迴廊","mainRoad":[[0,62],[18,58.5],[34,43],[50,50],[66,57],[84,46.333333333333336],[100,44]],"arrival":{"edge":"west","point":[0,62],"fromMapId":"southern_forest_3"},"departure":{"edge":"east","point":[100,44],"toMapId":"southern_forest_5"},"bands":{"arrival":[150,250],"main":[300,420],"deep":[480,600]}},"southern_forest_5":{"routeName":"神木庭院","mainRoad":[[0,44],[18,47.5],[34,57],[50,50],[66,43],[84,51.666666666666664],[100,54]],"arrival":{"edge":"west","point":[0,44],"fromMapId":"southern_forest_4"},"departure":{"edge":"east","point":[100,54],"toMapId":null},"bands":{"arrival":[420,600],"main":[680,800],"deep":[850,999]}}};
+ const rules={centerSafeRadius:450,portalSafeDepth:900,portalSafeHalfWidth:300,roadHalfWidth:140,edgeEntryInset:180,spawnCount:180};
+ const names={north_plains:['斷碑草丘','風車遺址','舊獵人營地','落星坡'],northern_kingdom:['冰封石環','霜晶裂谷','廢棄雪哨','極光祭臺'],mirewood:['盤根石臺','苔蘚廢墟','沉水碼頭','幽蘭林地'],central_mines:['廢棄礦臺','晶岩斷層','巨人石階','熔脈觀臺'],dark_empire:['殘破鐘樓','黑石庭院','無名墓園','暮光石環'],southern_kingdom:['舊驛遺址','日輪石臺','餘燼花園','聖火崖'],southern_forest:['古樹石環','獵風臺','溪谷遺址','神木林地']};
+ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ function segment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1)));return {distance:dist(p,{x:a.x+t*dx,y:a.y+t*dy}),t};}
+ function roadDistance(p,roads){let n=Infinity;for(const road of roads)for(let i=1;i<road.length;i++)n=Math.min(n,segment(p,road[i-1],road[i]).distance);return n;}
+ function safe(p,map){if(!map?.route)return false;if(dist(p,map.entry)<rules.centerSafeRadius)return true;return Object.values(map.route.portals).some(g=>Math.abs(p.y-g.y)<rules.portalSafeHalfWidth&&(g.edge==='left'?p.x<rules.portalSafeDepth:p.x>map.width-rules.portalSafeDepth));}
+ function clear(p,map){return !!map?.route&&(safe(p,map)||roadDistance(p,map.route.roads)<rules.roadHalfWidth||map.deepPoints.some(d=>dist(p,d)<110)||map.route.destinations.some(d=>dist(p,d)<130));}
+ function configure(map,dungeons,width,height){
+  const plan=plans[map.id];map.width=width;map.height=height;map.deepPoints=[];
+  const at=([x,y])=>({x:x*width/100,y:y*height/100}),mainRoad=plan.mainRoad.map(at);
+  const portals={arrival:{...at(plan.arrival.point),edge:'left',targetId:plan.arrival.fromMapId},departure:{...at(plan.departure.point),edge:'right',targetId:plan.departure.toMapId}};
+  // One destination per quadrant: existing dungeons take priority; empty quadrants get a landmark.
+  const positions=[[22,18],[78,18],[22,82],[78,82]],order=[1,3,0,2],destinations=[];
+  for(let q=0;q<4;q++){const d=dungeons[order.indexOf(q)],point=at(positions[q]);if(d){Object.assign(d,point,{quadrant:q});destinations.push({id:d.id,name:d.name,kind:'dungeon',quadrant:q,...point});}else{const landmark={id:map.id+'-deep-'+q,name:names[map.regionId][q],kind:'deep-point',action:'調查',quadrant:q,...point};map.deepPoints.push(landmark);destinations.push(landmark);}}
+  const branches=destinations.map(d=>{const anchor=mainRoad[d.x<width/2?2:4];return [anchor,{x:anchor.x+(d.x-anchor.x)*.4,y:anchor.y+(d.y-anchor.y)*.55},{x:d.x,y:d.y}];});
+  map.route={version:1,name:plan.routeName,mainRoad,branches,roads:[mainRoad,...branches],portals,bands:plan.bands,destinations};return map;
+ }
+ function layout(map){
+  let seed=[...map.id].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917);const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;},groups={arrival:[],main:[],deep:[]},r=map.route;
+  // A bounded candidate grid avoids unbounded rejection loops on mobile startup.
+  for(let x=110;x<map.width-100;x+=135)for(let y=110;y<map.height-100;y+=135){
+   const p={x:x+(random()-.5)*16,y:y+(random()-.5)*16};if(safe(p,map)||r.destinations.some(d=>dist(d,p)<145))continue;
+   let nearest={distance:Infinity,ri:0};for(const [ri,road]of r.roads.entries())for(let i=1;i<road.length;i++){const hit=segment(p,road[i-1],road[i]);if(hit.distance<nearest.distance)nearest={...hit,ri};}if(nearest.distance>280)continue;
+   const branch=nearest.ri>0?r.branches[nearest.ri-1]:null,progress=branch?Math.max(0,Math.min(1,dist(p,branch[0])/dist(branch[0],branch[2]))):0;
+   const section=branch&&progress>.32?'deep':p.x<map.width/2?'arrival':'main',band=r.bands[section];
+   const fraction=section==='deep'?Math.max(0,Math.min(1,(progress-.32)/.68)):section==='arrival'?Math.max(0,Math.min(1,(p.x-rules.portalSafeDepth)/(map.width/2-rules.portalSafeDepth))):Math.max(0,Math.min(1,(p.x-map.width/2)/(map.width/2-rules.portalSafeDepth)));
+   groups[section].push({...p,section,level:Math.round(band[0]+(band[1]-band[0])*fraction),elite:false});
+  }
+  const points=[];for(const [section,target]of [['arrival',45],['main',63],['deep',72]]){const group=groups[section];for(let i=0;i<Math.min(target,group.length);i++){const index=Math.floor((i+.5)*group.length/Math.min(target,group.length));points.push(group[index]);}}
+  for(const group of Object.values(groups))for(const p of group){if(points.length>=rules.spawnCount)break;if(!points.includes(p))points.push(p);}
+  points.sort((a,b)=>a.level-b.level||a.x-b.x||a.y-b.y);const deep=points.filter(p=>p.section==='deep');for(let i=0;i<5&&deep.length;i++){const point=deep[Math.floor((i+.5)*deep.length/5)];point.elite=true;point.level=Math.round(map.eliteLevelRange[0]+(map.eliteLevelRange[1]-map.eliteLevelRange[0])*i/4);}return points;
+ }
+ function arrival(map,forward){const gate=map.route.portals[forward?'arrival':'departure'];return {x:gate.edge==='left'?rules.edgeEntryInset:map.width-rules.edgeEntryInset,y:gate.y};}
+ const api={plans,rules,dist,segment,roadDistance,safe,clear,configure,layout,arrival};if(typeof module!=='undefined')module.exports=api;else root.MapRoutes=api;
+})(globalThis);
+
+</script><!-- /inline-module --><!-- inline-module:world-maps.js --><script>
 /* Data-driven Run map routes. Existing combat and dungeon records keep their IDs. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
+ const R=typeof module!=='undefined'?require('./map-routes'):root.MapRoutes;
  const rows=[
   ['north_plains','北之平原','泛用、無屬性與基礎戰鬥','greywind','meadow','#46513e',['泛用','無屬性','物理','純魔法'],['無屬性','物理'],[[1,20],[20,40],[40,65],[70,95],[105,130]],[]],
   ['northern_kingdom','北方國度','冰與雷交錯的長詠唱國度','froststorm','frost','#52656b',['水','金','冰','雷','中斷'],['水','金'],[[1,20],[30,60],[70,100],[110,140],[145,175]],['frozen_tower','thunder_workshop']],
@@ -990,7 +1031,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const geometry={version:1,areaRatio:.75,scale:Math.sqrt(.75),originalWidth:D.world.width,originalHeight:D.world.height};
  D.mapGeometry=geometry;D.world.width*=geometry.scale;D.world.height*=geometry.scale;
  for(const road of D.world.roads)for(const p of road){p.x*=geometry.scale;p.y*=geometry.scale;}
- const layoutVersion=5,safeRadius=720,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
+ const layoutVersion=6,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
  const progressionBands=[[10,25],[25,80],[80,250],[250,600],[600,999]],eliteBands=[[20,30],[60,100],[200,300],[500,700],[850,999]];
  D.mapAccessRules={2:{rank:'B'},3:{rank:'A',previousDungeonMap:2},4:{rank:'S',previousDungeonMap:3}};
  const regions=[],maps=[];
@@ -1009,32 +1050,6 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  }
  // Each map has a local encounter layout and a reachable dungeon entrance.
  const routes={north_plains:['abandoned_mine','荒原哨站'],northern_kingdom:['frozen_tower','霜雷哨塔'],mirewood:['root_cave','幽根密窟'],central_mines:['giant_ruins','深岩試煉所'],dark_empire:['blacklight_chapel','暮影祭壇'],southern_kingdom:['old_lab','餘燼法陣'],southern_forest:['root_cave','獵風古穴']};
- function spawnLayout(map){
-  let seed=[...map.id].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917),random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-  const points=[],cols=9,rows=7,margin=130,cellW=(D.world.width-margin*2)/cols,cellH=(D.world.height-margin*2)/rows,dungeons=map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)).filter(Boolean),maxDistance=Math.max(...[[margin,margin],[D.world.width-margin,margin],[margin,D.world.height-margin],[D.world.width-margin,D.world.height-margin]].map(([x,y])=>Math.hypot(x-map.entry.x,y-map.entry.y)));
-  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
-   const x=Math.round(margin+(col+.18+random()*.64)*cellW),y=Math.round(margin+(row+.18+random()*.64)*cellH),distance=Math.hypot(x-map.entry.x,y-map.entry.y);
-   if(distance<safeRadius||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150))continue;
-   points.push({x,y,elite:false,level:map.recommendedLevelMin});
-  }
-  points.sort((a,b)=>Math.hypot(a.x-map.entry.x,a.y-map.entry.y)-Math.hypot(b.x-map.entry.x,b.y-map.entry.y));
-  const beginnerCount=Math.max(6,Math.ceil(points.length*.1)),span=map.recommendedLevelMax-map.recommendedLevelMin;
-  for(const [i,point] of points.entries()){
-   const distance=Math.hypot(point.x-map.entry.x,point.y-map.entry.y),progress=Math.max(0,Math.min(1,(distance-safeRadius)/(maxDistance-safeRadius)));
-   point.level=i<beginnerCount?map.recommendedLevelMin:i<beginnerCount+6?Math.min(map.recommendedLevelMax,map.recommendedLevelMin+1+Math.floor((i-beginnerCount)/2)):Math.round(map.recommendedLevelMin+span*Math.max(0,Math.min(1,progress*.96+(random()-.5)*.05)));
-   if(i>=11&&i%12===11)point.elite=true;
-  }
-  // Fill gaps without moving existing spawns or replacing their saved cooldowns.
-  const anchors=[...points],density={columns:18,rows:12,minimumSpacing:205};
-  map.encounterDensity=density;
-  for(let row=0;row<density.rows;row++)for(let col=0;col<density.columns;col++){
-   const x=Math.round(margin+(col+.3+random()*.4)*(D.world.width-margin*2)/density.columns),y=Math.round(margin+(row+.3+random()*.4)*(D.world.height-margin*2)/density.rows);
-   if(Math.hypot(x-map.entry.x,y-map.entry.y)<safeRadius||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150)||points.some(p=>Math.hypot(x-p.x,y-p.y)<density.minimumSpacing))continue;
-   const nearest=anchors.reduce((a,b)=>Math.hypot(x-a.x,y-a.y)<Math.hypot(x-b.x,y-b.y)?a:b);
-   points.push({x,y,elite:false,level:nearest.level});
-  }
-  return points;
- }
  for(const map of maps){
   if(!map.dungeonIds.length){
    const [themeTemplate,name]=routes[map.regionId],level=map.sortOrder===0?12:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);
@@ -1046,12 +1061,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   map.dungeonIds.forEach((id,index)=>{const d=D.dungeons.find(d=>d.id===id);d.mapId=map.id;d.regionId=regions.find(r=>r.id===map.regionId).legacyRegionId;const angle=-Math.PI/4+index*Math.PI*2/map.dungeonIds.length;d.x=map.entry.x+Math.cos(angle)*560;d.y=map.entry.y+Math.sin(angle)*560;});
   for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);d.rewardReferenceLevel=d.generatedMapDungeon?[12,38,85,130,175][map.sortOrder]:d.level;d.finalLevelScale=true;d.recommendedLevel=d.level=map.sortOrder===0?Math.max(map.recommendedLevelMin,Math.min(map.recommendedLevelMax,d.level)):id==='terminal_structure'?999:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);for(const wave of d.enemyWaves)wave.level=Math.min(999,Math.max(map.recommendedLevelMin,d.level+(wave.role==='boss'?1:wave.role==='normal'?-2:0)));}
-  map.spawnPoints=spawnLayout(map);for(const [i,point]of map.spawnPoints.entries())if(point.elite){const [min,max]=map.eliteLevelRange;point.level=Math.round(min+(max-min)*(i%5)/4);}
+  R.configure(map,map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)),D.world.width,D.world.height);map.spawnPoints=R.layout(map);
  }
- D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ D.mapRouteVersion=1;D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
  if(D.contentGrades&&D.contentDistribution){if(typeof module!=='undefined')require('./content-grades')(D);else root.ContentGrades(D);const redistribute=typeof module!=='undefined'?require('./resource-distribution'):root.ResourceDistribution;redistribute(D);}
  const starterConfig={layoutVersion:3,enemyCount:18,safeRadius:360,ringSpacing:240,areaRatio:.25,levelCap:9,expMultiplier:4,bossHpMultiplier:2.6,bossDamageMultiplier:.65};
- const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=geometry.originalWidth*Math.sqrt(starterConfig.areaRatio),height=geometry.originalHeight*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
+ const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=geometry.originalWidth*Math.sqrt(starterConfig.areaRatio),height=geometry.originalHeight*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,route:null,deepPoints:[],width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
   for(let i=0;i<starterConfig.enemyCount;i++){const ring=Math.floor(i/6),angle=(i%6)*Math.PI/3+ring*Math.PI/6,radius=starterConfig.safeRadius+ring*starterConfig.ringSpacing;map.spawnPoints.push({x:map.entry.x+Math.cos(angle)*radius,y:map.entry.y+Math.sin(angle)*radius,level:Math.min(8,1+Math.floor(i*8/starterConfig.enemyCount)),elite:false});}
   const bossId=map.id+'_guardian',template=D.monsters[source.enemyPoolIds[1]||source.enemyPoolIds[0]];D.monsters[bossId]={...template,id:bossId,name:region.name+'守關者',boss:true,moves:['goblin','crush'],skills:[],behavior:'neutral',radius:0,worldScale:1.65,labelHeight:88,dropChance:0};map.bossType=bossId;
   D.maps[map.id]=map;return map;
@@ -1076,15 +1091,23 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(run.exploration){run.exploration.geometryRepair=true;run.exploration.geometryVersion=geometry.version;}
   }
   run.mapGeometryVersion=geometry.version;
-  if(run.mapLayoutVersion===4)run.mapLayoutVersion=layoutVersion;
+
+ }
+ function migrateRouteLayout(run){
+  if(run.mapLayoutVersion!==layoutVersion){
+   const hadLayout=Number.isFinite(run.mapLayoutVersion);
+   run.world.enemies=run.world.enemies.filter(e=>{const map=D.maps[e.mapId];if(!map?.route)return true;if(!e.id?.includes('-patrol-'))return !/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss;const point=map.spawnPoints[Number(e.id.split('-patrol-')[1])];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level,elite:point.elite,section:point.section});return true;});
+   if(!hadLayout&&!D.maps[run.currentMapId]?.starter){run.position={...D.maps[run.currentMapId].entry};run.mapPositions||={};}
+   run.mapLayoutVersion=layoutVersion;
+  }
+  run.world.discoveredDeepPoints||=[];
  }
  function ensureRun(run){
   if(run.training&&run.currentMapId==='tutorial_court'){D.training.ensure(run);return run;}
   migrateGeometry(run);
-  if(run.starter&&run.currentMapId===run.starter.mapId){run.mapPositions||={};const map=D.maps[run.currentMapId];if(run.starter.layoutVersion!==starterConfig.layoutVersion){if(run.starter.layoutVersion===2){const scale=Math.SQRT1_2;run.position={x:Math.max(35,Math.min(map.width-35,run.position.x*scale)),y:Math.max(35,Math.min(map.height-35,run.position.y*scale))};run.mapPositions[map.id]={...run.position};const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(boss)Object.assign(boss,{x:map.entry.x,y:map.entry.y-210,homeX:map.entry.x,homeY:map.entry.y-210});}run.world.enemies=run.world.enemies.filter(e=>{if(e.mapId!==map.id||e.id===run.starter.bossId)return true;const index=Number(e.id.split('-patrol-')[1]),point=map.spawnPoints[index];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level});return true;});run.starter.layoutVersion=starterConfig.layoutVersion;}if(run.starter.phase!=='cleared')populate(run,map);syncStarter(run);return run;}
+  if(run.starter&&run.currentMapId===run.starter.mapId){migrateRouteLayout(run);run.mapPositions||={};const map=D.maps[run.currentMapId];if(run.starter.layoutVersion!==starterConfig.layoutVersion){if(run.starter.layoutVersion===2){const scale=Math.SQRT1_2;run.position={x:Math.max(35,Math.min(map.width-35,run.position.x*scale)),y:Math.max(35,Math.min(map.height-35,run.position.y*scale))};run.mapPositions[map.id]={...run.position};const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(boss)Object.assign(boss,{x:map.entry.x,y:map.entry.y-210,homeX:map.entry.x,homeY:map.entry.y-210});}run.world.enemies=run.world.enemies.filter(e=>{if(e.mapId!==map.id||e.id===run.starter.bossId)return true;const index=Number(e.id.split('-patrol-')[1]),point=map.spawnPoints[index];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level});return true;});run.starter.layoutVersion=starterConfig.layoutVersion;}if(run.starter.phase!=='cleared')populate(run,map);syncStarter(run);return run;}
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
-  if(run.mapLayoutVersion===3){run.world.enemies=run.world.enemies.filter(e=>{if(!e.id?.includes('-patrol-'))return true;const index=Number(e.id.split('-patrol-')[1]),point=D.maps[e.mapId]?.spawnPoints[index];if(!point)return false;e.level=point.level;return true;});run.mapLayoutVersion=layoutVersion;}
-  else if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.world.enemies=run.world.enemies.filter(e=>!e.id?.includes('-patrol-'));run.mapLayoutVersion=layoutVersion;}
+  migrateRouteLayout(run);
   run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
   run.availableMoves=[...new Set([...(run.availableMoves||[]),...run.build.moves,run.build.ultimate,...Object.values(run.loot||{}).filter(r=>r.kind==='moves').map(r=>r.id)].filter(id=>D.moves[id]))];
   run.availableSkills=[...new Set([...(run.availableSkills||[]),...run.build.talents,...Object.values(run.loot||{}).filter(r=>r.kind==='talents').map(r=>r.id)].filter(id=>D.skills[id]))];
@@ -1095,6 +1118,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
    const nearest=region.mapIds.map(id=>D.maps[id]).sort((a,b)=>Math.max(a.recommendedLevelMin-enemy.level,enemy.level-a.recommendedLevelMax,0)-Math.max(b.recommendedLevelMin-enemy.level,enemy.level-b.recommendedLevelMax,0))[0];
    enemy.mapId=nearest.id;
   }
+  run.world.enemies=run.world.enemies.filter(e=>!D.maps[e.mapId]?.route||!/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss);
   populate(run,D.maps[run.currentMapId]);
   return run;
  }
@@ -1102,7 +1126,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   for(const [i,point] of map.spawnPoints.entries()){
    const id=map.id+'-patrol-'+i;if(run.world.enemies.some(e=>e.id===id))continue;
    const pool=point.elite?map.elitePoolIds:map.enemyPoolIds,type=pool[i%pool.length];if(!type)continue;
-   run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,discovered:false,defeatedUntil:0});
+   run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,section:point.section,discovered:false,defeatedUntil:0});
   }
  }
  function enter(run,id,options={}){
@@ -1110,7 +1134,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(!options.debug&&!access(run,id).ok)return false;
   if(map.starter||run.starter&&run.currentMapId===run.starter.mapId&&run.starter.phase!=='cleared')return false;
   ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
-  run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
+  run.currentMapId=id;run.position={...(options.edge&&map.route?R.arrival(map,options.edge==='right'):(run.mapPositions[id]||map.entry))};run.mapPositions[id]={...run.position};
   populate(run,map);
   return map;
  }
@@ -1764,6 +1788,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 /* Run-only discoveries, contracts, sealed books and stable dungeon encounters. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
+ const R=typeof module!=='undefined'?require('./map-routes'):root.MapRoutes;
  const copy=x=>JSON.parse(JSON.stringify(x)),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const config={version:1,eventCountWeights:[.1,.3,.4,.2],emptyChance:.12,bookCountWeights:[.5,.45,.05],discoveryRadius:150,interactionRadius:80};
  const effects={
@@ -1787,13 +1812,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const hash=s=>[...s].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917);
  const sample=(xs,r)=>xs[Math.min(xs.length-1,Math.floor(r()*xs.length))];
  function weighted(weights,r){let n=r()*weights.reduce((a,b)=>a+b,0);return weights.findIndex(w=>(n-=w)<0);}
- function point(map,quadrant,r,occupied){const w=map.width||D.world.width,h=map.height||D.world.height;for(let i=0;i<160;i++){const p={x:Math.round((quadrant%2)*w/2+180+r()*(w/2-360)),y:Math.round(Math.floor(quadrant/2)*h/2+180+r()*(h/2-360))};if(distance(p,map.entry)<700||blocked(p.x,p.y)||occupied.some(x=>distance(x,p)<180)||D.dungeons.some(d=>d.mapId===map.id&&distance(d,p)<180)||map.spawnPoints?.some(x=>distance(x,p)<90))continue;occupied.push(p);return p;}return null;}
+ function point(map,quadrant,r,occupied){const w=map.width||D.world.width,h=map.height||D.world.height;for(let i=0;i<160;i++){const p={x:Math.round((quadrant%2)*w/2+180+r()*(w/2-360)),y:Math.round(Math.floor(quadrant/2)*h/2+180+r()*(h/2-360))};if(distance(p,map.entry)<700||R.safe(p,map)||blocked(p.x,p.y,map.id)||(map.deepPoints||[]).some(d=>distance(p,d)<180)||occupied.some(x=>distance(x,p)<180)||D.dungeons.some(d=>d.mapId===map.id&&distance(d,p)<180)||map.spawnPoints?.some(x=>distance(x,p)<90))continue;occupied.push(p);return p;}return null;}
  function dungeonPools(d){const map=D.maps[d.mapId];const pools={normal:[],elite:[]};for(const role of ['normal','elite']){const ids=[...new Set([...d.enemyWaves.filter(w=>w.role===role).map(w=>w.type),...(role==='normal'?map?.enemyPoolIds||[]:map?.elitePoolIds||[])])];pools[role]=ids.filter(id=>D.monsters[id]&&!D.monsters[id].boss&&(role==='elite'?D.monsters[id].elite:!D.monsters[id].elite));}return pools;}
  function stableWaves(d,r){const pools=dungeonPools(d);let previous=null;return d.enemyWaves.map(w=>{if(w.role==='boss')return copy(w);const base=D.enemyBalance.species[D.monsters[w.type]?.sprite]||D.enemyBalance.species.default;let ids=(pools[w.role]||[]).filter(id=>{const s=D.enemyBalance.species[D.monsters[id].sprite]||D.enemyBalance.species.default;return s.hp/base.hp>=.7&&s.hp/base.hp<=1.4&&s.damage/s.cycle/(base.damage/base.cycle)>=.7&&s.damage/s.cycle/(base.damage/base.cycle)<=1.4;});if(ids.length>1)ids=ids.filter(id=>id!==previous);const type=ids.length?sample(ids,r):w.type;previous=type;return {...copy(w),type};});}
  function ensure(run,options={}){if(!run||!D.mapData)return null;if(run.exploration?.version===config.version){
-   const s=run.exploration;if(s.geometryRepair){const repair=p=>{if(!p||!blocked(p.x,p.y))return;for(let radius=24;radius<=240;radius+=24)for(let i=0;i<16;i++){const x=p.x+Math.cos(i*Math.PI/8)*radius,y=p.y+Math.sin(i*Math.PI/8)*radius;if(!blocked(x,y)){p.x=x;p.y=y;return;}}};for(const m of Object.values(s.maps))for(const e of m.events)repair(e);for(const b of s.books){repair(b.start);repair(b.finish);for(const p of b.research)repair(p);}delete s.geometryRepair;}return s;
+   const s=run.exploration;if(s.geometryRepair||s.routeVersion!==D.mapRouteVersion){const repair=(p,mapId)=>{if(!p||!blocked(p.x,p.y,mapId))return;for(let radius=24;radius<=240;radius+=24)for(let i=0;i<16;i++){const x=p.x+Math.cos(i*Math.PI/8)*radius,y=p.y+Math.sin(i*Math.PI/8)*radius;if(!blocked(x,y,mapId)){p.x=x;p.y=y;return;}}};for(const [mapId,m]of Object.entries(s.maps))for(const e of m.events)repair(e,mapId);for(const b of s.books){repair(b.start,b.mapId);repair(b.finish,b.mapId);for(const p of b.research)repair(p,b.mapId);}delete s.geometryRepair;s.routeVersion=D.mapRouteVersion;}return s;
   }
-  const seed=Math.floor((options.rng||Math.random)()*4294967296)>>>0,s={version:config.version,geometryVersion:D.mapGeometry?.version,seed,maps:{},dungeons:{},books:[],effects:[],history:[]};run.exploration=s;
+  const seed=Math.floor((options.rng||Math.random)()*4294967296)>>>0,s={version:config.version,routeVersion:D.mapRouteVersion,geometryVersion:D.mapGeometry?.version,seed,maps:{},dungeons:{},books:[],effects:[],history:[]};run.exploration=s;
   for(const map of D.mapData){if(map.starter)continue;const r=rngFor(seed^hash(map.id)),occupied=[],count=weighted(config.eventCountWeights,r),quadrants=[0,1,2,3].sort(()=>0);for(let i=3;i>0;i--){const j=Math.floor(r()*(i+1));[quadrants[i],quadrants[j]]=[quadrants[j],quadrants[i]];}let emptyPlaced=false;const events=[];for(const q of quadrants.slice(0,count)){const p=point(map,q,r,occupied);if(!p)continue;const empty=!emptyPlaced&&r()<config.emptyChance;if(empty)emptyPlaced=true;const category=r()<.5?'positive':'exchange',def=sample(definitions.filter(x=>x.category===category),r);events.push({id:map.id+'-event-'+q,mapId:map.id,quadrant:q,...p,definitionId:def.id,name:def.name,visual:def.kind,empty,state:'unseen',action:'調查'});}s.maps[map.id]={events};}
   for(const d of D.dungeons)s.dungeons[d.id]=run.dungeon?.id===d.id?copy(d.enemyWaves):stableWaves(d,rngFor(seed^hash(d.id)));
   const r=rngFor(seed^0x734ad9),bookCount=weighted(config.bookCountWeights,r),available=D.mapData.filter(m=>!m.starter);for(let i=0;i<bookCount&&available.length;i++){const map=sample(available,r);available.splice(available.indexOf(map),1);const ids=[...new Set(map.dungeonIds.flatMap(id=>{const d=D.dungeons.find(x=>x.id===id);return (d?.rewardPoolIds||[d?.primaryRewardPool,d?.secondaryRewardPool,d?.rareRewardPool]).flatMap(pid=>(D.rewardPools[pid]?.entries||[]).filter(e=>e.rewardType==='books').flatMap(e=>e.rewardIds));}))].filter(id=>D.books[id]);if(!ids.length)continue;const novel=ids.filter(id=>!options.permanent?.books?.includes(id)),bookId=sample(novel.length?novel:ids,r),occupied=s.maps[map.id].events.map(e=>({...e})),start=point(map,Math.floor(r()*4),r,occupied),finish=point(map,Math.floor(r()*4),r,occupied);if(!start||!finish)continue;const questType=sample(['hunt','elite','dungeon','research'],r),enemyType=questType==='elite'?map.elitePoolIds[0]:map.enemyPoolIds[0],target=questType==='hunt'?3:questType==='research'?2:1,research=[];if(questType==='research'){for(let n=0;n<2;n++){const p=point(map,Math.floor(r()*4),r,occupied);if(p)research.push({id:map.id+'-rubbing-'+n,...p});}if(research.length!==2)continue;}s.books.push({id:'sealed-book-'+i,mapId:map.id,bookId,questType,enemyType,dungeonId:map.dungeonIds[0],target,progress:0,state:'unseen',start,finish,research,visited:[],clue:`${['西北','東北','西南','東南'][(finish.x<(map.width||D.world.width)/2?0:1)+(finish.y<(map.height||D.world.height)/2?0:2)]}方有一座封印石匣；完成前置任務後才能開啟。`});}
@@ -1873,7 +1898,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const run={ mapGeometryVersion:Maps.geometry.version, adventurerRank:{version:1,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
     Exploration.ensure(run,{rng,permanent});ensureWorldContent(run);return run;
   }
-  function ensureWorldContent(run){Maps.ensureRun(run);Exploration.ensure(run);if(run.starter&&run.currentMapId===run.starter.mapId)return;LevelProgression?.migrateRun(D,run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(!run.starter&&s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
+  function ensureWorldContent(run){Maps.ensureRun(run);Exploration.ensure(run);if(run.starter&&run.currentMapId===run.starter.mapId)return;LevelProgression?.migrateRun(D,run);const spawn=D.enemySpawnData.find(e=>e.id==='camp-golem');if(spawn&&!run.world.enemies.some(e=>e.type==='camp_golem'))run.world.enemies.push({id:'enemy-camp-golem',mapId:'north_plains_1',x:D.world.camp.x+220,y:D.world.camp.y+80,homeX:D.world.camp.x+220,homeY:D.world.camp.y+80,type:spawn.type,level:spawn.level,regionId:spawn.regionId,elite:false,discovered:false,defeatedUntil:0});const golem=run.world.enemies.find(e=>e.type==='camp_golem');if(golem){golem.mapId='north_plains_1';golem.x=golem.homeX=D.world.camp.x+220;golem.y=golem.homeY=D.world.camp.y+80;}for(const [i,s] of D.enemySpawnData.entries())if(!run.starter&&!D.maps[run.currentMapId]?.route&&s.openingRoute&&!run.world.enemies.some(e=>e.id==='enemy-'+i))run.world.enemies.push({id:'enemy-'+i,mapId:'north_plains_1',x:s.x,y:s.y,homeX:s.x,homeY:s.y,type:s.type,level:s.level,regionId:s.regionId,elite:false,discovered:false,defeatedUntil:0});}
   function regionAt(x,y){return D.world.regions.find(r=>x>=r.bounds[0]&&x<r.bounds[0]+r.bounds[2]&&y>=r.bounds[1]&&y<r.bounds[1]+r.bounds[3])||D.world.regions[0];}
   function regionDepth(r,x,y){return Math.max(0,Math.min(1,1-Math.max(Math.abs(x-r.x)/(r.bounds[2]/2),Math.abs(y-r.y)/(r.bounds[3]/2))));}
   function regionLevel(x,y){const r=regionAt(x,y),p=regionDepth(r,x,y),index=Math.min(3,Math.floor(p*4)),band=r.subAreaLevelRanges[index],within=Math.min(1,p*4-index);return Math.round(band.min+(band.max-band.min)*within);}
@@ -2007,6 +2032,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const D = typeof module !== 'undefined' ? require('./data.js') : root.GameData;
   const P = typeof module !== 'undefined' ? require('./progression.js') : root.Progression;
   const X=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
+  const R=typeof module!=='undefined'?require('./map-routes'):root.MapRoutes;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function seeded(seed = 917) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
   const roadY = x => 1090 - (x - 370) * .34 + Math.sin(x / 180) * 45;
@@ -2030,11 +2056,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     return items;
   }
   const scenery = decorations();
-  function blocked(x, y) { return x < 30 || y < 30 || x > D.world.width - 30 || y > D.world.height - 30 || scenery.some(t => Math.hypot(x - t.x, y - t.y) < (t.kind === 'rock' ? 15 : 10) * t.size + 9); }
-  function movePosition(position, dx, dy, training=false) { if(training){position.x+=dx;position.y+=dy;return;}if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
+  const sceneryCache=new Map();
+  function sceneryForMap(map){if(!map?.route)return scenery;if(!sceneryCache.has(map.id))sceneryCache.set(map.id,scenery.filter(t=>!R.clear(t,map)));return sceneryCache.get(map.id);}
+  function blocked(x,y,mapId){const map=D.maps[mapId],width=map?.width||D.world.width,height=map?.height||D.world.height;return x<30||y<30||x>width-30||y>height-30||sceneryForMap(map).some(t=>Math.hypot(x-t.x,y-t.y)<(t.kind==='rock'?15:10)*t.size+9);}
+  function movePosition(position,dx,dy,map){if(map?.training){position.x+=dx;position.y+=dy;return;}if(!blocked(position.x+dx,position.y,map?.id))position.x+=dx;if(!blocked(position.x,position.y+dy,map?.id))position.y+=dy;}
   function update(run, dt, input) {
     run.world.time += dt;
-    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, !!D.maps[run.currentMapId]?.training);
+    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, D.maps[run.currentMapId]);
     const currentMap=D.maps?.[run.currentMapId];if(currentMap?.starter){run.position.x=Math.max(35,Math.min(currentMap.width-35,run.position.x));run.position.y=Math.max(35,Math.min(currentMap.height-35,run.position.y));}
     let contact = null;
     for (const e of run.world.enemies) {
@@ -2045,12 +2073,15 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       e.defeatedUntil = 0;
       if (dist < D.balance.discoveryRadius) e.discovered = true;
       let direction = 0; e.alert = false;
-      if (def.behavior === 'timid' && run.level >= e.level + 2 && dist < def.radius) direction = -1;
-      else if (def.behavior !== 'neutral' && dist < def.radius && distance(e, { x: e.homeX, y: e.homeY }) < 340) { direction = 1; e.alert = true; }
+      const playerSafe=R.safe(run.position,currentMap);
+      if (!playerSafe && def.behavior === 'timid' && run.level >= e.level + 2 && dist < def.radius) direction = -1;
+      else if (!playerSafe && def.behavior !== 'neutral' && dist < def.radius && distance(e, { x: e.homeX, y: e.homeY }) < 340) { direction = 1; e.alert = true; }
+      const before={x:e.x,y:e.y};
       if (direction && dist > 1) { e.x += direction * (run.position.x - e.x) / dist * def.speed * dt; e.y += direction * (run.position.y - e.y) / dist * def.speed * dt; }
       else { const home = Math.hypot(e.homeX - e.x, e.homeY - e.y); if (home > 4) { e.x += (e.homeX - e.x) / home * 28 * dt; e.y += (e.homeY - e.y) / home * 28 * dt; } }
+      if(R.safe(e,currentMap)&&def.behavior!=='neutral'){e.x=before.x;e.y=before.y;e.alert=false;}
       e.x = Math.max(35, Math.min(D.world.width - 35, e.x)); e.y = Math.max(35, Math.min(D.world.height - 35, e.y));
-      if (distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
+      if (!playerSafe && distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
     }
     for (const d of D.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
     return contact;
@@ -2058,13 +2089,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function edgeExit(run,threshold=150) {
     const map=D.maps?.[run.currentMapId],region=map&&D.regionById?.[map.regionId];if(!map||!region)return null;
     if(map.starter){if(run.starter?.phase!=='cleared')return null;const [edge,proximity]=[['left',run.position.x],['right',map.width-run.position.x],['top',run.position.y],['bottom',map.height-run.position.y]].sort((a,b)=>a[1]-b[1])[0];return proximity<=threshold?{kind:'map-exit',entity:{id:'starter-portal',name:'選擇七大區',starterPortal:true,edge,forward:true},proximity}:null;}
-    const edges=[['left',run.position.x],['right',D.world.width-run.position.x],['top',run.position.y],['bottom',D.world.height-run.position.y]].sort((a,b)=>a[1]-b[1]),index=region.mapIds.indexOf(map.id);
-    for(const [edge,proximity] of edges){if(proximity>threshold)break;const forward=edge==='right'||edge==='bottom',targetId=region.mapIds[index+(forward?1:-1)],target=D.maps[targetId];if(target)return {kind:'map-exit',entity:{id:target.id,name:target.name,edge,forward,fromMapId:map.id},proximity};}
+    if(map.route){for(const gate of Object.values(map.route.portals)){if(!gate.targetId||Math.abs(run.position.y-gate.y)>300)continue;const proximity=gate.edge==='left'?run.position.x:map.width-run.position.x;if(proximity<=threshold){const target=D.maps[gate.targetId];return {kind:'map-exit',entity:{id:target.id,name:target.name,edge:gate.edge,forward:gate.edge==='right',fromMapId:map.id,x:gate.x,y:gate.y},proximity};}}}
     return null;
   }
   function nearby(run) {
     const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
     const dungeon = (run.training&&run.currentMapId==='tutorial_court'?run.training.stage===6?[D.trainingDungeon]:[]:D.dungeons).find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const deep=(D.maps[run.currentMapId]?.deepPoints||[]).find(p=>distance(p,run.position)<95);if(deep)return {kind:'deep-point',entity:deep};
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
     const exit=edgeExit(run);if(exit)return exit;
@@ -2080,7 +2111,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function threat(playerLevel, enemyLevel) { const gap = enemyLevel - playerLevel; return gap >= 6 ? { color: '#ff7374', label: '☠ 極度危險' } : gap >= 3 ? { color: '#ee8a77', label: '危險' } : gap >= -1 ? { color: '#edcf8d', label: '勢均力敵' } : { color: '#e4e8d7', label: '較弱' }; }
   X.setPositionValidator(blocked);
-  const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, edgeExit, interactObject, threat, distance };
+  const api = { seeded, roadY, roadDistance, scenery, sceneryForMap, blocked, update, nearby, edgeExit, interactObject, threat, distance };
   if (typeof module !== 'undefined') module.exports = api; else root.World = api;
 })(globalThis);
 
@@ -2198,12 +2229,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
         else if(r.visualTheme==='volcanic'||r.visualTheme==='obsidian'){c.strokeStyle=r.visualTheme==='volcanic'?'#eb9d632b':'#b99cda27';c.lineWidth=2;c.beginPath();c.moveTo(x-40,y+10);c.lineTo(x,y-15);c.lineTo(x+30,y+4);c.lineTo(x+52,y-12);c.stroke();}
       }
       for (const p of this.grass) { if (p.x < this.camera.x - 20 || p.x > this.camera.x + w / zoom + 20 || p.y < this.camera.y - 20 || p.y > this.camera.y + h / zoom + 20) continue; c.fillStyle = p.n > .7 ? '#b5b78b33' : '#111d2144'; c.fillRect(p.x, p.y, 2 + p.n * 3, 2); if (p.n > .85) { c.strokeStyle = '#9ba77855'; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - 2, p.y - 6); c.moveTo(p.x, p.y); c.lineTo(p.x + 3, p.y - 4); c.stroke(); } }
-      c.lineCap = 'round'; for (const [width, color] of [[89, '#1d30292f'], [75, '#6a695244'], [52, '#98907422']]) { c.strokeStyle = color; c.lineWidth = width; c.beginPath(); for (const road of activeMap?.training?[[{x:820,y:900},{x:700,y:600},{x:1100,y:420},{x:1550,y:620},{x:1580,y:1040},{x:1320,y:1360},{x:1100,y:900}]]:GameData.world.roads) { c.moveTo(road[0].x,road[0].y); for(const point of road.slice(1))c.lineTo(point.x,point.y); } c.stroke(); } c.lineWidth = 1;
+      c.lineCap = 'round'; for (const [width, color] of [[89, '#1d30292f'], [75, '#6a695244'], [52, '#98907422']]) { c.strokeStyle = color; c.lineWidth = width; c.beginPath(); for (const road of activeMap?.training?[[{x:820,y:900},{x:700,y:600},{x:1100,y:420},{x:1550,y:620},{x:1580,y:1040},{x:1320,y:1360},{x:1100,y:900}]]:(activeMap?.route?.roads||GameData.world.roads)) { c.moveTo(road[0].x,road[0].y); for(const point of road.slice(1))c.lineTo(point.x,point.y); } c.stroke(); } c.lineWidth = 1;
       c.save();c.strokeStyle='#080f12aa';c.lineWidth=38;c.strokeRect(20,20,worldWidth-40,worldHeight-40);c.strokeStyle='#d2bd7a88';c.lineWidth=5;c.setLineDash([30,18]);c.strokeRect(42,42,worldWidth-84,worldHeight-84);c.setLineDash([]);c.restore();
-      const edgeExit=run&&World.edgeExit(run,520);if(edgeExit){const e=edgeExit.entity,vertical=e.edge==='left'||e.edge==='right',x=e.edge==='left'?52:e.edge==='right'?worldWidth-52:Math.max(260,Math.min(worldWidth-260,pos.x)),y=e.edge==='top'?52:e.edge==='bottom'?worldHeight-52:Math.max(130,Math.min(worldHeight-130,pos.y));c.save();c.strokeStyle='#f0d487';c.lineWidth=10;c.shadowColor='#e7c66f';c.shadowBlur=22;c.beginPath();if(vertical){c.moveTo(x,y-105);c.lineTo(x,y+105);}else{c.moveTo(x-180,y);c.lineTo(x+180,y);}c.stroke();c.restore();this.text((e.starterPortal?'傳送點 · 選擇七大區':e.forward?'前往下一區 →':'← 返回上一區'),vertical?(e.edge==='left'?x+105:x-105):x,vertical?y:(e.edge==='top'?y+42:y-42),18,'#f4e2aa');this.text(e.name,vertical?(e.edge==='left'?x+105:x-105):x,vertical?y+26:(e.edge==='top'?y+70:y-70),13,'#d7d5bb');}
+      const edgeExit=run&&World.edgeExit(run,520);if(edgeExit){const e=edgeExit.entity,vertical=e.edge==='left'||e.edge==='right',x=e.edge==='left'?52:e.edge==='right'?worldWidth-52:Math.max(260,Math.min(worldWidth-260,pos.x)),y=e.edge==='top'?52:e.edge==='bottom'?worldHeight-52:(e.y??Math.max(130,Math.min(worldHeight-130,pos.y)));c.save();c.strokeStyle='#f0d487';c.lineWidth=10;c.shadowColor='#e7c66f';c.shadowBlur=22;c.beginPath();if(vertical){c.moveTo(x,y-105);c.lineTo(x,y+105);}else{c.moveTo(x-180,y);c.lineTo(x+180,y);}c.stroke();c.restore();this.text((e.starterPortal?'傳送點 · 選擇七大區':e.forward?'前往下一區 →':'← 返回上一區'),vertical?(e.edge==='left'?x+105:x-105):x,vertical?y:(e.edge==='top'?y+42:y-42),18,'#f4e2aa');this.text(e.name,vertical?(e.edge==='left'?x+105:x-105):x,vertical?y+26:(e.edge==='top'?y+70:y-70),13,'#d7d5bb');}
       this.camp(activeMap?.training?activeMap.entry.x:GameData.world.camp.x,activeMap?.training?activeMap.entry.y:GameData.world.camp.y);
       if(activeMap?.training){for(const q of GameData.training.tasks.slice(1,7)){this.ellipse(q.x,q.y,76,34,'#1a2c2855');this.text(q.name,q.x,q.y+72,14,'#b4bca488');}const q=GameData.training.task(run);if(q){this.glow(q.x,q.y,50,'#e7ce7144');c.strokeStyle='#e8d08c';c.lineWidth=2;c.beginPath();c.ellipse(q.x,q.y,34,15,0,0,Math.PI*2);c.stroke();}}
-      const things = World.scenery.filter(t => !activeMap?.training && t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
+      for(const point of activeMap?.deepPoints||[]){if(Math.abs(point.x-pos.x)>w/zoom||Math.abs(point.y-pos.y)>h/zoom)continue;c.save();c.translate(point.x,point.y);c.fillStyle='#283b37';c.strokeStyle='#bba36e';c.lineWidth=2;c.beginPath();c.moveTo(0,-35);c.lineTo(24,0);c.lineTo(0,20);c.lineTo(-24,0);c.closePath();c.fill();c.stroke();c.fillStyle='#d3bd7a';c.fillRect(-3,-23,6,21);c.restore();this.text(point.name,point.x,point.y+42,15,'#d9c68d');}
+      const things = World.sceneryForMap(activeMap).filter(t => !activeMap?.training && t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
       for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
       if (run&&!activeMap?.starter) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
@@ -2333,7 +2365,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       const activeMap=run&&GameData.maps?.[run.currentMapId];
       if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,w,h);}
       else for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
-      c.strokeStyle = '#cfbb7a55'; c.lineWidth = 2; c.beginPath(); for(const road of GameData.world.roads){c.moveTo(road[0].x*sx,road[0].y*sy);for(const {x,y}of road.slice(1))c.lineTo(x*sx,y*sy);} c.stroke();
+      c.strokeStyle = '#cfbb7a55'; c.lineWidth = 2; c.beginPath(); for(const road of (GameData.maps[run.currentMapId]?.route?.roads||GameData.world.roads)){c.moveTo(road[0].x*sx,road[0].y*sy);for(const {x,y}of road.slice(1))c.lineTo(x*sx,y*sy);} c.stroke();
+      for(const p of GameData.maps[run.currentMapId]?.deepPoints||[]){c.fillStyle=(run.world.discoveredDeepPoints||[]).includes(p.id)?'#eed390':'#8c9d8d';c.fillRect(p.x*sx-2,p.y*sy-2,4,4);}
       if (run) { for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId)&&e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if ((!run.currentMapId||d.mapId===run.currentMapId)&&run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } if(run.currentMapId==='north_plains_1'){c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4);} c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
     }
     draw(game, dt) { this.resize(); this.time += dt; this.ctx.clearRect(0, 0, this.width, this.height); if (game.scene === 'title') this.drawTitle(game); else if (game.scene === 'battle') this.drawBattle(game); else this.drawWorld(game); this.drawEffects(dt); }
@@ -2934,12 +2967,7 @@ function travelMapExit(exit){
  if(exit.starterPortal&&game.practice){exitPractice();return;}
  if(exit.starterPortal){game.keys.clear();resetJoystick();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
  if(!checkMapAccess(exit.id))return;
- const run=game.run,old={...run.position},map=Maps.enter(run,exit.id);if(!map)return;
- const pad=180,xRatio=Math.max(.05,Math.min(.95,old.x/D.world.width)),yRatio=Math.max(.05,Math.min(.95,old.y/D.world.height));
- if(exit.edge==='right')run.position={x:pad,y:Math.round(yRatio*D.world.height)};
- else if(exit.edge==='left')run.position={x:D.world.width-pad,y:Math.round(yRatio*D.world.height)};
- else if(exit.edge==='bottom')run.position={x:Math.round(xRatio*D.world.width),y:pad};
- else run.position={x:Math.round(xRatio*D.world.width),y:D.world.height-pad};
+ const run=game.run,map=Maps.enter(run,exit.id,{edge:exit.edge});if(!map)return;
  run.mapPositions[map.id]={...run.position};game.lastRegion=map.id;renderer.fx=[];renderer.hits={};renderer.attacks={};saveSession();toast((exit.forward?'前往 ':'返回 ')+map.name+' · Lv.'+map.recommendedLevelMin+'～'+map.recommendedLevelMax);
 }
 function checkMapAccess(id){const permit=Maps.access(game.run,id);if(permit.ok)return true;openModal('map-permit',`<div class="eyebrow">ADVENTURERS GUILD</div><h2 id="modal-title">冒險者公會通行通知</h2><p>${U.escape(permit.message)}</p><div class="modal-footer">${U.button('知道了','close',{primary:true})}</div>`);return false;}
@@ -2953,6 +2981,7 @@ function interactDiscovery(o){
 }
 
 function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='training-station')showTrainingStation();else if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
+  else if(target.kind==='deep-point'){game.run.world.discoveredDeepPoints||=[];if(!game.run.world.discoveredDeepPoints.includes(target.entity.id))game.run.world.discoveredDeepPoints.push(target.entity.id);saveSession();openModal('deep-point',`<div class="eyebrow">BEYOND THE ROAD</div><h2 id="modal-title">${U.escape(target.entity.name)}</h2><p>你沿支路抵達了這片遠離大道的遺址。此處已記錄於本局探索足跡。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`,'exploration-modal');}
   else if(['run-event','book-clue','book-research','sealed-book'].includes(target.kind))interactDiscovery(target.entity);
   else if (target.kind === 'enemy') startEncounter(target.entity);
   else { const result = World.interactObject(game.run, target.entity.id); if (!result) return;

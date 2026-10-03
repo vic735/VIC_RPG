@@ -1,6 +1,7 @@
 /* Data-driven Run map routes. Existing combat and dungeon records keep their IDs. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data.js'):root.GameData;
+ const R=typeof module!=='undefined'?require('./map-routes'):root.MapRoutes;
  const rows=[
   ['north_plains','北之平原','泛用、無屬性與基礎戰鬥','greywind','meadow','#46513e',['泛用','無屬性','物理','純魔法'],['無屬性','物理'],[[1,20],[20,40],[40,65],[70,95],[105,130]],[]],
   ['northern_kingdom','北方國度','冰與雷交錯的長詠唱國度','froststorm','frost','#52656b',['水','金','冰','雷','中斷'],['水','金'],[[1,20],[30,60],[70,100],[110,140],[145,175]],['frozen_tower','thunder_workshop']],
@@ -15,7 +16,7 @@
  const geometry={version:1,areaRatio:.75,scale:Math.sqrt(.75),originalWidth:D.world.width,originalHeight:D.world.height};
  D.mapGeometry=geometry;D.world.width*=geometry.scale;D.world.height*=geometry.scale;
  for(const road of D.world.roads)for(const p of road){p.x*=geometry.scale;p.y*=geometry.scale;}
- const layoutVersion=5,safeRadius=720,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
+ const layoutVersion=6,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
  const progressionBands=[[10,25],[25,80],[80,250],[250,600],[600,999]],eliteBands=[[20,30],[60,100],[200,300],[500,700],[850,999]];
  D.mapAccessRules={2:{rank:'B'},3:{rank:'A',previousDungeonMap:2},4:{rank:'S',previousDungeonMap:3}};
  const regions=[],maps=[];
@@ -34,32 +35,6 @@
  }
  // Each map has a local encounter layout and a reachable dungeon entrance.
  const routes={north_plains:['abandoned_mine','荒原哨站'],northern_kingdom:['frozen_tower','霜雷哨塔'],mirewood:['root_cave','幽根密窟'],central_mines:['giant_ruins','深岩試煉所'],dark_empire:['blacklight_chapel','暮影祭壇'],southern_kingdom:['old_lab','餘燼法陣'],southern_forest:['root_cave','獵風古穴']};
- function spawnLayout(map){
-  let seed=[...map.id].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917),random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-  const points=[],cols=9,rows=7,margin=130,cellW=(D.world.width-margin*2)/cols,cellH=(D.world.height-margin*2)/rows,dungeons=map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)).filter(Boolean),maxDistance=Math.max(...[[margin,margin],[D.world.width-margin,margin],[margin,D.world.height-margin],[D.world.width-margin,D.world.height-margin]].map(([x,y])=>Math.hypot(x-map.entry.x,y-map.entry.y)));
-  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
-   const x=Math.round(margin+(col+.18+random()*.64)*cellW),y=Math.round(margin+(row+.18+random()*.64)*cellH),distance=Math.hypot(x-map.entry.x,y-map.entry.y);
-   if(distance<safeRadius||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150))continue;
-   points.push({x,y,elite:false,level:map.recommendedLevelMin});
-  }
-  points.sort((a,b)=>Math.hypot(a.x-map.entry.x,a.y-map.entry.y)-Math.hypot(b.x-map.entry.x,b.y-map.entry.y));
-  const beginnerCount=Math.max(6,Math.ceil(points.length*.1)),span=map.recommendedLevelMax-map.recommendedLevelMin;
-  for(const [i,point] of points.entries()){
-   const distance=Math.hypot(point.x-map.entry.x,point.y-map.entry.y),progress=Math.max(0,Math.min(1,(distance-safeRadius)/(maxDistance-safeRadius)));
-   point.level=i<beginnerCount?map.recommendedLevelMin:i<beginnerCount+6?Math.min(map.recommendedLevelMax,map.recommendedLevelMin+1+Math.floor((i-beginnerCount)/2)):Math.round(map.recommendedLevelMin+span*Math.max(0,Math.min(1,progress*.96+(random()-.5)*.05)));
-   if(i>=11&&i%12===11)point.elite=true;
-  }
-  // Fill gaps without moving existing spawns or replacing their saved cooldowns.
-  const anchors=[...points],density={columns:18,rows:12,minimumSpacing:205};
-  map.encounterDensity=density;
-  for(let row=0;row<density.rows;row++)for(let col=0;col<density.columns;col++){
-   const x=Math.round(margin+(col+.3+random()*.4)*(D.world.width-margin*2)/density.columns),y=Math.round(margin+(row+.3+random()*.4)*(D.world.height-margin*2)/density.rows);
-   if(Math.hypot(x-map.entry.x,y-map.entry.y)<safeRadius||dungeons.some(d=>Math.hypot(x-d.x,y-d.y)<150)||points.some(p=>Math.hypot(x-p.x,y-p.y)<density.minimumSpacing))continue;
-   const nearest=anchors.reduce((a,b)=>Math.hypot(x-a.x,y-a.y)<Math.hypot(x-b.x,y-b.y)?a:b);
-   points.push({x,y,elite:false,level:nearest.level});
-  }
-  return points;
- }
  for(const map of maps){
   if(!map.dungeonIds.length){
    const [themeTemplate,name]=routes[map.regionId],level=map.sortOrder===0?12:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);
@@ -71,12 +46,12 @@
   }
   map.dungeonIds.forEach((id,index)=>{const d=D.dungeons.find(d=>d.id===id);d.mapId=map.id;d.regionId=regions.find(r=>r.id===map.regionId).legacyRegionId;const angle=-Math.PI/4+index*Math.PI*2/map.dungeonIds.length;d.x=map.entry.x+Math.cos(angle)*560;d.y=map.entry.y+Math.sin(angle)*560;});
   for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);d.rewardReferenceLevel=d.generatedMapDungeon?[12,38,85,130,175][map.sortOrder]:d.level;d.finalLevelScale=true;d.recommendedLevel=d.level=map.sortOrder===0?Math.max(map.recommendedLevelMin,Math.min(map.recommendedLevelMax,d.level)):id==='terminal_structure'?999:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);for(const wave of d.enemyWaves)wave.level=Math.min(999,Math.max(map.recommendedLevelMin,d.level+(wave.role==='boss'?1:wave.role==='normal'?-2:0)));}
-  map.spawnPoints=spawnLayout(map);for(const [i,point]of map.spawnPoints.entries())if(point.elite){const [min,max]=map.eliteLevelRange;point.level=Math.round(min+(max-min)*(i%5)/4);}
+  R.configure(map,map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)),D.world.width,D.world.height);map.spawnPoints=R.layout(map);
  }
- D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ D.mapRouteVersion=1;D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
  if(D.contentGrades&&D.contentDistribution){if(typeof module!=='undefined')require('./content-grades')(D);else root.ContentGrades(D);const redistribute=typeof module!=='undefined'?require('./resource-distribution'):root.ResourceDistribution;redistribute(D);}
  const starterConfig={layoutVersion:3,enemyCount:18,safeRadius:360,ringSpacing:240,areaRatio:.25,levelCap:9,expMultiplier:4,bossHpMultiplier:2.6,bossDamageMultiplier:.65};
- const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=geometry.originalWidth*Math.sqrt(starterConfig.areaRatio),height=geometry.originalHeight*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
+ const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=geometry.originalWidth*Math.sqrt(starterConfig.areaRatio),height=geometry.originalHeight*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,route:null,deepPoints:[],width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
   for(let i=0;i<starterConfig.enemyCount;i++){const ring=Math.floor(i/6),angle=(i%6)*Math.PI/3+ring*Math.PI/6,radius=starterConfig.safeRadius+ring*starterConfig.ringSpacing;map.spawnPoints.push({x:map.entry.x+Math.cos(angle)*radius,y:map.entry.y+Math.sin(angle)*radius,level:Math.min(8,1+Math.floor(i*8/starterConfig.enemyCount)),elite:false});}
   const bossId=map.id+'_guardian',template=D.monsters[source.enemyPoolIds[1]||source.enemyPoolIds[0]];D.monsters[bossId]={...template,id:bossId,name:region.name+'守關者',boss:true,moves:['goblin','crush'],skills:[],behavior:'neutral',radius:0,worldScale:1.65,labelHeight:88,dropChance:0};map.bossType=bossId;
   D.maps[map.id]=map;return map;
@@ -101,15 +76,23 @@
   if(run.exploration){run.exploration.geometryRepair=true;run.exploration.geometryVersion=geometry.version;}
   }
   run.mapGeometryVersion=geometry.version;
-  if(run.mapLayoutVersion===4)run.mapLayoutVersion=layoutVersion;
+
+ }
+ function migrateRouteLayout(run){
+  if(run.mapLayoutVersion!==layoutVersion){
+   const hadLayout=Number.isFinite(run.mapLayoutVersion);
+   run.world.enemies=run.world.enemies.filter(e=>{const map=D.maps[e.mapId];if(!map?.route)return true;if(!e.id?.includes('-patrol-'))return !/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss;const point=map.spawnPoints[Number(e.id.split('-patrol-')[1])];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level,elite:point.elite,section:point.section});return true;});
+   if(!hadLayout&&!D.maps[run.currentMapId]?.starter){run.position={...D.maps[run.currentMapId].entry};run.mapPositions||={};}
+   run.mapLayoutVersion=layoutVersion;
+  }
+  run.world.discoveredDeepPoints||=[];
  }
  function ensureRun(run){
   if(run.training&&run.currentMapId==='tutorial_court'){D.training.ensure(run);return run;}
   migrateGeometry(run);
-  if(run.starter&&run.currentMapId===run.starter.mapId){run.mapPositions||={};const map=D.maps[run.currentMapId];if(run.starter.layoutVersion!==starterConfig.layoutVersion){if(run.starter.layoutVersion===2){const scale=Math.SQRT1_2;run.position={x:Math.max(35,Math.min(map.width-35,run.position.x*scale)),y:Math.max(35,Math.min(map.height-35,run.position.y*scale))};run.mapPositions[map.id]={...run.position};const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(boss)Object.assign(boss,{x:map.entry.x,y:map.entry.y-210,homeX:map.entry.x,homeY:map.entry.y-210});}run.world.enemies=run.world.enemies.filter(e=>{if(e.mapId!==map.id||e.id===run.starter.bossId)return true;const index=Number(e.id.split('-patrol-')[1]),point=map.spawnPoints[index];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level});return true;});run.starter.layoutVersion=starterConfig.layoutVersion;}if(run.starter.phase!=='cleared')populate(run,map);syncStarter(run);return run;}
+  if(run.starter&&run.currentMapId===run.starter.mapId){migrateRouteLayout(run);run.mapPositions||={};const map=D.maps[run.currentMapId];if(run.starter.layoutVersion!==starterConfig.layoutVersion){if(run.starter.layoutVersion===2){const scale=Math.SQRT1_2;run.position={x:Math.max(35,Math.min(map.width-35,run.position.x*scale)),y:Math.max(35,Math.min(map.height-35,run.position.y*scale))};run.mapPositions[map.id]={...run.position};const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(boss)Object.assign(boss,{x:map.entry.x,y:map.entry.y-210,homeX:map.entry.x,homeY:map.entry.y-210});}run.world.enemies=run.world.enemies.filter(e=>{if(e.mapId!==map.id||e.id===run.starter.bossId)return true;const index=Number(e.id.split('-patrol-')[1]),point=map.spawnPoints[index];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level});return true;});run.starter.layoutVersion=starterConfig.layoutVersion;}if(run.starter.phase!=='cleared')populate(run,map);syncStarter(run);return run;}
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
-  if(run.mapLayoutVersion===3){run.world.enemies=run.world.enemies.filter(e=>{if(!e.id?.includes('-patrol-'))return true;const index=Number(e.id.split('-patrol-')[1]),point=D.maps[e.mapId]?.spawnPoints[index];if(!point)return false;e.level=point.level;return true;});run.mapLayoutVersion=layoutVersion;}
-  else if(run.mapLayoutVersion!==layoutVersion){run.position={...D.maps[run.currentMapId].entry};run.mapPositions={};run.world.enemies=run.world.enemies.filter(e=>!e.id?.includes('-patrol-'));run.mapLayoutVersion=layoutVersion;}
+  migrateRouteLayout(run);
   run.mapPositions||={};run.mapPositions[run.currentMapId]||={...run.position};
   run.availableMoves=[...new Set([...(run.availableMoves||[]),...run.build.moves,run.build.ultimate,...Object.values(run.loot||{}).filter(r=>r.kind==='moves').map(r=>r.id)].filter(id=>D.moves[id]))];
   run.availableSkills=[...new Set([...(run.availableSkills||[]),...run.build.talents,...Object.values(run.loot||{}).filter(r=>r.kind==='talents').map(r=>r.id)].filter(id=>D.skills[id]))];
@@ -120,6 +103,7 @@
    const nearest=region.mapIds.map(id=>D.maps[id]).sort((a,b)=>Math.max(a.recommendedLevelMin-enemy.level,enemy.level-a.recommendedLevelMax,0)-Math.max(b.recommendedLevelMin-enemy.level,enemy.level-b.recommendedLevelMax,0))[0];
    enemy.mapId=nearest.id;
   }
+  run.world.enemies=run.world.enemies.filter(e=>!D.maps[e.mapId]?.route||!/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss);
   populate(run,D.maps[run.currentMapId]);
   return run;
  }
@@ -127,7 +111,7 @@
   for(const [i,point] of map.spawnPoints.entries()){
    const id=map.id+'-patrol-'+i;if(run.world.enemies.some(e=>e.id===id))continue;
    const pool=point.elite?map.elitePoolIds:map.enemyPoolIds,type=pool[i%pool.length];if(!type)continue;
-   run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,discovered:false,defeatedUntil:0});
+   run.world.enemies.push({id,mapId:map.id,regionId:map.regionId,x:point.x,y:point.y,homeX:point.x,homeY:point.y,type,level:point.level,elite:point.elite,section:point.section,discovered:false,defeatedUntil:0});
   }
  }
  function enter(run,id,options={}){
@@ -135,7 +119,7 @@
   if(!options.debug&&!access(run,id).ok)return false;
   if(map.starter||run.starter&&run.currentMapId===run.starter.mapId&&run.starter.phase!=='cleared')return false;
   ensureRun(run);run.mapPositions[run.currentMapId]={...run.position};
-  run.currentMapId=id;run.position={...(run.mapPositions[id]||map.entry)};run.mapPositions[id]={...run.position};
+  run.currentMapId=id;run.position={...(options.edge&&map.route?R.arrival(map,options.edge==='right'):(run.mapPositions[id]||map.entry))};run.mapPositions[id]={...run.position};
   populate(run,map);
   return map;
  }

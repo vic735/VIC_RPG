@@ -2,6 +2,7 @@
   const D = typeof module !== 'undefined' ? require('./data.js') : root.GameData;
   const P = typeof module !== 'undefined' ? require('./progression.js') : root.Progression;
   const X=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
+  const R=typeof module!=='undefined'?require('./map-routes'):root.MapRoutes;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function seeded(seed = 917) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
   const roadY = x => 1090 - (x - 370) * .34 + Math.sin(x / 180) * 45;
@@ -25,11 +26,13 @@
     return items;
   }
   const scenery = decorations();
-  function blocked(x, y) { return x < 30 || y < 30 || x > D.world.width - 30 || y > D.world.height - 30 || scenery.some(t => Math.hypot(x - t.x, y - t.y) < (t.kind === 'rock' ? 15 : 10) * t.size + 9); }
-  function movePosition(position, dx, dy, training=false) { if(training){position.x+=dx;position.y+=dy;return;}if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
+  const sceneryCache=new Map();
+  function sceneryForMap(map){if(!map?.route)return scenery;if(!sceneryCache.has(map.id))sceneryCache.set(map.id,scenery.filter(t=>!R.clear(t,map)));return sceneryCache.get(map.id);}
+  function blocked(x,y,mapId){const map=D.maps[mapId],width=map?.width||D.world.width,height=map?.height||D.world.height;return x<30||y<30||x>width-30||y>height-30||sceneryForMap(map).some(t=>Math.hypot(x-t.x,y-t.y)<(t.kind==='rock'?15:10)*t.size+9);}
+  function movePosition(position,dx,dy,map){if(map?.training){position.x+=dx;position.y+=dy;return;}if(!blocked(position.x+dx,position.y,map?.id))position.x+=dx;if(!blocked(position.x,position.y+dy,map?.id))position.y+=dy;}
   function update(run, dt, input) {
     run.world.time += dt;
-    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, !!D.maps[run.currentMapId]?.training);
+    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, D.maps[run.currentMapId]);
     const currentMap=D.maps?.[run.currentMapId];if(currentMap?.starter){run.position.x=Math.max(35,Math.min(currentMap.width-35,run.position.x));run.position.y=Math.max(35,Math.min(currentMap.height-35,run.position.y));}
     let contact = null;
     for (const e of run.world.enemies) {
@@ -40,12 +43,15 @@
       e.defeatedUntil = 0;
       if (dist < D.balance.discoveryRadius) e.discovered = true;
       let direction = 0; e.alert = false;
-      if (def.behavior === 'timid' && run.level >= e.level + 2 && dist < def.radius) direction = -1;
-      else if (def.behavior !== 'neutral' && dist < def.radius && distance(e, { x: e.homeX, y: e.homeY }) < 340) { direction = 1; e.alert = true; }
+      const playerSafe=R.safe(run.position,currentMap);
+      if (!playerSafe && def.behavior === 'timid' && run.level >= e.level + 2 && dist < def.radius) direction = -1;
+      else if (!playerSafe && def.behavior !== 'neutral' && dist < def.radius && distance(e, { x: e.homeX, y: e.homeY }) < 340) { direction = 1; e.alert = true; }
+      const before={x:e.x,y:e.y};
       if (direction && dist > 1) { e.x += direction * (run.position.x - e.x) / dist * def.speed * dt; e.y += direction * (run.position.y - e.y) / dist * def.speed * dt; }
       else { const home = Math.hypot(e.homeX - e.x, e.homeY - e.y); if (home > 4) { e.x += (e.homeX - e.x) / home * 28 * dt; e.y += (e.homeY - e.y) / home * 28 * dt; } }
+      if(R.safe(e,currentMap)&&def.behavior!=='neutral'){e.x=before.x;e.y=before.y;e.alert=false;}
       e.x = Math.max(35, Math.min(D.world.width - 35, e.x)); e.y = Math.max(35, Math.min(D.world.height - 35, e.y));
-      if (distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
+      if (!playerSafe && distance(e, run.position) < 30 && def.behavior !== 'neutral' && direction !== -1) contact = e;
     }
     for (const d of D.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < D.balance.discoveryRadius && !run.world.discoveredDungeons.includes(d.id)) run.world.discoveredDungeons.push(d.id);
     return contact;
@@ -53,13 +59,13 @@
   function edgeExit(run,threshold=150) {
     const map=D.maps?.[run.currentMapId],region=map&&D.regionById?.[map.regionId];if(!map||!region)return null;
     if(map.starter){if(run.starter?.phase!=='cleared')return null;const [edge,proximity]=[['left',run.position.x],['right',map.width-run.position.x],['top',run.position.y],['bottom',map.height-run.position.y]].sort((a,b)=>a[1]-b[1])[0];return proximity<=threshold?{kind:'map-exit',entity:{id:'starter-portal',name:'選擇七大區',starterPortal:true,edge,forward:true},proximity}:null;}
-    const edges=[['left',run.position.x],['right',D.world.width-run.position.x],['top',run.position.y],['bottom',D.world.height-run.position.y]].sort((a,b)=>a[1]-b[1]),index=region.mapIds.indexOf(map.id);
-    for(const [edge,proximity] of edges){if(proximity>threshold)break;const forward=edge==='right'||edge==='bottom',targetId=region.mapIds[index+(forward?1:-1)],target=D.maps[targetId];if(target)return {kind:'map-exit',entity:{id:target.id,name:target.name,edge,forward,fromMapId:map.id},proximity};}
+    if(map.route){for(const gate of Object.values(map.route.portals)){if(!gate.targetId||Math.abs(run.position.y-gate.y)>300)continue;const proximity=gate.edge==='left'?run.position.x:map.width-run.position.x;if(proximity<=threshold){const target=D.maps[gate.targetId];return {kind:'map-exit',entity:{id:target.id,name:target.name,edge:gate.edge,forward:gate.edge==='right',fromMapId:map.id,x:gate.x,y:gate.y},proximity};}}}
     return null;
   }
   function nearby(run) {
     const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
     const dungeon = (run.training&&run.currentMapId==='tutorial_court'?run.training.stage===6?[D.trainingDungeon]:[]:D.dungeons).find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const deep=(D.maps[run.currentMapId]?.deepPoints||[]).find(p=>distance(p,run.position)<95);if(deep)return {kind:'deep-point',entity:deep};
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
     const exit=edgeExit(run);if(exit)return exit;
@@ -75,6 +81,6 @@
   }
   function threat(playerLevel, enemyLevel) { const gap = enemyLevel - playerLevel; return gap >= 6 ? { color: '#ff7374', label: '☠ 極度危險' } : gap >= 3 ? { color: '#ee8a77', label: '危險' } : gap >= -1 ? { color: '#edcf8d', label: '勢均力敵' } : { color: '#e4e8d7', label: '較弱' }; }
   X.setPositionValidator(blocked);
-  const api = { seeded, roadY, roadDistance, scenery, blocked, update, nearby, edgeExit, interactObject, threat, distance };
+  const api = { seeded, roadY, roadDistance, scenery, sceneryForMap, blocked, update, nearby, edgeExit, interactObject, threat, distance };
   if (typeof module !== 'undefined') module.exports = api; else root.World = api;
 })(globalThis);
