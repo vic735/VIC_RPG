@@ -174,6 +174,7 @@
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
       critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
     } });
+    if(run.training&&['tutorial-first','tutorial-caster'].includes(encounter.id)){b.rules.critChance=0;b.rules.dodgeChance=0;}
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.findDungeon(run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}

@@ -73,7 +73,7 @@ export interface WorldEnemy extends Position {
 export interface RunLoot {kind: RewardKind;id:string;count:number;isNew:boolean;before?:number;after?:number}
 export interface RunState {
   /** First-visit course; practice snapshots never enter the real save slot. */
-  training?: {version:1;stage:number;practice:boolean;interrupted:boolean};
+  training?: {version:1;stage:number;practice:boolean;interrupted:boolean;combatLesson?:string;interruptLesson?:string;configIntroduced?:boolean};
   loot: Record<string,RunLoot>;lootHistoryPartial?:boolean;ultimateCharge:number;
   schemaVersion: 2;
   level: number; exp: number; points: number; allocated: Stats; // points remains 0; allocated retains legacy bonuses only

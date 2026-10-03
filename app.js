@@ -64,7 +64,7 @@ function advanceTutorial(){
 }
 function checkTutorial(){
  if(game.debugBattle||game.modal||game.screen||game.transition>0)return;
- if(TrainingMap.task(game.run)){if(game.scene==='explore'&&TrainingMap.update(game.run)){saveSession();renderUI();toast(TrainingMap.task(game.run).action);}return;}
+ if(TrainingMap.task(game.run)){if(game.scene==='battle'){const q=TrainingMap.combatLesson(game.run,game.encounter);if(q?.card&&(game.battle?.phase==='fighting'||q.state==='completeCard'))showTrainingCombatCard(q);}if(game.scene==='explore'&&TrainingMap.update(game.run)){saveSession();renderUI();toast(TrainingMap.task(game.run).action);}return;}
  if(game.scene==='battle'&&game.battle?.phase==='fighting'&&['moveIntro','moving','interactIntro','awaitBattle'].includes(tutorialState.stage)){tutorialState.stage='battleActions';saveTutorial();}
  if(game.scene==='explore'&&tutorialState.stage==='moving'){const p=tutorialState.origin;if(!p)tutorialState.origin={...game.run.position};else if(Math.hypot(game.run.position.x-p.x,game.run.position.y-p.y)>=70){tutorialState.stage='interactIntro';saveTutorial();}}
  if(GameTutorial.cards[tutorialState.stage])showTutorial();
@@ -73,6 +73,13 @@ function checkTutorial(){
 function showTrainingGuide(){
  const task=TrainingMap.task(game.run);if(!task)return;
  openModal('training-guide',`<div class="eyebrow">${game.practice?'獨立練習':'初次旅途'} · ${game.run.training.stage+1} / 9</div><h2 id="modal-title">${U.escape(task.name)}</h2><p>${U.escape(task.text)}</p><p class="tutorial-tip">${U.escape(task.action)} · 跟隨金色標記</p><div class="modal-footer">${game.practice?U.button('離開練習','practice-exit'):''}${game.run.training.stage===3?U.button('調整配置','run-loadout'):''}${U.button('繼續','close',{primary:true})}</div>`,'tutorial-modal');
+}
+function showTrainingCombatCard(q){
+ openModal('training-combat',`<div class="eyebrow">實際戰鬥教學</div><h2 id="modal-title">${U.escape(q.title)}</h2><p>${U.escape(q.text)}</p><div class="modal-footer">${game.practice?U.button('離開練習','practice-exit'):''}${U.button(q.next==='free'?'開始自由出招':'我來試試','training-lesson-next',{primary:true})}</div>`,'tutorial-modal');
+}
+function trainingConfigHTML(){const q=TrainingMap.configTask(game.run);return q?`<section class="training-config"><small>配置教學 · ${q.step} / 3</small><strong>${U.escape(q.name)}</strong><p>${U.escape(q.text)}</p><p>先點亮起的「${q.kind==='moves'?'招式 '+('ABCD'[q.index]):'技能 '+(q.index+1)}」欄位，再選擇「${U.escape(q.name)}」。</p></section>`:'';}
+function showTrainingConfigIntro(){
+ game.run.training.configIntroduced=true;saveSession();openModal('training-config-intro',`<div class="eyebrow">配置教學</div><h2 id="modal-title">取得後，還要放進欄位</h2><p>招式是主動使用的動作；技能是配置後自動生效的能力。剛取得的三項贈禮還沒有裝備，接下來從角色頁面依序配置。</p><p class="tutorial-tip">點「查看角色」，再點「調整招式技能」。之後照亮起的欄位選擇能力。</p><div class="modal-footer">${U.button('查看角色','training-config-character',{primary:true})}</div>`,'tutorial-modal');
 }
 function showTrainingStation(){
  const run=game.run,task=TrainingMap.task(run);if(!task||game.scene!=='explore')return;
@@ -230,6 +237,7 @@ function startEncounter(encounter) {
   if(!game.debugBattle){Meta.encounter(game.permanent,encounter.type);persist();}
   game.encounter = { ...encounter }; game.battle = P.battleFor(game.run, encounter); Ach.start(game.run);
   if (game.noRandom) { game.battle.rules.critChance = 0; game.battle.rules.dodgeChance = 0; }
+  TrainingMap.combatStart(game.run,encounter);if(['tutorial-first','tutorial-caster'].includes(encounter.id)){game.battle.rules.dodgeChance=0;game.battle.rules.critChance=0;}
   game.scene = 'battle'; game.eventCursor = 0; game.resultHandled = false; game.resultDelay = null; game.transition = .55; game.castFlashes = {}; game.wasReady = false;
   game.keys.clear(); game.touch.clear(); resetJoystick(); renderer.fx = []; renderer.hits = {}; renderer.attacks = {}; closeModal(); $('transition').hidden = false;
   // Restart the CSS transition without delaying the simulation longer than 0.55 seconds.
@@ -295,7 +303,8 @@ function interact() { if (game.scene !== 'explore' || game.modal || game.screen)
   } }
 function chooseMove(id, asUltimate = false) {
   if (!id || game.scene !== 'battle' || game.modal || game.screen || game.transition > 0 || !$('debug').hidden || game.battle.phase !== 'fighting') return;
-  const result = game.battle.choose(id, asUltimate); if (!result.ok) toast(result.reason); else { Audio.emit('skillSelect', { id }); hideTooltip(); }
+  const lesson=TrainingMap.combatLesson(game.run,game.encounter);if(lesson&&(lesson.card||lesson.target&&lesson.target!==id||asUltimate)){toast('教學：'+lesson.text);return;}
+  const result = game.battle.choose(id, asUltimate);if(result.ok)TrainingMap.lessonSelected(game.run,game.encounter,id); if (!result.ok) toast(result.reason); else { Audio.emit('skillSelect', { id }); hideTooltip(); }
   renderUI();
 }
 function showJournal() {
@@ -303,21 +312,23 @@ function showJournal() {
   const run = game.run, stats = P.statsFor(run);
   const cls=Classes.active(run),ledger=Meta.ledger(run);
   const ability=(id,kind)=>{const d=kind==='talents'?D.skills[id]:D.moves[id];return `<div class="profile-ability">${U.icon(d.icon||'star',22)}<div><strong>${U.escape(d.name)}</strong>${d.subtitle?`<small>${U.escape(d.subtitle)}</small>`:''}<small>${kind==='talents'?'被動技能':'本局 Lv.'+(run.moveLevels[id]||1)+' · 永久 '+U.stars(game.permanent.moves[id])}</small></div></div>`;};
-  openModal('journal',`<header class="profile-header"><div class="profile-glyph">${U.icon('hood',42)}</div><div><div class="eyebrow">THIS JOURNEY</div><h2 id="modal-title">旅人的此刻</h2><p>${U.escape(cls.className)} · Lv.${run.level}</p></div><span class="profile-deaths">倒下 ${run.deaths} / 3</span></header><div class="profile-body"><div class="journal-grid">${Object.keys(S.statNames).map(k=>`<div class="journal-stat">${U.icon(S.statIcons[k],22)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><p class="profile-condition">${run.debuffIds.length?run.debuffIds.map(id=>U.escape(D.debuffs.find(d=>d.id===id).name)).join(' ／ '):'尚未留下舊傷。'}</p><div class="profile-section-title"><h3>本局配置</h3>${U.button('調整招式技能','run-loadout')}</div><div class="profile-abilities">${run.build.moves.map(id=>ability(id,'moves')).join('')}${run.build.talents.map(id=>ability(id,'talents')).join('')}</div>${run.build.ultimate?`<div class="profile-ultimate"><small>必殺指向</small><strong>${U.escape(D.moves[run.build.ultimate].name)}</strong></div>`:''}<details class="utility-section"><summary>旅途收穫與狀態</summary><p>本局待結算徽記：◇ ${ledger.combat+ledger.exploration+ledger.dungeons}</p><p>探索收藏：${run.world.inventory?.length?run.world.inventory.map(U.escape).join('、'):'尚未收集'}</p>${explorationEffectsHTML()}</details><nav class="profile-links" aria-label="冒險資訊">${U.button('探索線索','exploration-journal')}${U.button('任務／成就','achievements')}${U.button('世界地圖','world-map')}</nav></div><footer class="modal-footer profile-actions">${U.button('結束本局','end-run')}${U.button('繼續探索','close',{primary:true})}</footer>`,'profile-modal');
+  openModal('journal',`<header class="profile-header"><div class="profile-glyph">${U.icon('hood',42)}</div><div><div class="eyebrow">THIS JOURNEY</div><h2 id="modal-title">旅人的此刻</h2><p>${U.escape(cls.className)} · Lv.${run.level}</p></div><span class="profile-deaths">倒下 ${run.deaths} / 3</span></header><div class="profile-body"><div class="journal-grid">${Object.keys(S.statNames).map(k=>`<div class="journal-stat">${U.icon(S.statIcons[k],22)}<strong>${Math.round(stats[k])}</strong><small>${S.statNames[k]}</small></div>`).join('')}</div><p class="profile-condition">${run.debuffIds.length?run.debuffIds.map(id=>U.escape(D.debuffs.find(d=>d.id===id).name)).join(' ／ '):'尚未留下舊傷。'}</p>${TrainingMap.configTask(run)?'<section class="training-config"><strong>配置教學 · 第一步</strong><p>點下方亮起的「調整招式技能」，進入招式與技能欄位。</p></section>':''}<div class="profile-section-title"><h3>本局配置</h3>${U.button('調整招式技能','run-loadout',{className:TrainingMap.configTask(run)?'training-focus':''})}</div><div class="profile-abilities">${run.build.moves.map(id=>ability(id,'moves')).join('')}${run.build.talents.map(id=>ability(id,'talents')).join('')}</div>${run.build.ultimate?`<div class="profile-ultimate"><small>必殺指向</small><strong>${U.escape(D.moves[run.build.ultimate].name)}</strong></div>`:''}<details class="utility-section"><summary>旅途收穫與狀態</summary><p>本局待結算徽記：◇ ${ledger.combat+ledger.exploration+ledger.dungeons}</p><p>探索收藏：${run.world.inventory?.length?run.world.inventory.map(U.escape).join('、'):'尚未收集'}</p>${explorationEffectsHTML()}</details><nav class="profile-links" aria-label="冒險資訊">${U.button('探索線索','exploration-journal')}${U.button('任務／成就','achievements')}${U.button('世界地圖','world-map')}</nav></div><footer class="modal-footer profile-actions">${U.button('結束本局','end-run')}${U.button('繼續探索','close',{primary:true})}</footer>`,'profile-modal');
 }
 function showRunLoadout(){
  if(!game.run||game.scene==='battle')return;
- const b=game.run.build,slots=[...Array.from({length:4},(_,index)=>({kind:'moves',index,id:b.moves[index]})),...Array.from({length:4},(_,index)=>({kind:'talents',index,id:b.talents[index]})),{kind:'ultimate',index:0,id:b.ultimate}];
- openModal('run-loadout',`<div class="eyebrow">THIS RUN · LOADOUT</div><h2 id="modal-title">調整本局配置</h2><p>只列出這局已帶入或取得的能力。切換地圖後配置仍會保留。</p><div class="run-loadout-grid">${slots.map(slot=>`<button class="run-slot-card" data-action="run-slot" data-kind="${slot.kind}" data-index="${slot.index}"><small>${slot.kind==='talents'?'技能':slot.kind==='ultimate'?'必殺':'招式 '+('ABCD'[slot.index])}</small><strong>${U.escape(slot.id?(slot.kind==='talents'?D.skills[slot.id]:D.moves[slot.id])?.name||slot.id:'空欄位')}</strong></button>`).join('')}</div><div class="modal-footer">${U.button('返回角色狀態','journal')}${U.button('繼續探索','close',{primary:true})}</div>`,'world-route-modal polished-loadout');
+ const guide=TrainingMap.configTask(game.run);const b=game.run.build,slots=[...Array.from({length:4},(_,index)=>({kind:'moves',index,id:b.moves[index]})),...Array.from({length:4},(_,index)=>({kind:'talents',index,id:b.talents[index]})),{kind:'ultimate',index:0,id:b.ultimate}];
+ openModal('run-loadout',`<div class="eyebrow">THIS RUN · LOADOUT</div><h2 id="modal-title">調整本局配置</h2>${trainingConfigHTML()}<p>招式要主動施放，技能配置後自動生效。普通招式與技能各最多四個。</p><div class="run-loadout-grid">${slots.map(slot=>`<button class="run-slot-card ${guide&&guide.kind===slot.kind&&guide.index===slot.index?'training-focus':''}" data-action="run-slot" data-kind="${slot.kind}" data-index="${slot.index}"><small>${slot.kind==='talents'?'技能 '+(slot.index+1):slot.kind==='ultimate'?'必殺':'招式 '+('ABCD'[slot.index])}</small><strong>${U.escape(slot.id?(slot.kind==='talents'?D.skills[slot.id]:D.moves[slot.id])?.name||slot.id:'空欄位')}</strong></button>`).join('')}</div><div class="modal-footer">${U.button('返回角色狀態','journal')}${U.button('繼續探索','close',{primary:true})}</div>`,'world-route-modal polished-loadout');
 }
 function showRunSlot(kind,index){
  const run=game.run;if(!run||game.scene==='battle'||!['moves','talents','ultimate'].includes(kind)||!Number.isInteger(index)||index<0||index>3)return;
+ const guide=TrainingMap.configTask(run);if(guide&&(kind!==guide.kind||index!==guide.index)){toast('教學：先點亮起的欄位，配置'+guide.name+'。');return;}
  game.runPicker={kind,index};const list=kind==='talents'?run.availableSkills:run.availableMoves,source=kind==='talents'?D.skills:D.moves;
  const candidates=S.sortIds(game,(list||[]).filter(id=>source[id]&&Classes.eligible(source[id],run.activeClassId,game.permanent)&&(kind!=='moves'||source[id].kind==='normal')),kind);
- openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2>${S.sortControls(game)}<div class="run-choice-list">${candidates.map(id=>`<button data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
+ openModal('run-slot',`<div class="eyebrow">THIS RUN · SELECT ABILITY</div><h2 id="modal-title">${kind==='talents'?'選擇技能':kind==='ultimate'?'選擇必殺指向':'選擇招式'}</h2>${trainingConfigHTML()}${S.sortControls(game)}<div class="run-choice-list">${candidates.map(id=>`<button class="${guide?.id===id?'training-focus':''}" ${guide&&guide.id!==id?'disabled':''} data-action="run-config-select" data-id="${id}"><strong>${U.escape(source[id].name)}</strong><small>${U.escape(source[id].subtitle||source[id].description||'')}</small></button>`).join('')||'<p>這局尚未取得可用能力。</p>'}</div><div class="modal-footer"><button data-action="run-config-select" data-id="">清空欄位</button>${U.button('返回配置','run-loadout')}</div>`,'world-route-modal');
 }
 function selectRunAbility(id){
  const run=game.run,pick=game.runPicker;if(!run||game.modal!=='run-slot'||!pick)return;
+ const guide=TrainingMap.configTask(run);if(guide&&(id!==guide.id||pick.kind!==guide.kind||pick.index!==guide.index)){toast('教學：請選擇'+guide.name+'。');return;}
  const {kind,index}=pick,available=kind==='talents'?run.availableSkills:run.availableMoves;
  if(id&&!available.includes(id)){toast('這局尚未取得這項能力。');return;}
  const draft=JSON.parse(JSON.stringify(run.build));
@@ -325,7 +336,7 @@ function selectRunAbility(id){
  else {const list=draft[kind];if(index>list.length){toast('請依序填入欄位。');return;}if(!id){if(index<list.length)list.splice(index,1);}else if(list.includes(id)&&list[index]!==id){toast('同一能力不能重複配置。');return;}else if(index===list.length)list.push(id);else list[index]=id;}
  if(!draft.moves.length){toast('至少需要一個普通招式。');return;}
  try{P.validateBuild(draft,game.permanent);}catch(error){toast(error.message);return;}
- run.build=draft;rebuildSkills();showRunLoadout();saveSession();
+ run.build=draft;rebuildSkills();if(guide&&TrainingMap.update(run)){openModal('training-config-complete',`<div class="eyebrow">配置完成</div><h2 id="modal-title">三項能力都已生效</h2><p>生命強化：最大 HP +15%。<br>魔力強化：最大 MP +15%。<br>震盪打擊：已放入普通招式欄，戰鬥時可施放並中斷讀條。</p><p class="tutorial-tip">接下來去詠唱試煉場，實際使用剛裝備的震盪打擊。</p><div class="modal-footer">${U.button('前往中斷練習','close',{primary:true})}</div>`,'tutorial-modal');}else showRunLoadout();saveSession();
 }
 function finishEncounter() {
   const b = game.battle, run = game.run; game.resultHandled = true;
@@ -380,6 +391,7 @@ function showReward() {
   openModal('reward', `<div class="eyebrow">COLLECTION</div><h2 id="modal-title">${currentDungeon()?.name||'探索'} · 收穫</h2><p>收藏永久保留。新能力可選擇立即攜帶，裝備於下次出發配置。</p><div class="reward-list">${game.rewards.map(r=>{const data=r.kind==='marks'?{name:'餘光點 ＋'+r.amount,icon:'star'}:({moves:D.moves,talents:D.skills,equipment:D.equipment,books:D.books})[r.kind][r.id],rarity=r.kind==='equipment'?(D.equipmentRarityLabels?.[data.rarity]||'普通')+' · ':'';return `<div class="reward-line ${r.isNew?'new':'duplicate'}">${U.icon(data.icon||'book',36)}<div><strong>${U.escape(data.name)} ${r.kind==='marks'?'':U.gradeBadge(data)}</strong><small>${rarity}${names[r.kind]} · ${r.isNew?'已加入永久收藏':r.after?'本局 Lv.'+r.before+' → '+r.after:'已擁有'}</small></div></div>`;}).join('')}</div><div class="modal-footer">${U.button(game.run.pendingAcquisitions?.length?'選擇新能力 →':'繼續探索 →','reward-next',{primary:true})}</div>`, 'result-modal');
 }
 function acquisitionNext() {
+  if(TrainingMap.configTask(game.run)){game.run.pendingAcquisitions=(game.run.pendingAcquisitions||[]).filter(t=>!TrainingMap.rewards.some(r=>r.kind===t.kind&&r.id===t.id));if(!game.run.training.configIntroduced)showTrainingConfigIntro();else showJournal();return;}
   const ticket = game.run.pendingAcquisitions?.[0];
   if (!ticket) { game.run.dungeon = null; returnExplore(); return; }
   game.offered = { ...ticket }; showAcquisition();
@@ -406,6 +418,7 @@ function returnExplore() {if(tutorialState.stage==='awaitResult'){tutorialState.
 function pause() { if(game.debugBattle){openModal('debug-lab',GameDebug.form(game.debugBattle));return;} if (!game.run || game.modal || game.screen) return; openModal('pause', `<div class="eyebrow">A MOMENT OF STILLNESS</div><h2 id="modal-title">旅途暫歇</h2><p>時間已暫停。整理呼吸，再繼續前行。</p><div class="modal-footer">${U.button('設定', 'settings')}${U.button('繼續旅途', 'close', { primary: true })}</div>`, 'result-modal'); }
 function renderUI() {
   $('game').dataset.mode = game.scene; $('title-screen').hidden = game.scene !== 'title' || !!game.screen;
+  const lesson=game.scene==='battle'?TrainingMap.combatLesson(game.run,game.encounter):null;$('training-coach').hidden=!lesson||!!lesson.card||!!game.modal||!!game.screen;if(!$('training-coach').hidden)$('training-coach').innerHTML='<strong>'+U.escape(lesson.title)+'</strong><small>'+U.escape(lesson.text)+'</small>';
   $('training-guide').hidden=!TrainingMap.task(game.run)||game.scene!=='explore'||!!game.screen||!!game.modal;if(!$('training-guide').hidden)$('training-guide').textContent=(game.practice?'練習':'教學')+' '+(game.run.training.stage+1)+'/9 · '+TrainingMap.task(game.run).action;
   $('hud').hidden = !game.run || !!game.screen; if (!game.run) return;
   if(renderer.time>(game.passiveUntil||0))$('passive-flash').textContent='';
@@ -430,6 +443,7 @@ function renderUI() {
   const nearby = fighting ? null : World.nearby(run); $('interact').hidden = !nearby || !!game.modal || !!game.screen;
   if (nearby) $('interact').textContent = nearby.kind === 'map-exit' ? `${nearby.entity.forward?'→ 前往下一區':'← 返回上一區'} · ${nearby.entity.name}` : nearby.kind === 'dungeon' ? '◇ 進入 · ' + nearby.entity.name : nearby.kind === 'enemy' ? `Lv.${nearby.entity.level} · 挑戰` : nearby.entity.action + ' · ' + nearby.entity.name;
   for (const [index, button] of [...$('skillbar').querySelectorAll('[data-action="move"]')].entries()) {
+    button.classList.toggle('training-focus',!!lesson?.target&&lesson.target===button.dataset.id&&button.dataset.ultimate!=='true');
     const id = button.dataset.id, move = fighting ? game.battle.getMove(id) : D.moves[id], ultimate = index === 4;
     if (!move) { button.setAttribute('aria-disabled', 'true'); continue; }
     button.querySelector('.actual-cost').textContent=U.cost(move);
@@ -468,6 +482,8 @@ function showTooltip(element) {
   if(game.scene==='battle'&&kind==='move'){$('tooltip').style.left='12px';$('tooltip').style.top=(stageHeight/2+10)+'px';}
 }
 function handleAction(action, id, element) {
+  if(action==='training-lesson-next'&&game.modal==='training-combat'){TrainingMap.lessonNext(game.run,game.encounter);closeModal();saveSession();renderUI();return;}
+  if(action==='training-config-character'&&game.modal==='training-config-intro'){showJournal();return;}
   if(game.practice&&['end-run','end-run-confirm'].includes(action)){exitPractice();return;}
   if(game.practice&&['full-reset','full-reset-confirm','restart-basic','restart-basic-confirm','world-map','world-enter-map','debug-lab','debug-start','world-debug'].includes(action)){toast('請先離開練習模式。');return;}
   if(action==='training-practice'){startPractice();return;}
@@ -624,6 +640,7 @@ window.addEventListener('blur', () => { game.keys.clear(); game.touch.clear(); r
 document.addEventListener('visibilitychange', () => { if (document.hidden) {pause();saveSession();} last = performance.now(); });
 function input() { return { x: stick.x + Number(game.keys.has('d') || game.keys.has('arrowright') || game.touch.has('right')) - Number(game.keys.has('a') || game.keys.has('arrowleft') || game.touch.has('left')), y: stick.y + Number(game.keys.has('s') || game.keys.has('arrowdown') || game.touch.has('down')) - Number(game.keys.has('w') || game.keys.has('arrowup') || game.touch.has('up')) }; }
 function combatEvent(event) {
+  TrainingMap.lessonEvent(game.run,game.encounter,event);
   if(event.type==='interrupt'&&event.actorId==='player'&&game.run?.training?.stage===4)game.run.training.interrupted=true;
   if(game.run&&!game.debugBattle)Enc.hit(game.permanent,game.run,event);
   renderer.event(event);
@@ -640,7 +657,7 @@ function frame(now) {
     else if (game.scene === 'battle') {
       if (game.transition > 0) { game.transition = Math.max(0, game.transition - dt); if (!game.transition) $('transition').hidden = true; }
       else {
-        if (game.battle.phase === 'fighting') { game.run.world.time += dt; game.battle.advance(dt); }
+        if (game.battle.phase === 'fighting'&&!TrainingMap.combatLesson(game.run,game.encounter)?.paused) { game.run.world.time += dt; game.battle.advance(dt); }
         while (game.eventCursor < game.battle.events.length) combatEvent(game.battle.events[game.eventCursor++]);
         if (game.battle.phase !== 'fighting' && !game.resultHandled) finishEncounter();
         if (game.resultDelay !== null) { game.resultDelay -= dt; if (game.resultDelay <= 0) { game.resultDelay = null; showResult(); } }
