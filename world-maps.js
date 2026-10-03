@@ -16,7 +16,7 @@
  const geometry={version:1,areaRatio:.75,scale:Math.sqrt(.75),originalWidth:D.world.width,originalHeight:D.world.height};
  D.mapGeometry=geometry;D.world.width*=geometry.scale;D.world.height*=geometry.scale;
  for(const road of D.world.roads)for(const p of road){p.x*=geometry.scale;p.y*=geometry.scale;}
- const layoutVersion=6,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
+ const layoutVersion=7,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
  const progressionBands=[[10,25],[25,80],[80,250],[250,600],[600,999]],eliteBands=[[20,30],[60,100],[200,300],[500,700],[850,999]];
  D.mapAccessRules={2:{rank:'B'},3:{rank:'A',previousDungeonMap:2},4:{rank:'S',previousDungeonMap:3}};
  const regions=[],maps=[];
@@ -48,7 +48,7 @@
   for(const id of map.dungeonIds){const d=D.dungeons.find(d=>d.id===id);d.rewardReferenceLevel=d.generatedMapDungeon?[12,38,85,130,175][map.sortOrder]:d.level;d.finalLevelScale=true;d.recommendedLevel=d.level=map.sortOrder===0?Math.max(map.recommendedLevelMin,Math.min(map.recommendedLevelMax,d.level)):id==='terminal_structure'?999:Math.round(map.recommendedLevelMin+(map.recommendedLevelMax-map.recommendedLevelMin)*.65);for(const wave of d.enemyWaves)wave.level=Math.min(999,Math.max(map.recommendedLevelMin,d.level+(wave.role==='boss'?1:wave.role==='normal'?-2:0)));}
   R.configure(map,map.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id)),D.world.width,D.world.height);map.spawnPoints=R.layout(map);
  }
- D.mapRouteVersion=1;D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
+ D.mapRouteVersion=2;D.regionData=regions;D.mapData=maps;D.maps=Object.fromEntries(maps.map(m=>[m.id,m]));D.regionById=Object.fromEntries(regions.map(r=>[r.id,r]));
  if(D.contentGrades&&D.contentDistribution){if(typeof module!=='undefined')require('./content-grades')(D);else root.ContentGrades(D);const redistribute=typeof module!=='undefined'?require('./resource-distribution'):root.ResourceDistribution;redistribute(D);}
  const starterConfig={layoutVersion:3,enemyCount:18,safeRadius:360,ringSpacing:240,areaRatio:.25,levelCap:9,expMultiplier:4,bossHpMultiplier:2.6,bossDamageMultiplier:.65};
  const starterMaps=regions.map(region=>{const source=D.maps[region.mapIds[0]],width=geometry.originalWidth*Math.sqrt(starterConfig.areaRatio),height=geometry.originalHeight*Math.sqrt(starterConfig.areaRatio),map={...source,id:'starter_'+region.id,name:region.name+'・試煉之境',starter:true,route:null,deepPoints:[],width,height,entry:{x:width/2,y:height/2},recommendedLevelMin:1,recommendedLevelMax:8,dungeonIds:[],elitePoolIds:[],spawnPoints:[]};
@@ -81,7 +81,7 @@
  function migrateRouteLayout(run){
   if(run.mapLayoutVersion!==layoutVersion){
    const hadLayout=Number.isFinite(run.mapLayoutVersion);
-   run.world.enemies=run.world.enemies.filter(e=>{const map=D.maps[e.mapId];if(!map?.route)return true;if(!e.id?.includes('-patrol-'))return !/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss;const point=map.spawnPoints[Number(e.id.split('-patrol-')[1])];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level,elite:point.elite,section:point.section});return true;});
+   run.world.enemies=run.world.enemies.filter(e=>{const map=D.maps[e.mapId];if(!map?.route)return true;if(!e.id?.includes('-patrol-'))return !/^enemy-\d+$/.test(e.id)||e.specialEvent||e.boss;const point=map.spawnPoints[Number(e.id.split('-patrol-')[1])];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level,elite:point.elite,section:point.section,type:(point.elite?map.elitePoolIds:map.enemyPoolIds)[Number(e.id.split('-patrol-')[1])%(point.elite?map.elitePoolIds:map.enemyPoolIds).length]});return true;});
    if(!hadLayout&&!D.maps[run.currentMapId]?.starter){run.position={...D.maps[run.currentMapId].entry};run.mapPositions||={};}
    run.mapLayoutVersion=layoutVersion;
   }

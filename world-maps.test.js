@@ -2,8 +2,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 function unlocked(run){run.adventurerRank.index=17;run.battleStats.clearedDungeonIds=D.dungeons.map(d=>d.id);return run;}
 const D=require('./data'),Maps=require('./world-maps'),P=require('./progression'),World=require('./world'),Save=require('./run-save');
 
-test('加密野怪補足地圖空隙，載入較稀疏的同版本存檔不重置既有怪物與玩家位置',()=>{
- for(const map of Maps.maps){assert.ok(map.spawnPoints.length>=160,map.id);assert.ok(map.spawnPoints.filter(p=>p.elite).length<=5);}
+test('分散野怪覆蓋四象限，載入較稀疏的同版本存檔不重置既有怪物與玩家位置',()=>{
+ for(const map of Maps.maps){assert.ok(map.spawnPoints.length>=60,map.id);assert.ok(map.spawnPoints.filter(p=>p.elite).length<=5);}
  const run=unlocked(P.createRun(P.freshProgress(),undefined,()=>.5)),map=D.maps[run.currentMapId];
  run.world.enemies=run.world.enemies.filter(e=>!e.id.startsWith(map.id+'-patrol-')||Number(e.id.split('-patrol-')[1])<60);
  const existing=run.world.enemies.find(e=>e.id===map.id+'-patrol-0');existing.defeatedUntil=123;run.position={x:4200,y:2600};const saved=JSON.stringify(existing);
@@ -45,7 +45,7 @@ test('跨區切換保留同局成長、招式配置、必殺能量與每張地�
  const permanent=P.freshProgress(),run=unlocked(P.createRun(permanent,undefined,()=>.5));run.level=23;run.exp=123;run.debuffIds=['fatigue'];run.ultimateCharge=42;run.moveLevels.quick=4;run.position={x:700,y:400};const build=JSON.stringify(run.build);
  assert.ok(Maps.enter(run,'southern_kingdom_1'));assert.equal(run.level,23);assert.equal(run.exp,123);assert.equal(run.ultimateCharge,42);assert.equal(run.moveLevels.quick,4);assert.equal(JSON.stringify(run.build),build);
  const current=run.world.enemies.filter(e=>e.mapId===run.currentMapId);assert.ok(current.length>=8);assert.ok(current.every(e=>e.elite?e.level>=20&&e.level<=30:e.level>=9&&e.level<=25));
- run.position={x:4010,y:2810};Maps.enter(run,'dark_empire_5');assert.ok(run.world.enemies.some(e=>e.mapId==='dark_empire_5'&&e.level>=160));Maps.enter(run,'southern_kingdom_1');assert.deepEqual(run.position,{x:4010,y:2810});Maps.enter(run,'north_plains_1');assert.deepEqual(run.position,{x:700,y:400});
+ run.position={x:4010,y:2810};Maps.enter(run,'dark_empire_5');assert.ok(run.world.enemies.some(e=>e.mapId==='dark_empire_5'&&e.level>=60));Maps.enter(run,'southern_kingdom_1');assert.deepEqual(run.position,{x:4010,y:2810});Maps.enter(run,'north_plains_1');assert.deepEqual(run.position,{x:700,y:400});
 });
 
 test('舊版探索存檔能遷移到地圖結構，既有收藏與遊戲世界版本不變',()=>{

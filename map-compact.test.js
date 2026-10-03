@@ -3,7 +3,7 @@ const D=require('./data'),P=require('./progression'),M=require('./world-maps'),X
 test('正式圖面積75%，新手大小不變；怪物減量且保留安全區、入口分散',()=>{
  assert.ok(Math.abs(D.world.width*D.world.height/(7200*4200)-.75)<1e-12);
  for(const m of M.starterMaps){assert.equal(m.width,3600);assert.equal(m.height,2100);assert.equal(m.spawnPoints.length,18);}
- for(const m of M.maps){assert.ok(m.spawnPoints.length>=160&&m.spawnPoints.length<=190);assert.ok(m.spawnPoints.every(p=>Math.hypot(p.x-m.entry.x,p.y-m.entry.y)>=M.safeRadius));const ds=m.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id));for(let i=0;i<ds.length;i++){assert.equal(W.blocked(ds[i].x,ds[i].y,m.id),false);for(let j=i+1;j<ds.length;j++)assert.ok(Math.hypot(ds[i].x-ds[j].x,ds[i].y-ds[j].y)>500);}}
+ for(const m of M.maps){assert.ok(m.spawnPoints.length>=60&&m.spawnPoints.length<=72);assert.ok(m.spawnPoints.every(p=>Math.hypot(p.x-m.entry.x,p.y-m.entry.y)>=M.safeRadius));const ds=m.dungeonIds.map(id=>D.dungeons.find(d=>d.id===id));for(let i=0;i<ds.length;i++){assert.equal(W.blocked(ds[i].x,ds[i].y,m.id),false);for(let j=i+1;j<ds.length;j++)assert.ok(Math.hypot(ds[i].x-ds[j].x,ds[i].y-ds[j].y)>500);}}
 });
 test('舊正式圖座標只換算一次，保留冷卻、成長、藏書任務與事件狀態',()=>{
  const r=P.createRun(P.freshProgress(),undefined,()=>.3);delete r.mapGeometryVersion;delete r.exploration.geometryVersion;r.mapLayoutVersion=4;r.position={x:6800,y:3900};r.mapPositions={north_plains_1:{x:6800,y:3900},starter_north_plains:{x:1700,y:900}};r.level=42;r.exp=123;r.ultimateCharge=65;const enemy=r.world.enemies.find(e=>e.id==='north_plains_1-patrol-0');enemy.defeatedUntil=987;enemy.discovered=true;
