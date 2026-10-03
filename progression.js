@@ -8,6 +8,7 @@
   if(typeof module!=='undefined')require('./content-v1');
   const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
   const LevelProgression=typeof module!=='undefined'?require('./level-progression'):root.LevelProgression;if(typeof module!=='undefined')LevelProgression.apply(D);
+  const Training=typeof module!=='undefined'?require('./training-map'):root.TrainingMap;
   const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
@@ -91,7 +92,8 @@
     const baseExp=earlyExp+(lateExp-earlyExp)*blend;
     const luckBonus=Math.min(D.balance.expLuckCap,statsFor(run).luck*D.balance.expPerLuck);
     const inStarter=run.starter&&run.currentMapId===run.starter.mapId,cap=inStarter?Maps.starterConfig.levelCap:D.adventure.maxLevel;
-    const amount = inStarter&&run.level>=cap?0:Math.round(baseExp*expFactor*gap*(inStarter?Maps.starterConfig.expMultiplier:opening?pacing.openingMultiplier:1)*(1+luckBonus));
+    const target=run.training&&encounter.trainingTargetLevel;
+    const amount = target?Math.max(0,Math.round(expForLevels(run.level,Math.max(0,target-run.level))-run.exp)):inStarter&&run.level>=cap?0:Math.round(baseExp*expFactor*gap*(inStarter?Maps.starterConfig.expMultiplier:opening?pacing.openingMultiplier:1)*(1+luckBonus));
     runtime.emit('OnEXPReceived',{amount}); run.level=Math.min(D.adventure.maxLevel,Math.max(1,run.level));run.exp += amount; let levels = 0;
     while (run.level<cap&&run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
     if(inStarter&&run.level>=cap)run.exp=0;Maps.syncStarter(run);
@@ -141,9 +143,10 @@
   function grantRewards(permanent,run,rewards){return rewards.map(reward=>{if(['moves','talents'].includes(reward.kind))return {...reward,...receiveAbility(permanent,run,reward.kind,reward.id)};const collection=permanent[reward.kind],source=reward.kind==='books'?D.books:D.equipment;if(!collection||!source[reward.id])throw Error('未知獎勵內容');const isNew=!collection.includes(reward.id);if(isNew)collection.push(reward.id);const receipt={...reward,isNew};recordLoot(run,receipt);return receipt;});}
   function starterReward(permanent,run,enemy,rng=Math.random){if(!run.starter||run.starter.phase!=='cleared'||enemy.id!==run.starter.bossId||run.starter.rewardProcessed)return [];run.starter.rewardProcessed=true;const reward=Meta.claimStarter(permanent,rng);if(!reward)return [];if(reward.kind==='marks'){recordLoot(run,reward);return [reward];}return grantRewards(permanent,run,[reward]);}
   function dungeonReward(permanent,run,rng=Math.random,options={}){
-    if(!run.dungeon)throw Error('不在地下城');const d=D.dungeons.find(d=>d.id===run.dungeon.id);
+    if(!run.dungeon)throw Error('不在地下城');const d=D.findDungeon(run.dungeon.id);
     if(run.dungeon.stage!==d.enemyWaves.length-1)throw Error('尚未完成所有波次');
     if(run.dungeon.rewardClaimed)return [];
+    if(d.training){run.dungeon.rewardClaimed=true;run.training.stage=7;Maps.syncStarter(run);return [];}
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level,permanent,preferUnowned:D.maps[d.mapId]?.sortOrder===0}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
   function enemyProfile(type,options={}){
@@ -156,12 +159,12 @@
     const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
     const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
     const starterBoss=type.startsWith('starter_');
-    const attackPower=interpolate(cfg.attack)*species.damage*(starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
+    const attackPower=interpolate(cfg.attack)*species.damage*(source.training?.35:starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
     const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
     const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
     const averageCast=all.reduce((n,m)=>n+m.attackTime,0)/Math.max(1,all.length);
-    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:cfg.castSeconds*species.cycle,
-      stats:{...source.stats,hp:Math.round(interpolate(cfg.hp)*species.hp*(starterBoss?Maps.starterConfig.bossHpMultiplier:tuning.hp)),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
+    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:source.training?6:cfg.castSeconds*species.cycle,
+      stats:{...source.stats,hp:source.training?source.trainingHP:Math.round(interpolate(cfg.hp)*species.hp*(starterBoss?Maps.starterConfig.bossHpMultiplier:tuning.hp)),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
       physicalDefense:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.physicalDefenseBonus||0),magicResistance:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.magicResistanceBonus||0)};
   }
   function battleFor(run, encounter, rng = Math.random) {
@@ -173,7 +176,7 @@
     } });
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
-  function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
+  function dungeonEncounter(run){const d=D.findDungeon(run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
   const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);

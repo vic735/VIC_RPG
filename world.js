@@ -26,10 +26,10 @@
   }
   const scenery = decorations();
   function blocked(x, y) { return x < 30 || y < 30 || x > D.world.width - 30 || y > D.world.height - 30 || scenery.some(t => Math.hypot(x - t.x, y - t.y) < (t.kind === 'rock' ? 15 : 10) * t.size + 9); }
-  function movePosition(position, dx, dy) { if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
+  function movePosition(position, dx, dy, training=false) { if(training){position.x+=dx;position.y+=dy;return;}if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
   function update(run, dt, input) {
     run.world.time += dt;
-    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt);
+    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, !!D.maps[run.currentMapId]?.training);
     const currentMap=D.maps?.[run.currentMapId];if(currentMap?.starter){run.position.x=Math.max(35,Math.min(currentMap.width-35,run.position.x));run.position.y=Math.max(35,Math.min(currentMap.height-35,run.position.y));}
     let contact = null;
     for (const e of run.world.enemies) {
@@ -59,7 +59,7 @@
   }
   function nearby(run) {
     const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
-    const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const dungeon = (run.training&&run.currentMapId==='tutorial_court'?run.training.stage===6?[D.trainingDungeon]:[]:D.dungeons).find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
     const exit=edgeExit(run);if(exit)return exit;

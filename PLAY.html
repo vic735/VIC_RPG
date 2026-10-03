@@ -182,6 +182,9 @@
 .reduced-motion .growth-celebration.landed .growth-level>strong{animation:number-land .42s cubic-bezier(.18,.85,.25,1.35)!important}
 
 .modal.tutorial-modal{width:408px;text-align:center;border-radius:16px;padding:26px 24px;background:linear-gradient(155deg,#2c4136,#112127);border-color:#c5b47a77}.tutorial-modal .eyebrow{font-size:10px;letter-spacing:2px;color:#9fb7a3}.tutorial-symbol{display:grid;place-items:center;margin:18px auto;width:90px;height:90px;border-radius:50%;color:#e4ce8d;border:1px solid #c3b17a44;background:radial-gradient(ellipse,#b9a14c30,transparent)}.tutorial-modal h2{font-size:24px;letter-spacing:2px;margin:14px 0}.tutorial-modal p{font-size:15px;line-height:1.9;text-align:left;color:#d4decd}.tutorial-modal .tutorial-tip{font-size:12px;color:#a9beaa;background:#829a5b15;border-left:2px solid #b5a56855;padding:12px}.tutorial-dots{display:flex;justify-content:center;gap:7px;margin-top:20px}.tutorial-dots i{width:5px;height:5px;border-radius:50%;background:#829b7d44}.tutorial-dots i.active{background:#e2c982;width:17px;border-radius:4px}.tutorial-modal .modal-footer{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}.tutorial-modal button{min-height:48px;font-size:14px;padding:10px}
+
+/* One compact objective, with the scene left open for exploration. */
+#training-guide{position:absolute;top:94px;left:50%;transform:translateX(-50%);max-width:88%;width:max-content;padding:10px 15px;border:1px solid #cbb87555;border-radius:20px;background:#14231edb;color:#e9dcad;font-size:13px;box-shadow:0 3px 16px #0004;pointer-events:auto}#training-guide[hidden]{display:none}
 </style></head>
 <body><div id="viewport"><main id="game" data-mode="title" aria-label="餘光 RPG 遊戲">
 <canvas id="scene" aria-label="奇幻冒險遊戲場景"></canvas><div class="scene-grain"></div><div class="frame-corner corner-tl"></div><div class="frame-corner corner-br"></div>
@@ -200,7 +203,7 @@
 <div id="context"><button id="interact" data-action="interact" hidden></button></div>
 <div id="touch-controls" aria-label="移動控制"><div id="joystick" role="group" aria-label="拖曳搖桿移動，亦可使用方向鍵"><span class="joystick-compass" aria-hidden="true">✧</span><span id="joystick-thumb" aria-hidden="true"></span></div></div>
 <nav class="explore-menu" aria-label="探索選單"><button class="explore-settings" data-action="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 3 4 0 1 3 3 1 3 3-2 3 0 3-3 2-3-1-3 1-3-2 0-3-2-3 3-3 3-1Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="explore-world" data-action="world-map" aria-label="世界地圖">世界地圖</button><button class="explore-character" data-action="journal" aria-label="角色狀態"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-3c0-7 16-7 16 0v3M4 21h16"/></svg><span>角色</span></button></nav>
-<div id="bottom-hint"></div></div>
+<button id="training-guide" data-action="training-journal" hidden></button><div id="bottom-hint"></div></div>
 <div id="transition" hidden><div class="transition-sigil">◇</div></div>
 <div id="modal-backdrop" hidden><section id="modal" class="modal game-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"></section></div>
 <div id="tooltip" class="game-tooltip" role="tooltip" hidden></div><div id="toast" class="notification" role="status" aria-live="polite"></div>
@@ -492,7 +495,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.23.0', date: '2026-10-03' },
+    release: { version: '0.24.0', date: '2026-10-03' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -1052,7 +1055,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   D.maps[map.id]=map;return map;
  });
  function startStarter(run,rng=Math.random){const map=starterMaps[Math.min(starterMaps.length-1,Math.floor(rng()*starterMaps.length))];run.starter={version:1,mapId:map.id,phase:'training',bossId:map.id+'-boss'};run.currentMapId=map.id;run.position={...map.entry};run.mapPositions={};run.mapLayoutVersion=layoutVersion;run.mapGeometryVersion=geometry.version;run.world.enemies=[];run.adventurerRank.index=-1;ensureRun(run);return map;}
- function syncStarter(run){const s=run.starter;if(!s||run.currentMapId!==s.mapId)return;if(s.phase==='cleared'){run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);return;}if(run.level>=starterConfig.levelCap){run.level=starterConfig.levelCap;run.exp=0;s.phase='boss';if(!run.world.enemies.some(e=>e.id===s.bossId)){const map=D.maps[s.mapId],x=map.entry.x,y=map.entry.y-210;run.world.enemies.push({id:s.bossId,mapId:map.id,regionId:map.regionId,type:map.bossType,level:9,boss:true,role:'boss',quickBattleAllowed:false,x,y,homeX:x,homeY:y,discovered:true,defeatedUntil:0});}}}
+ function syncStarter(run){const s=run.starter;if(!s||run.currentMapId!==s.mapId)return;if(s.phase==='cleared'){run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);return;}if(run.training&&run.training.stage<7)return;if(run.level>=starterConfig.levelCap){run.level=starterConfig.levelCap;run.exp=0;s.phase='boss';if(!run.world.enemies.some(e=>e.id===s.bossId)){const map=D.maps[s.mapId],x=map.entry.x,y=map.entry.y-210;run.world.enemies.push({id:s.bossId,mapId:map.id,regionId:map.regionId,type:map.bossType,level:9,boss:true,role:'boss',quickBattleAllowed:false,x,y,homeX:x,homeY:y,discovered:true,defeatedUntil:0});}}}
  function clearStarter(run,enemy){const s=run.starter;if(!s||s.phase!=='boss'||enemy.id!==s.bossId||enemy.type!==D.maps[s.mapId].bossType)return false;s.phase='cleared';run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);const rank=run.adventurerRank;rank.index=0;rank.progress=0;rank.normalKills=rank.challengeKills=0;rank.last={kills:run.battleStats.kills,dungeons:run.battleStats.clearedDungeonIds.length,level:run.level};rank.history.push({from:'E',to:'D−',route:'starter'});return true;}
  function inferLegacy(run){
   const dungeon=D.dungeons.find(d=>d.id===run.dungeon?.id);if(dungeon?.mapId)return dungeon.mapId;
@@ -1074,6 +1077,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(run.mapLayoutVersion===4)run.mapLayoutVersion=layoutVersion;
  }
  function ensureRun(run){
+  if(run.training&&run.currentMapId==='tutorial_court'){D.training.ensure(run);return run;}
   migrateGeometry(run);
   if(run.starter&&run.currentMapId===run.starter.mapId){run.mapPositions||={};const map=D.maps[run.currentMapId];if(run.starter.layoutVersion!==starterConfig.layoutVersion){if(run.starter.layoutVersion===2){const scale=Math.SQRT1_2;run.position={x:Math.max(35,Math.min(map.width-35,run.position.x*scale)),y:Math.max(35,Math.min(map.height-35,run.position.y*scale))};run.mapPositions[map.id]={...run.position};const boss=run.world.enemies.find(e=>e.id===run.starter.bossId);if(boss)Object.assign(boss,{x:map.entry.x,y:map.entry.y-210,homeX:map.entry.x,homeY:map.entry.y-210});}run.world.enemies=run.world.enemies.filter(e=>{if(e.mapId!==map.id||e.id===run.starter.bossId)return true;const index=Number(e.id.split('-patrol-')[1]),point=map.spawnPoints[index];if(!point)return false;Object.assign(e,{x:point.x,y:point.y,homeX:point.x,homeY:point.y,level:point.level});return true;});run.starter.layoutVersion=starterConfig.layoutVersion;}if(run.starter.phase!=='cleared')populate(run,map);syncStarter(run);return run;}
   run.currentMapId=D.maps[run.currentMapId]?run.currentMapId:inferLegacy(run);
@@ -1114,6 +1118,39 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 })(globalThis);
 
 </script><!-- /inline-module --><script>
+/* Fixed first-visit course. Practice uses the same course with an isolated player. */
+(function(root){
+ const D=typeof module!=='undefined'?require('./data'):root.GameData;
+ const map={id:'tutorial_court',name:'餘光試煉庭',regionId:'north_plains',starter:true,training:true,width:2200,height:1800,entry:{x:1100,y:900},recommendedLevelMin:1,recommendedLevelMax:9,sortOrder:0,color:'#344c3e',environmentId:'meadow',dungeonIds:['tutorial_vault'],spawnPoints:[],isAvailable:true,enemyPoolIds:[],elitePoolIds:[],bossType:'starter_tutorial_guardian'};
+ const clone=x=>JSON.parse(JSON.stringify(x));
+ const base=D.monsters.greywind_0;for(const [id,name,hp,moves]of [['training_slime','溫順史萊姆',55,['goblin']],['training_caster','詠唱石偶',120,['fire']],['training_vault_slime','遺跡史萊姆',100,['goblin']],['training_vault_guard','遺跡守衛',140,['goblin','fire']],['starter_tutorial_guardian','試煉庭守關者',260,['goblin','crush']]])D.monsters[id]={...clone(base),id,name,training:true,trainingHP:hp,sprite:id.includes('slime')?'slime':'golem',moves,skills:[],behavior:'neutral',radius:0,dropChance:0,boss:id==='starter_tutorial_guardian',worldScale:id==='starter_tutorial_guardian'?1.6:1};
+ D.maps[map.id]=map;
+ const dungeon={...clone(D.dungeons.find(d=>d.id==='abandoned_mine')),id:'tutorial_vault',name:'初光遺跡',mapId:map.id,x:1320,y:1360,level:6,recommendedLevel:6,training:true,dungeonType:'training',features:['兩場短連戰','波間資源保留'],rewardTypes:[],enemyWaves:[{type:'training_vault_slime',role:'normal',level:5,trainingTargetLevel:7},{type:'training_vault_guard',role:'normal',level:7,trainingTargetLevel:9}]};
+ D.trainingDungeon=dungeon;D.findDungeon=id=>D.dungeons.find(d=>d.id===id)||(id===dungeon.id?dungeon:null);
+ const rewards=[{kind:'talents',id:'vitality'},{kind:'talents',id:'mana_boost'},{kind:'moves',id:'interrupt'}];
+ const tasks=[
+ {name:'中央營地',action:'移動到金色標記',x:820,y:900,text:'拖曳下方搖桿移動，放手停止。右上角可查看角色，左上角開啟設定。'},
+ {name:'外側練習場',action:'靠近並挑戰史萊姆',x:700,y:600,text:'靠近後點互動鍵。普通招式消耗 MP／SP，讀條完成後發揮效果。長按招式可查看介紹。'},
+ {name:'傳承石碑',action:'領取兩個技能與一個招式',x:1100,y:420,text:'生命強化與魔力強化是配置後自動生效的技能；震盪打擊是需要主動施放的招式。'},
+ {name:'配置練習',action:'裝備生命強化、魔力強化、震盪打擊',x:1100,y:420,text:'從角色頁的調整招式技能進入，將三項能力放入欄位。普通招式和技能各最多四個。'},
+ {name:'詠唱試煉場',action:'中斷石偶一次，再擊敗它',x:1550,y:620,text:'等石偶開始讀條，再使用震盪打擊。普通攻擊不一定能中斷。若未完成中斷，可重新挑戰。'},
+ {name:'探索庭園',action:'調查祭壇並選擇契約',x:1580,y:1040,text:'探索事件可能給予本局效果。此契約會增加最大 MP、降低最大 SP，可以接受或拒絕。'},
+ {name:'初光遺跡',action:'完成地下城兩場連戰',x:1320,y:1360,text:'兩場之間 HP／MP／SP 保留，通關離開後回復。完成課程會取得教學經驗，升至 Lv.9。'},
+ {name:'中央守關者',action:'擊敗守關者',x:1100,y:690,text:'運用招式、被動技能與讀條判斷。擊敗後由 E 升至 D−，走到地圖邊緣可選擇七大區。'},
+ {name:'旅途啟程',action:'前往邊緣傳送點',x:2140,y:900,text:'收藏會留下。前兩次倒下會休養，第三次結算本局；旅者徽記可到商店換取能力。圖鑑可查效果與取得來源，魔法書需要前置條件。必殺仍於首次完整冒險結算後解鎖。'}
+ ];
+ function start(run,practice=false){run.training={version:1,stage:0,practice,interrupted:false};run.starter={version:1,mapId:map.id,phase:'training',bossId:'tutorial-guardian'};run.currentMapId=map.id;run.position={...map.entry};run.mapPositions={};run.world.enemies=[];run.adventurerRank.index=-1;ensure(run);return map;}
+ function ensure(run){const t=run.training;if(!t||run.currentMapId!==map.id)return;const specs=[{stage:1,id:'tutorial-first',type:'training_slime',x:700,y:600,level:1,trainingTargetLevel:3},{stage:4,id:'tutorial-caster',type:'training_caster',x:1550,y:620,level:3,trainingTargetLevel:5}];for(const e of specs)if(t.stage===e.stage&&!run.world.enemies.some(x=>x.id===e.id))run.world.enemies.push({...e,mapId:map.id,regionId:map.regionId,homeX:e.x,homeY:e.y,defeatedUntil:0,discovered:true,quickBattleAllowed:false});run.world.enemies=run.world.enemies.filter(e=>e.boss||e.stage===t.stage);}
+ function task(run){return run?.training&&run.currentMapId===map.id?tasks[run.training.stage]:null;}
+ function advance(run){run.training.stage=Math.min(8,run.training.stage+1);ensure(run);}
+ function update(run){if(!task(run))return false;const t=run.training;if(t.stage===0&&Math.hypot(run.position.x-820,run.position.y-900)<85){advance(run);return true;}if(t.stage===3&&rewards.every(r=>run.build[r.kind].includes(r.id))){advance(run);return true;}return false;}
+ function objects(run){const q=task(run);if(!q||![0,2,3,5].includes(run.training.stage))return [];return [{id:'tutorial-station-'+run.training.stage,kind:'training-station',visual:run.training.stage===5?'altar':'clue',name:q.name,action:'查看',x:q.x,y:q.y}];}
+ function victory(run,e){if(!run.training||run.currentMapId!==map.id)return;if(e.id==='tutorial-first'&&run.training.stage===1)advance(run);else if(e.id==='tutorial-caster'&&run.training.stage===4){if(run.training.interrupted)advance(run);else{const target=run.world.enemies.find(x=>x.id===e.id);if(target)target.defeatedUntil=0;}}else if(e.id===run.starter.bossId)run.training.stage=8;}
+ function giftClaimed(p){return !!p.meta?.tutorialGiftClaimed;}
+ const api={map,dungeon,rewards,tasks,start,ensure,task,advance,update,objects,victory,giftClaimed};D.training=api;if(typeof module!=='undefined')module.exports=api;else root.TrainingMap=api;
+})(globalThis);
+
+</script><script>
 /* Data-driven classes.  Common content stays free; only explicit class content is restricted. */
 (function(root){
  const D=typeof module!=='undefined'?require('./data'):root.GameData;
@@ -1682,13 +1719,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function settle(p,run){const r=ledger(run);if(r.settled)return r.total;discover(p,run);const m=normalize(p);r.total=r.combat+r.exploration+r.dungeons;r.settled=true;m.marks+=r.total;m.earned+=r.total;m.runs++;m.revision++;return r.total;}
  function starterEligible(p){return normalize(p).starterRewardLocked!==true;}
  function completeStarterCycle(p,run){if(run.status!=='failed'||run.deaths<3||run.endedVoluntarily||run.starterRewardCycleCompleted)return false;run.starterRewardCycleCompleted=true;const m=normalize(p);m.starterRewardLocked=false;m.revision++;return true;}
- function claimStarter(p,rng=Math.random){if(!starterEligible(p))return null;const pools=['moves','talents'].map(kind=>({kind,items:[...new Set(Object.values(kind==='moves'?D.moves:D.skills))].filter(x=>x.powerGrade==='C'&&x.contentScope!=='classExclusive'&&x.kind!=='ultimate'&&(kind==='moves'?!Object.keys(p.moves).some(id=>D.moves[id]===x):!p.skills.some(id=>D.skills[id]===x)))})).filter(x=>x.items.length);const m=normalize(p);m.starterRewardLocked=true;m.revision++;if(!pools.length){m.marks+=5;m.earned+=5;return {kind:'marks',id:'starter-compensation',amount:5,isNew:false};}const pool=pools[Math.min(pools.length-1,Math.floor(rng()*pools.length))],item=pool.items[Math.min(pool.items.length-1,Math.floor(rng()*pool.items.length))];return {kind:pool.kind,id:item.id};}
+ function claimStarter(p,rng=Math.random){if(!starterEligible(p))return null;const pools=['moves','talents'].map(kind=>({kind,items:[...new Set(Object.values(kind==='moves'?D.moves:D.skills))].filter(x=>x.powerGrade==='C'&&!x.training&&x.contentScope!=='classExclusive'&&x.kind!=='ultimate'&&(kind==='moves'?!Object.keys(p.moves).some(id=>D.moves[id]===x):!p.skills.some(id=>D.skills[id]===x)))})).filter(x=>x.items.length);const m=normalize(p);m.starterRewardLocked=true;m.revision++;if(!pools.length){m.marks+=5;m.earned+=5;return {kind:'marks',id:'starter-compensation',amount:5,isNew:false};}const pool=pools[Math.min(pools.length-1,Math.floor(rng()*pools.length))],item=pool.items[Math.min(pool.items.length-1,Math.floor(rng()*pool.items.length))];return {kind:pool.kind,id:item.id};}
  function collection(p){const m=normalize(p),moves=new Set(D.startingMoves),skills=new Set(D.startingSkills);
   for(const pool of Object.values(D.rewardPools))for(const e of pool.entries){if(e.rewardType==='moves')e.rewardIds.forEach(id=>moves.add(id));if(e.rewardType==='talents')e.rewardIds.forEach(id=>skills.add(id));}
   for(const b of Object.values(D.books))moves.add(b.moveId);for(const c of catalog)(c.kind==='moves'?moves:skills).add(c.id);Object.keys(p.moves).forEach(id=>moves.add(id));for(const id of p.skills)skills.add(id);for(const id of p.ultimates||[])moves.add(id);
   for(const x of Object.values(D.moves))if(x.contentScope==='classExclusive')moves.add(x.id);for(const x of Object.values(D.skills))if(x.contentScope==='classExclusive')skills.add(x.id);
   const enemyIds=new Set([...D.enemySpawnData.map(e=>monsterId(e.type)),...D.dungeons.flatMap(d=>d.enemyWaves.map(w=>monsterId(w.type)))]);
-  function hint(kind,id){const source=kind==='moves'?D.moves:D.skills,item=source[id],ds=D.dungeons.filter(d=>d.rewardPoolIds?.some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardType===(kind==='moves'?'moves':'talents')&&e.rewardIds.some(key=>source[key]===item))));const c=catalog.find(c=>c.kind===kind&&source[c.id]===item),parts=[];if(ds.length)parts.push('地下城：'+ds.map(d=>d.name).join('／'));if(c)parts.push(`旅者商店：通關 ${tiers[c.tier].clears} 座不同地下城後可能上架`);if(kind==='moves'){const books=Object.values(D.books).filter(b=>D.moves[b.moveId]===item);if(books.length)parts.push('研讀魔法書：'+books.map(b=>b.name).join('／')+'；野外藏書稀有且必須完成前置任務');}return parts.join('。')||'探索世界與地下城，或完成對應職業成就';}
+  function hint(kind,id){const source=kind==='moves'?D.moves:D.skills,item=source[id],ds=D.dungeons.filter(d=>d.rewardPoolIds?.some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardType===(kind==='moves'?'moves':'talents')&&e.rewardIds.some(key=>source[key]===item))));const c=catalog.find(c=>c.kind===kind&&source[c.id]===item),parts=[];if(D.training?.rewards.some(r=>r.kind===(kind==='moves'?'moves':'talents')&&source[r.id]===item))parts.push('首次教學：傳承石碑贈禮（僅領一次）');if(ds.length)parts.push('地下城：'+ds.map(d=>d.name).join('／'));if(c)parts.push(`旅者商店：通關 ${tiers[c.tier].clears} 座不同地下城後可能上架`);if(kind==='moves'){const books=Object.values(D.books).filter(b=>D.moves[b.moveId]===item);if(books.length)parts.push('研讀魔法書：'+books.map(b=>b.name).join('／')+'；野外藏書稀有且必須完成前置任務');}return parts.join('。')||'探索世界與地下城，或完成對應職業成就';}
   const moveRows=[...moves].filter(id=>D.moves[id]).map(id=>({id,data:D.moves[id],known:!!p.moves[id]||!!p.ultimateUnlocked&&(p.ultimates||[]).includes(id),hint:hint('moves',id)}));
   const skillRows=[...skills].filter(id=>D.skills[id]).map(id=>({id,data:D.skills[id],known:p.skills.includes(id),hint:hint('skills',id)}));
   const books=Object.values(D.books).map(data=>({id:data.id,data,known:p.books.includes(data.id),hint:(typeof module!=='undefined'?require('./run-exploration'):root.RunExploration).bookHint(data.id)}));
@@ -1740,10 +1777,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const r=rngFor(seed^0x734ad9),bookCount=weighted(config.bookCountWeights,r),available=D.mapData.filter(m=>!m.starter);for(let i=0;i<bookCount&&available.length;i++){const map=sample(available,r);available.splice(available.indexOf(map),1);const ids=[...new Set(map.dungeonIds.flatMap(id=>{const d=D.dungeons.find(x=>x.id===id);return (d?.rewardPoolIds||[d?.primaryRewardPool,d?.secondaryRewardPool,d?.rareRewardPool]).flatMap(pid=>(D.rewardPools[pid]?.entries||[]).filter(e=>e.rewardType==='books').flatMap(e=>e.rewardIds));}))].filter(id=>D.books[id]);if(!ids.length)continue;const novel=ids.filter(id=>!options.permanent?.books?.includes(id)),bookId=sample(novel.length?novel:ids,r),occupied=s.maps[map.id].events.map(e=>({...e})),start=point(map,Math.floor(r()*4),r,occupied),finish=point(map,Math.floor(r()*4),r,occupied);if(!start||!finish)continue;const questType=sample(['hunt','elite','dungeon','research'],r),enemyType=questType==='elite'?map.elitePoolIds[0]:map.enemyPoolIds[0],target=questType==='hunt'?3:questType==='research'?2:1,research=[];if(questType==='research'){for(let n=0;n<2;n++){const p=point(map,Math.floor(r()*4),r,occupied);if(p)research.push({id:map.id+'-rubbing-'+n,...p});}if(research.length!==2)continue;}s.books.push({id:'sealed-book-'+i,mapId:map.id,bookId,questType,enemyType,dungeonId:map.dungeonIds[0],target,progress:0,state:'unseen',start,finish,research,visited:[],clue:`${['西北','東北','西南','東南'][(finish.x<(map.width||D.world.width)/2?0:1)+(finish.y<(map.height||D.world.height)/2?0:2)]}方有一座封印石匣；完成前置任務後才能開啟。`});}
   return s;
  }
- function waves(run,id){return ensure(run)?.dungeons[id]||D.dungeons.find(d=>d.id===id)?.enemyWaves||[];}
+ function waves(run,id){if(id===D.trainingDungeon?.id)return D.trainingDungeon.enemyWaves;return ensure(run)?.dungeons[id]||D.dungeons.find(d=>d.id===id)?.enemyWaves||[];}
  function sources(run){return (ensure(run)?.effects||[]).map(id=>effects[id]).filter(Boolean);}
  function statFactor(run,key){return sources(run).reduce((v,e)=>v*(1+(e.statRates?.[key]||0)),1);}
- function objects(run){const s=ensure(run),map=D.maps[run?.currentMapId];if(!s||!map||map.starter)return [];const out=(s.maps[map.id]?.events||[]).filter(e=>e.state!=='done').map(e=>({...e,kind:'run-event'}));for(const b of s.books.filter(b=>b.mapId===map.id&&b.state!=='claimed')){if(['unseen','offered'].includes(b.state))out.push({id:b.id,...b.start,name:'殘卷石碑',visual:'clue',kind:'book-clue',action:'讀取'});if(b.state==='active'&&b.questType==='research')for(const p of b.research)if(!b.visited.includes(p.id))out.push({...p,name:'古代碑文',visual:'clue',kind:'book-research',bookQuestId:b.id,action:'拓印'});if(b.state==='ready')out.push({id:b.id+'-cache',...b.finish,name:'封印藏書',visual:'book',kind:'sealed-book',bookQuestId:b.id,action:'開啟'});}return out;}
+ function objects(run){if(run.training&&run.currentMapId==='tutorial_court')return D.training.objects(run);const s=ensure(run),map=D.maps[run?.currentMapId];if(!s||!map||map.starter)return [];const out=(s.maps[map.id]?.events||[]).filter(e=>e.state!=='done').map(e=>({...e,kind:'run-event'}));for(const b of s.books.filter(b=>b.mapId===map.id&&b.state!=='claimed')){if(['unseen','offered'].includes(b.state))out.push({id:b.id,...b.start,name:'殘卷石碑',visual:'clue',kind:'book-clue',action:'讀取'});if(b.state==='active'&&b.questType==='research')for(const p of b.research)if(!b.visited.includes(p.id))out.push({...p,name:'古代碑文',visual:'clue',kind:'book-research',bookQuestId:b.id,action:'拓印'});if(b.state==='ready')out.push({id:b.id+'-cache',...b.finish,name:'封印藏書',visual:'book',kind:'sealed-book',bookQuestId:b.id,action:'開啟'});}return out;}
  function nearby(run){return objects(run).filter(o=>distance(o,run.position)<config.interactionRadius).sort((a,b)=>distance(a,run.position)-distance(b,run.position))[0]||null;}
  function discover(run){let changed=false;for(const o of objects(run))if(distance(o,run.position)<config.discoveryRadius){if(o.kind==='run-event'){const e=run.exploration.maps[run.currentMapId].events.find(e=>e.id===o.id);if(e.state==='unseen'){e.state='seen';changed=true;}}else if(o.kind==='book-clue'){const b=run.exploration.books.find(b=>b.id===o.id);if(b.state==='unseen'){b.state='offered';changed=true;}}}return changed;}
  function event(run,id){return ensure(run)?.maps[run.currentMapId]?.events.find(e=>e.id===id);}
@@ -1769,6 +1806,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(typeof module!=='undefined')require('./content-v1');
   const Maps=typeof module!=='undefined'?require('./world-maps'):root.WorldMaps;
   const LevelProgression=typeof module!=='undefined'?require('./level-progression'):root.LevelProgression;if(typeof module!=='undefined')LevelProgression.apply(D);
+  const Training=typeof module!=='undefined'?require('./training-map'):root.TrainingMap;
   const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
@@ -1852,7 +1890,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const baseExp=earlyExp+(lateExp-earlyExp)*blend;
     const luckBonus=Math.min(D.balance.expLuckCap,statsFor(run).luck*D.balance.expPerLuck);
     const inStarter=run.starter&&run.currentMapId===run.starter.mapId,cap=inStarter?Maps.starterConfig.levelCap:D.adventure.maxLevel;
-    const amount = inStarter&&run.level>=cap?0:Math.round(baseExp*expFactor*gap*(inStarter?Maps.starterConfig.expMultiplier:opening?pacing.openingMultiplier:1)*(1+luckBonus));
+    const target=run.training&&encounter.trainingTargetLevel;
+    const amount = target?Math.max(0,Math.round(expForLevels(run.level,Math.max(0,target-run.level))-run.exp)):inStarter&&run.level>=cap?0:Math.round(baseExp*expFactor*gap*(inStarter?Maps.starterConfig.expMultiplier:opening?pacing.openingMultiplier:1)*(1+luckBonus));
     runtime.emit('OnEXPReceived',{amount}); run.level=Math.min(D.adventure.maxLevel,Math.max(1,run.level));run.exp += amount; let levels = 0;
     while (run.level<cap&&run.exp >= levelCost(run.level)) { run.exp -= levelCost(run.level); run.level++; levels++; runtime.emit('OnLevelUp',{level:run.level}); }
     if(inStarter&&run.level>=cap)run.exp=0;Maps.syncStarter(run);
@@ -1902,9 +1941,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function grantRewards(permanent,run,rewards){return rewards.map(reward=>{if(['moves','talents'].includes(reward.kind))return {...reward,...receiveAbility(permanent,run,reward.kind,reward.id)};const collection=permanent[reward.kind],source=reward.kind==='books'?D.books:D.equipment;if(!collection||!source[reward.id])throw Error('未知獎勵內容');const isNew=!collection.includes(reward.id);if(isNew)collection.push(reward.id);const receipt={...reward,isNew};recordLoot(run,receipt);return receipt;});}
   function starterReward(permanent,run,enemy,rng=Math.random){if(!run.starter||run.starter.phase!=='cleared'||enemy.id!==run.starter.bossId||run.starter.rewardProcessed)return [];run.starter.rewardProcessed=true;const reward=Meta.claimStarter(permanent,rng);if(!reward)return [];if(reward.kind==='marks'){recordLoot(run,reward);return [reward];}return grantRewards(permanent,run,[reward]);}
   function dungeonReward(permanent,run,rng=Math.random,options={}){
-    if(!run.dungeon)throw Error('不在地下城');const d=D.dungeons.find(d=>d.id===run.dungeon.id);
+    if(!run.dungeon)throw Error('不在地下城');const d=D.findDungeon(run.dungeon.id);
     if(run.dungeon.stage!==d.enemyWaves.length-1)throw Error('尚未完成所有波次');
     if(run.dungeon.rewardClaimed)return [];
+    if(d.training){run.dungeon.rewardClaimed=true;run.training.stage=7;Maps.syncStarter(run);return [];}
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level,permanent,preferUnowned:D.maps[d.mapId]?.sortOrder===0}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;
   }
   function enemyProfile(type,options={}){
@@ -1917,12 +1957,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
     const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
     const starterBoss=type.startsWith('starter_');
-    const attackPower=interpolate(cfg.attack)*species.damage*(starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
+    const attackPower=interpolate(cfg.attack)*species.damage*(source.training?.35:starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
     const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
     const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
     const averageCast=all.reduce((n,m)=>n+m.attackTime,0)/Math.max(1,all.length);
-    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:cfg.castSeconds*species.cycle,
-      stats:{...source.stats,hp:Math.round(interpolate(cfg.hp)*species.hp*(starterBoss?Maps.starterConfig.bossHpMultiplier:tuning.hp)),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
+    return {...source,level,balanceRole:role,attackPower,averageMultiplier:averageMultiplier||1,averageCast:averageCast||100,castCycle:source.training?6:cfg.castSeconds*species.cycle,
+      stats:{...source.stats,hp:source.training?source.trainingHP:Math.round(interpolate(cfg.hp)*species.hp*(starterBoss?Maps.starterConfig.bossHpMultiplier:tuning.hp)),stamina:Math.max(120,attackPower*4),mana:Math.max(120,attackPower*4),agility:10+Math.min(30,(level-1)*.15),luck:Math.min(15,1+(level-1)*.07)},
       physicalDefense:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.physicalDefenseBonus||0),magicResistance:cfg.defenseBase+(level-1)*cfg.defensePerLevel+(source.magicResistanceBonus||0)};
   }
   function battleFor(run, encounter, rng = Math.random) {
@@ -1934,7 +1974,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     } });
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
-  function dungeonEncounter(run){const d=D.dungeons.find(d=>d.id===run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
+  function dungeonEncounter(run){const d=D.findDungeon(run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
   const api = { ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);
@@ -1968,10 +2008,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   const scenery = decorations();
   function blocked(x, y) { return x < 30 || y < 30 || x > D.world.width - 30 || y > D.world.height - 30 || scenery.some(t => Math.hypot(x - t.x, y - t.y) < (t.kind === 'rock' ? 15 : 10) * t.size + 9); }
-  function movePosition(position, dx, dy) { if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
+  function movePosition(position, dx, dy, training=false) { if(training){position.x+=dx;position.y+=dy;return;}if (!blocked(position.x + dx, position.y)) position.x += dx; if (!blocked(position.x, position.y + dy)) position.y += dy; }
   function update(run, dt, input) {
     run.world.time += dt;
-    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt);
+    const length = Math.hypot(input.x, input.y); if (length) movePosition(run.position, input.x / Math.max(1, length) * D.balance.playerSpeed * dt, input.y / Math.max(1, length) * D.balance.playerSpeed * dt, !!D.maps[run.currentMapId]?.training);
     const currentMap=D.maps?.[run.currentMapId];if(currentMap?.starter){run.position.x=Math.max(35,Math.min(currentMap.width-35,run.position.x));run.position.y=Math.max(35,Math.min(currentMap.height-35,run.position.y));}
     let contact = null;
     for (const e of run.world.enemies) {
@@ -2001,7 +2041,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function nearby(run) {
     const discovery=X.nearby(run);if(discovery)return {kind:discovery.kind,entity:discovery};
-    const dungeon = D.dungeons.find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
+    const dungeon = (run.training&&run.currentMapId==='tutorial_court'?run.training.stage===6?[D.trainingDungeon]:[]:D.dungeons).find(d => (!run.currentMapId||d.mapId===run.currentMapId) && distance(d, run.position) < 95); if (dungeon) return { kind: 'dungeon', entity: dungeon };
     const object = (D.maps?.[run.currentMapId]?.starter?[]:D.explorationObjects || []).filter(o => !(o.once && run.world.usedObjects?.includes(o.id)) && distance(o, run.position) < 65).sort((a,b) => distance(a,run.position) - distance(b,run.position))[0];
     if (object) return { kind: object.kind, entity: object };
     const exit=edgeExit(run);if(exit)return exit;
@@ -2135,12 +2175,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
         else if(r.visualTheme==='volcanic'||r.visualTheme==='obsidian'){c.strokeStyle=r.visualTheme==='volcanic'?'#eb9d632b':'#b99cda27';c.lineWidth=2;c.beginPath();c.moveTo(x-40,y+10);c.lineTo(x,y-15);c.lineTo(x+30,y+4);c.lineTo(x+52,y-12);c.stroke();}
       }
       for (const p of this.grass) { if (p.x < this.camera.x - 20 || p.x > this.camera.x + w / zoom + 20 || p.y < this.camera.y - 20 || p.y > this.camera.y + h / zoom + 20) continue; c.fillStyle = p.n > .7 ? '#b5b78b33' : '#111d2144'; c.fillRect(p.x, p.y, 2 + p.n * 3, 2); if (p.n > .85) { c.strokeStyle = '#9ba77855'; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - 2, p.y - 6); c.moveTo(p.x, p.y); c.lineTo(p.x + 3, p.y - 4); c.stroke(); } }
-      c.lineCap = 'round'; for (const [width, color] of [[89, '#1d30292f'], [75, '#6a695244'], [52, '#98907422']]) { c.strokeStyle = color; c.lineWidth = width; c.beginPath(); for (const road of GameData.world.roads) { c.moveTo(road[0].x,road[0].y); for(const point of road.slice(1))c.lineTo(point.x,point.y); } c.stroke(); } c.lineWidth = 1;
+      c.lineCap = 'round'; for (const [width, color] of [[89, '#1d30292f'], [75, '#6a695244'], [52, '#98907422']]) { c.strokeStyle = color; c.lineWidth = width; c.beginPath(); for (const road of activeMap?.training?[[{x:820,y:900},{x:700,y:600},{x:1100,y:420},{x:1550,y:620},{x:1580,y:1040},{x:1320,y:1360},{x:1100,y:900}]]:GameData.world.roads) { c.moveTo(road[0].x,road[0].y); for(const point of road.slice(1))c.lineTo(point.x,point.y); } c.stroke(); } c.lineWidth = 1;
       c.save();c.strokeStyle='#080f12aa';c.lineWidth=38;c.strokeRect(20,20,worldWidth-40,worldHeight-40);c.strokeStyle='#d2bd7a88';c.lineWidth=5;c.setLineDash([30,18]);c.strokeRect(42,42,worldWidth-84,worldHeight-84);c.setLineDash([]);c.restore();
       const edgeExit=run&&World.edgeExit(run,520);if(edgeExit){const e=edgeExit.entity,vertical=e.edge==='left'||e.edge==='right',x=e.edge==='left'?52:e.edge==='right'?worldWidth-52:Math.max(260,Math.min(worldWidth-260,pos.x)),y=e.edge==='top'?52:e.edge==='bottom'?worldHeight-52:Math.max(130,Math.min(worldHeight-130,pos.y));c.save();c.strokeStyle='#f0d487';c.lineWidth=10;c.shadowColor='#e7c66f';c.shadowBlur=22;c.beginPath();if(vertical){c.moveTo(x,y-105);c.lineTo(x,y+105);}else{c.moveTo(x-180,y);c.lineTo(x+180,y);}c.stroke();c.restore();this.text((e.starterPortal?'傳送點 · 選擇七大區':e.forward?'前往下一區 →':'← 返回上一區'),vertical?(e.edge==='left'?x+105:x-105):x,vertical?y:(e.edge==='top'?y+42:y-42),18,'#f4e2aa');this.text(e.name,vertical?(e.edge==='left'?x+105:x-105):x,vertical?y+26:(e.edge==='top'?y+70:y-70),13,'#d7d5bb');}
-      this.camp(GameData.world.camp.x, GameData.world.camp.y);
-      const things = World.scenery.filter(t => t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
-      for (const d of GameData.dungeons) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
+      this.camp(activeMap?.training?activeMap.entry.x:GameData.world.camp.x,activeMap?.training?activeMap.entry.y:GameData.world.camp.y);
+      if(activeMap?.training){for(const q of GameData.training.tasks.slice(1,7)){this.ellipse(q.x,q.y,76,34,'#1a2c2855');this.text(q.name,q.x,q.y+72,14,'#b4bca488');}const q=GameData.training.task(run);if(q){this.glow(q.x,q.y,50,'#e7ce7144');c.strokeStyle='#e8d08c';c.lineWidth=2;c.beginPath();c.ellipse(q.x,q.y,34,15,0,0,Math.PI*2);c.stroke();}}
+      const things = World.scenery.filter(t => !activeMap?.training && t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
+      for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
       if (run&&!activeMap?.starter) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
         c.save(); c.translate(o.x, o.y); this.ellipse(0, 4, 22, 7, '#0a191977');
@@ -2169,6 +2210,13 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       c.restore();
       const vignette = c.createRadialGradient(w / 2, h / 2, h * .15, w / 2, h / 2, Math.max(w, h) * .67); vignette.addColorStop(0, '#050b0d00'); vignette.addColorStop(1, '#050b0d9c'); c.fillStyle = vignette; c.fillRect(0, 0, w, h);
       this.drawBossGuide(game,zoom);
+      this.drawTrainingGuide(game,zoom);
+    }
+    drawTrainingGuide(game,zoom){
+      const q=GameData.training?.task(game.run);if(!q||game.run.training.stage===7)return;
+      const c=this.ctx,p=game.run.position,dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);if(d<80)return;
+      const x=(q.x-this.camera.x)*zoom,y=(q.y-this.camera.y)*zoom;
+      c.save();const bx=Math.max(52,Math.min(this.width-52,x)),by=Math.max(142,Math.min(this.height-208,y));c.translate(bx,by);c.rotate(Math.atan2(dy,dx)+Math.PI/2);this.poly([[0,-14],[-8,9],[0,5],[8,9]],'#f3d98b','#655329');c.restore();this.text(q.name,bx,by+28,12,'#e8d9ae');
     }
     drawBossGuide(game,zoom){
       const run=game.run;if(run?.starter?.phase!=='boss'||run.currentMapId!==run.starter.mapId)return;
@@ -2177,7 +2225,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       c.save();c.translate(x,y);c.fillStyle='#f5d68b';c.strokeStyle='#ffe5a5';c.shadowColor='#e9bb53';c.shadowBlur=12;
       if(!near){c.save();c.rotate(Math.atan2(dy,dx));c.beginPath();c.moveTo(15,0);c.lineTo(-9,-8);c.lineTo(-4,0);c.lineTo(-9,8);c.closePath();c.fill();c.restore();}
       else {c.beginPath();c.arc(0,0,13,0,Math.PI*2);c.stroke();}
-      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');this.text(game.permanent?.meta?.starterRewardLocked?'收藏獎勵已領取':'收藏獎勵可領取',0,49,11,'#d6c99e');c.restore();
+      c.shadowBlur=0;this.text(near?'守關 Boss · 點擊挑戰':'守關 Boss',0,31,14,'#ffe6a4');this.text(run.training?'完成教學 · 開啟七大區':game.permanent?.meta?.starterRewardLocked?'收藏獎勵已領取':'收藏獎勵可領取',0,49,11,'#d6c99e');c.restore();
     }
     drawTitle(game) {
       const c = this.ctx, w = this.width, h = this.height, motion = game.settings?.reducedMotion ? 0 : this.time;
@@ -2263,7 +2311,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       if(activeMap){c.fillStyle=activeMap.color;c.fillRect(0,0,w,h);}
       else for (const r of GameData.world.regions) { c.fillStyle = r.color; c.fillRect(r.bounds[0]*sx,r.bounds[1]*sy,r.bounds[2]*sx,r.bounds[3]*sy); }
       c.strokeStyle = '#cfbb7a55'; c.lineWidth = 2; c.beginPath(); for(const road of GameData.world.roads){c.moveTo(road[0].x*sx,road[0].y*sy);for(const {x,y}of road.slice(1))c.lineTo(x*sx,y*sy);} c.stroke();
-      if (run) { for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId)&&e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of GameData.dungeons) if ((!run.currentMapId||d.mapId===run.currentMapId)&&run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } if(run.currentMapId==='north_plains_1'){c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4);} c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
+      if (run) { for (const e of run.world.enemies) if ((!run.currentMapId||e.mapId===run.currentMapId)&&e.discovered && e.defeatedUntil <= run.world.time) { c.fillStyle = '#e4e8d7'; c.fillRect(e.x * sx - 1.5, e.y * sy - 1.5, 3, 3); } for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if ((!run.currentMapId||d.mapId===run.currentMapId)&&run.world.discoveredDungeons.includes(d.id)) { c.fillStyle = '#c6a6ef'; c.fillRect(d.x * sx - 3, d.y * sy - 3, 6, 6); } if(run.currentMapId==='north_plains_1'){c.fillStyle = '#ecde9f'; c.fillRect(GameData.world.camp.x * sx - 2, GameData.world.camp.y * sy - 2, 4, 4);} c.fillStyle = '#eef8e7'; c.shadowColor = '#fff'; c.shadowBlur = 8; c.beginPath(); c.arc(run.position.x * sx, run.position.y * sy, 3.5, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; }
     }
     draw(game, dt) { this.resize(); this.time += dt; this.ctx.clearRect(0, 0, this.width, this.height); if (game.scene === 'title') this.drawTitle(game); else if (game.scene === 'battle') this.drawBattle(game); else this.drawWorld(game); this.drawEffects(dt); }
   }
@@ -2364,7 +2412,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function settings(settings) {
    const toggle=(id,title,description)=>`<div class="setting-row"><div><h3>${title}</h3><p>${description}</p></div><button class="toggle ${settings[id]?'selected':''}" data-action="setting-toggle" data-id="${id}" aria-label="${title}" aria-pressed="${!!settings[id]}">${settings[id]?'開啟':'關閉'}</button></div>`;
-   return `<div class="polished-page settings-page">${header('設定','PREFERENCES')}<div class="preferences-version"><span>遊戲版本</span><strong>v${U.escape(D.release.version)}</strong><small>${U.escape(D.release.date)}</small></div><section class="preference-group"><h2>冒險</h2><div class="setting-row"><div><h3>新手教學</h3><p>重看移動、戰鬥與旅途規則。</p></div>${U.button('重看','tutorial-review')}</div>${toggle('autoQuickBattle','自動壓制低等野怪',`本局已正常擊敗的普通野怪，領先 ${D.balance.quickBattleLevelGap} 級時自動結算。菁英、Boss 與地下城除外。`)}<div class="setting-row"><div><h3>沉浸式全螢幕</h3><p>以直式畫面專注探索。</p></div>${U.button('切換','fullscreen')}</div></section><section class="preference-group"><h2>聲音與畫面</h2>${toggle('sound','介面與戰鬥音效','保留攻擊、收穫與升級的聲音回饋。')}<label class="setting-row"><div><h3>音效音量</h3><p id="volume-label">${Math.round(settings.volume*100)}%</p></div><input type="range" id="volume" aria-label="音效音量" min="0" max="100" value="${Math.round(settings.volume*100)}"></label>${toggle('reducedMotion','減少動態效果','減少場景粒子與鏡頭震動；升級跳字與閃光保留。')}${toggle('contrast','提高介面對比','讓文字與重要資訊更容易辨識。')}</section><section class="preference-group"><h2>存檔與離線</h2><div class="setting-row"><div><h3>自動保存旅程</h3><p id="offline-detail">${U.escape(root.GameOffline?.status||'正在確認離線狀態。')}</p><p>重整後可接續冒險。清除網站資料會刪除收藏與存檔。</p></div></div></section><details class="utility-section"><summary>操作說明與進階選項</summary><div class="control-reference"><span>移動 <b>W A S D</b></span><span>招式 <b>W A S D／方向鍵</b></span><span>必殺 <b>Space</b></span></div><div class="utility-actions">${U.button('世界測試','world-debug')}${U.button('戰鬥測試','debug-lab')}${U.button('基礎配置重新出發','restart-basic')}${U.button('完全重置','full-reset')}</div></details>${footer('設定自動保存於目前瀏覽器。',U.button('返回','screen-back',{primary:true}))}</div>`;
+   return `<div class="polished-page settings-page">${header('設定','PREFERENCES')}<div class="preferences-version"><span>遊戲版本</span><strong>v${U.escape(D.release.version)}</strong><small>${U.escape(D.release.date)}</small></div><section class="preference-group"><h2>冒險</h2><div class="setting-row"><div><h3>新手教學</h3><p>重看移動、戰鬥與旅途規則。</p></div>${U.button('重看','tutorial-review')}</div><div class="setting-row"><div><h3>獨立練習模式</h3><p>練習移動、配置、中斷與教學地下城。不影響正式存檔；請在冒險結束後進入。</p></div>${U.button('進入','training-practice')}</div>${toggle('autoQuickBattle','自動壓制低等野怪',`本局已正常擊敗的普通野怪，領先 ${D.balance.quickBattleLevelGap} 級時自動結算。菁英、Boss 與地下城除外。`)}<div class="setting-row"><div><h3>沉浸式全螢幕</h3><p>以直式畫面專注探索。</p></div>${U.button('切換','fullscreen')}</div></section><section class="preference-group"><h2>聲音與畫面</h2>${toggle('sound','介面與戰鬥音效','保留攻擊、收穫與升級的聲音回饋。')}<label class="setting-row"><div><h3>音效音量</h3><p id="volume-label">${Math.round(settings.volume*100)}%</p></div><input type="range" id="volume" aria-label="音效音量" min="0" max="100" value="${Math.round(settings.volume*100)}"></label>${toggle('reducedMotion','減少動態效果','減少場景粒子與鏡頭震動；升級跳字與閃光保留。')}${toggle('contrast','提高介面對比','讓文字與重要資訊更容易辨識。')}</section><section class="preference-group"><h2>存檔與離線</h2><div class="setting-row"><div><h3>自動保存旅程</h3><p id="offline-detail">${U.escape(root.GameOffline?.status||'正在確認離線狀態。')}</p><p>重整後可接續冒險。清除網站資料會刪除收藏與存檔。</p></div></div></section><details class="utility-section"><summary>操作說明與進階選項</summary><div class="control-reference"><span>移動 <b>W A S D</b></span><span>招式 <b>W A S D／方向鍵</b></span><span>必殺 <b>Space</b></span></div><div class="utility-actions">${U.button('世界測試','world-debug')}${U.button('戰鬥測試','debug-lab')}${U.button('基礎配置重新出發','restart-basic')}${U.button('完全重置','full-reset')}</div></details>${footer('設定自動保存於目前瀏覽器。',U.button('返回','screen-back',{primary:true}))}</div>`;
   }
   function picker(game, kind, index) {
     if(kind==='ultimate'&&game.permanent.ultimateUnlocked===false)return `<h2 id="modal-title">必殺槽尚未解鎖</h2><p>首次冒險第三次倒下、完成整局結算後永久解鎖。</p><div class="modal-footer">${U.button('返回','close')}</div>`;
@@ -2433,7 +2481,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  function pack(game){const out={version:1,worldVersion:D.worldContentVersion,savedAt:Date.now()};for(const k of fields)if(game[k]!==undefined)out[k]=copy(game[k]);out.modal=['result','reward','acquire','replace','replace-confirm','next-build','plan-slot'].includes(game.modal)?game.modal:null;
  if(game.battle){const b=game.battle;out.battle={};for(const k of ['time','phase','charge','enemyTurn','run','delayedHits','buildReport','reportCommitted'])out.battle[k]=copy(b[k]);if(b.lastOutcome)out.battle.lastOutcome=copy(b.lastOutcome);for(const id of ['player','enemy']){const {runtime,...actor}=b[id];out.battle[id]={...copy(actor),once:[...runtime.once]};}}
  return out;}
- function save(storage,game){if(game.debugBattle)return true;try{storage.setItem(KEY,JSON.stringify(game.run?pack(game):{version:1,run:null,permanent:game.permanent}));return true;}catch(_){return false;}}
+ function save(storage,game){if(game.debugBattle||game.practice)return true;try{storage.setItem(KEY,JSON.stringify(game.run?pack(game):{version:1,run:null,permanent:game.permanent}));return true;}catch(_){return false;}}
  function load(storage){try{const raw=storage.getItem(KEY);if(!raw)return {snapshot:null};const s=JSON.parse(raw);if(s.version!==1)throw Error('存檔版本不相容');if(!s.run)return {snapshot:null};if(s.worldVersion!==D.worldContentVersion)throw Error('世界版本不相容');
  const run=s.run;run.defeatedEnemyTypesThisRun=[...new Set((run.defeatedEnemyTypesThisRun||[]).filter(id=>D.monsters[id]))];if(!run.battleStats)run.battleStatsPartial=true; if(s.permanent.ultimateUnlocked===undefined)s.permanent.ultimateUnlocked=run.status==='failed';if(!s.permanent.ultimateUnlocked){run.build.ultimate=null;if(s.build)s.build.ultimate=null;}run.points=0;if(!run.loot){run.loot={};run.lootHistoryPartial=true;}if(!Number.isFinite(run.ultimateCharge))run.ultimateCharge=0;P.validateBuild(run.build,s.permanent);P.normalizeUltimateCharge(run);P.statsFor(run);if(!Number.isInteger(run.level)||run.level<1||!['active','failed'].includes(run.status)||!Number.isFinite(run.position.x)||!Number.isFinite(run.position.y)||!Array.isArray(run.world.enemies))throw Error('冒險資料不完整');for(const e of run.world.enemies)if(!D.monsters[e.type]||!Number.isFinite(e.level))throw Error('敵人資料不相容');if(run.dungeon)P.dungeonEncounter(run);
  if(!['explore','battle'].includes(s.scene))throw Error('場景不相容');if(s.scene==='battle'){if(!s.battle||!D.monsters[s.encounter?.type])throw Error('戰鬥資料不完整');const b=P.battleFor(run,s.encounter);for(const k of ['time','phase','charge','enemyTurn','run','delayedHits','buildReport','reportCommitted'])if(s.battle[k]!==undefined)b[k]=s.battle[k];b.lastOutcome=s.battle.lastOutcome;if(!Number.isFinite(b.time)||!['fighting','victory','revived','gameover'].includes(b.phase))throw Error('戰鬥狀態不相容');for(const id of ['player','enemy']){const actor=s.battle[id],runtime=b[id].runtime;if(!actor||!Number.isFinite(actor.hp)||!Number.isFinite(actor.mana)||!Number.isFinite(actor.stamina))throw Error('資源資料不完整');if(actor.cast&&(!D.moves[actor.cast.moveId]||!Number.isFinite(actor.cast.endAt)||actor.cast.endAt<b.time))throw Error('讀條不相容');if(actor.sequence&&(!D.moves[actor.sequence.moveId]||!Number.isFinite(actor.sequence.nextAt)||actor.sequence.nextAt<b.time))throw Error('連擊資料不相容');for(const status of Object.values(actor.statuses||{}))if(!Number.isFinite(status.expiresAt)||status.tick&&(!(status.tick.interval>0)||!Number.isFinite(status.nextTick)))throw Error('狀態不相容');if(actor.statuses?.charged)actor.statuses.charged.consume='physical';if(actor.statuses?.counter_guard)actor.statuses.counter_guard.counterRatio=.25;const {once,...data}=actor;Object.assign(b[id],data);runtime.once=new Set(once||[]);}b.events=[];if(s.noRandom){b.rules.critChance=0;b.rules.dodgeChance=0;}s.battle=b;}
@@ -2607,7 +2655,7 @@ function resetAllProgress(){
  try{for(const key of keys)backup[key]=localStorage.getItem(key);for(const key of keys)localStorage.removeItem(key);}catch(_){for(const [key,value]of Object.entries(backup))try{if(value!==null&&value!==undefined)localStorage.setItem(key,value);}catch(_){}toast('重置未完成，請檢查瀏覽器儲存權限。');return;}
  tutorialState.stage='welcome';delete tutorialState.origin;game.contentSort='rarity';game.contentSortReverse=false;game.presets=[];game.run=null;game.battle=null;game.permanent=P.freshProgress();game.build=P.defaultBuild();game.scene='title';game.screen=null;game.debugBattle=false;game.noRandom=false;game.result=null;game.resultDelay=null;game.resultHandled=false;game.encounter=null;game.rewards=[];game.fieldRewards=[];game.offered=null;game.growthAnimation=null;game.lastRegion=null;game.castFlashes={};game.wasReady=false;game.transition=0;game.keys.clear();game.touch.clear();resetJoystick();renderer.fx=[];renderer.hits={};renderer.attacks={};Audio.reset();applySettings();saveErrorShown=false;$('screen').hidden=true;$('debug').hidden=true;$('transition').hidden=true;closeModal();renderUI();toast('已完全重置，回到全新遊戲。');
 }
-function saveSession(){if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
+function saveSession(){if(game.practice)return;if(!RunSave.save(storage,game)&&!saveErrorShown){saveErrorShown=true;toast('自動存檔失敗，請勿關閉頁面。');}}
 function resumeSession(){const loaded=RunSave.load(storage);if(loaded.warning){toast(loaded.warning);return;}const snapshot=loaded.snapshot;if(!snapshot)return;for(const k of ['scene','run','permanent','build','encounter','result','resultDelay','resultHandled','rewards','fieldRewards','offered','noRandom','battle'])if(snapshot[k]!==undefined)game[k]=snapshot[k];const latest=P.loadProgress(storage).progress;if((latest.meta?.revision||0)>(game.permanent.meta?.revision||0))game.permanent=latest;game.eventCursor=0;game.transition=0;game.screen=null;rebuildSkills();renderUI();
  if(game.run.quickBattle){showSuppression();return;}if(snapshot.modal==='reward')showReward();else if(['acquire','replace','replace-confirm'].includes(snapshot.modal))acquisitionNext();else if(snapshot.modal==='result')showResult();else if(['next-build','plan-slot'].includes(snapshot.modal))showResult();else pause();toast('已接續上次冒險');}
 let stageHeight = 2560 / 3;
@@ -2628,15 +2676,15 @@ function requestGameFullscreen(silent = true) {
 }
 function applySettings() { $('game').classList.toggle('reduced-motion', game.settings.reducedMotion); $('game').classList.toggle('high-contrast', game.settings.contrast); }
 function toast(message) { $('toast').textContent = message; game.toastUntil = performance.now() + 3700; }
-function persist() { if (!P.saveProgress(storage, game.permanent)) toast('收藏暫時無法儲存；目前頁面仍保留進度。'); }
-function saveBuild() { try { storage.setItem('afterlight.loadout.v1', JSON.stringify(game.build)); } catch (_) { toast('配置暫時無法儲存至瀏覽器。'); } }
+function persist() { if(game.practice)return; if (!P.saveProgress(storage, game.permanent)) toast('收藏暫時無法儲存；目前頁面仍保留進度。'); }
+function saveBuild() { if(game.practice)return; try { storage.setItem('afterlight.loadout.v1', JSON.stringify(game.build)); } catch (_) { toast('配置暫時無法儲存至瀏覽器。'); } }
 function openModal(kind, content, className = '') {
   hideTooltip(); game.modal = kind; game.keys.clear(); game.touch.clear(); resetJoystick();
   $('modal').className = 'modal game-panel ' + className; $('modal').innerHTML = content; $('modal-backdrop').hidden = false;
   $('modal').scrollTop = 0; $('modal').focus({ preventScroll: true });
 }
 function closeModal() { game.modal = null; $('modal-backdrop').hidden = true; hideTooltip(); }
-function saveTutorial(){if(!GameTutorial.save(storage,tutorialState))toast('教學進度暫時無法儲存。');}
+function saveTutorial(){if(game.practice)return;if(!GameTutorial.save(storage,tutorialState))toast('教學進度暫時無法儲存。');}
 function showTutorial(replay=false){
  if(replay){game.tutorialReplay=0;}const stage=game.tutorialReplay!==undefined?GameTutorial.order[game.tutorialReplay]:tutorialState.stage,card=GameTutorial.cards[stage];if(!card)return;
  const index=GameTutorial.order.indexOf(stage),label=game.tutorialReplay!==undefined?'下一頁':stage==='welcome'?'開始冒險':stage==='moveIntro'?'試著移動':stage==='battleUltimate'?'開始戰鬥':stage==='journeyIntro'?'繼續旅途':'知道了';
@@ -2651,10 +2699,31 @@ function advanceTutorial(){
 }
 function checkTutorial(){
  if(game.debugBattle||game.modal||game.screen||game.transition>0)return;
+ if(TrainingMap.task(game.run)){if(game.scene==='explore'&&TrainingMap.update(game.run)){saveSession();renderUI();toast(TrainingMap.task(game.run).action);}return;}
  if(game.scene==='battle'&&game.battle?.phase==='fighting'&&['moveIntro','moving','interactIntro','awaitBattle'].includes(tutorialState.stage)){tutorialState.stage='battleActions';saveTutorial();}
  if(game.scene==='explore'&&tutorialState.stage==='moving'){const p=tutorialState.origin;if(!p)tutorialState.origin={...game.run.position};else if(Math.hypot(game.run.position.x-p.x,game.run.position.y-p.y)>=70){tutorialState.stage='interactIntro';saveTutorial();}}
  if(GameTutorial.cards[tutorialState.stage])showTutorial();
 }
+
+function showTrainingGuide(){
+ const task=TrainingMap.task(game.run);if(!task)return;
+ openModal('training-guide',`<div class="eyebrow">${game.practice?'獨立練習':'初次旅途'} · ${game.run.training.stage+1} / 9</div><h2 id="modal-title">${U.escape(task.name)}</h2><p>${U.escape(task.text)}</p><p class="tutorial-tip">${U.escape(task.action)} · 跟隨金色標記</p><div class="modal-footer">${game.practice?U.button('離開練習','practice-exit'):''}${game.run.training.stage===3?U.button('調整配置','run-loadout'):''}${U.button('繼續','close',{primary:true})}</div>`,'tutorial-modal');
+}
+function showTrainingStation(){
+ const run=game.run,task=TrainingMap.task(run);if(!task||game.scene!=='explore')return;
+ if(run.training.stage===3){showRunLoadout();return;}
+ openModal('training-station',`<div class="eyebrow">試煉庭 · 教學</div><h2 id="modal-title">${U.escape(task.name)}</h2><p>${U.escape(task.text)}</p><div class="modal-footer">${U.button('返回','close')}${run.training.stage===2?U.button('領取教學贈禮','training-gift',{primary:true}):run.training.stage===5?U.button('拒絕契約','training-refuse')+U.button('接受契約','training-pact',{primary:true}):''}</div>`,'tutorial-modal');
+}
+function startPractice(){
+ if(game.run){toast('請先結束目前冒險，再從主選單設定進入練習。');return;}
+ game.practiceBackup={permanent:game.permanent,build:game.build};game.practice=true;
+ game.permanent=P.freshProgress();game.build=P.defaultBuild();game.run=P.createRun(game.permanent,game.build);TrainingMap.start(game.run,true);
+ game.scene='explore';game.screen=null;game.battle=null;game.result=null;game.resultHandled=false;game.transition=0;game.debugBattle=false;game.fieldRewards=[];game.rewards=[];game.lastRegion=null;$('screen').hidden=true;closeModal();rebuildSkills();renderUI();showTrainingGuide();
+}
+function exitPractice(){
+ if(!game.practice)return;const backup=game.practiceBackup;game.permanent=backup.permanent;game.build=backup.build;game.practice=false;delete game.practiceBackup;game.run=null;game.battle=null;game.result=null;game.resultDelay=null;game.recoveryCountdown=null;game.resultHandled=false;game.scene='title';game.screen=null;game.encounter=null;game.fieldRewards=[];game.rewards=[];game.offered=null;game.keys.clear();game.touch.clear();resetJoystick();closeModal();renderUI();toast('已離開練習，正式收藏與存檔保持原樣。');
+}
+
 function journeyRewardHTML(run){
  const s=run.journeySettlement;if(!s)return '';
  return `<section class="run-loot"><h3>任務與成就獎勵</h3><p>額外獲得 ◇ ${s.total} 旅者徽記</p>${s.receipts.map(r=>`<p><strong>${U.escape(r.name)}</strong> · ＋${r.marks} 徽記${r.ability?'<br>'+ (r.duplicate?'已擁有「'+U.escape(r.ability.name)+'」，含折換 25 徽記':'新解鎖'+(r.ability.type==='moves'?'招式':'技能')+'：'+U.escape(r.ability.name)):''}</p>`).join('')}<p class="quiet-note">已自動存入商店錢包與永久收藏；獎勵不增加本局評分。</p></section>`;
@@ -2749,8 +2818,8 @@ function beginRun() {
   if (game.run) return;
   if (!game.build.moves.length) { openScreen('setup'); game.setupTab = 'build'; renderScreen(); toast('至少攜帶一個普通招式再出發。'); return; }
   requestGameFullscreen();
-  game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build);Maps.startStarter(game.run); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
-  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');if(tutorialState.stage!=='done'){tutorialState.stage='moveIntro';saveTutorial();showTutorial();}
+  game.voluntaryEnd=false;game.debugBattle=false; game.run = P.createRun(game.permanent, game.build);if(tutorialState.stage==='welcome'&&!game.permanent.meta?.tutorialMapEntered){TrainingMap.start(game.run);Meta.normalize(game.permanent).tutorialMapEntered=true;tutorialState.stage='done';saveTutorial();persist();}else Maps.startStarter(game.run); game.scene = 'explore'; game.screen = null; game.battle = null; game.transition = 0;
+  $('screen').hidden = true; closeModal(); rebuildSkills(); renderUI();toast('試煉之境 · 升至 Lv.9，挑戰守關者');if(TrainingMap.task(game.run)){showTrainingGuide();saveSession();}else if(tutorialState.stage!=='done'){tutorialState.stage='moveIntro';saveTutorial();showTutorial();}
 }
 function startDebugBattle(){
  try{
@@ -2826,11 +2895,12 @@ function runSummaryHTML(run){
   const s=Enc.summary(run,game.permanent),near=s.lastDefeat;
 return ratingHTML(s.rating,run.battleStatsPartial)+`<section class="journey-summary"><div class="journey-counts settlement-stats"><div class="journey-level"><strong>Lv.${s.level}</strong><small>本局到達</small></div><div><strong>${s.kills}</strong><small>擊敗敵人</small></div><div><strong>${s.dungeons}</strong><small>通過地下城</small></div></div><p class="quiet-note">實戰 ${s.normalKills} 隻 · 壓制 ${s.quickKills} 隻${run.battleStatsPartial?' · 舊存檔僅統計更新後戰績':''}</p>${near?`<div class="near-miss"><small>${near.remainingPercent<=25?'就差最後一步':'最後未完成的挑戰'}</small><strong>${U.escape(near.name)}</strong><p>${near.remainingPercent<=25?'還差':'剩餘'} <b>${near.remainingPercent}%</b> HP${near.remainingPercent<=25?' 就能擊敗':''}</p><div class="near-miss-track"><i style="width:${100-near.remainingPercent}%"></i></div></div>`:'<p class="quiet-note">這段旅途的收穫，將陪你再次出發。</p>'}<div class="hit-record"><small>${s.newHitRecord?'新紀錄 · 最高單擊':'本局最高單擊'}</small><strong>${Math.floor(s.highestHit).toLocaleString('zh-TW')}</strong></div></section>`;
 }
-function currentDungeon() { return D.dungeons.find(d=>d.id===game.run?.dungeon?.id); }
+function currentDungeon() { return D.findDungeon(game.run?.dungeon?.id); }
 function showDungeon(d) {
   openModal('dungeon', `<div class="eyebrow">DUNGEON · ${d.dungeonType.toUpperCase()}</div><h2 id="modal-title">${d.name}</h2><p>推薦 Lv.${d.recommendedLevel} · 自由進入</p><p>${d.features.join(' ／ ')}</p><div class="dungeon-stages">${Explore.waves(game.run,d.id).map((wave,i)=>`<div><small>${i+1} · ${{normal:'普通',elite:'精英',boss:'首領'}[wave.role]||wave.role}</small><strong>${U.escape(D.monsters[wave.type]?.name||wave.type)} · Lv.${wave.level}</strong></div>`).join('')}</div><p>可能獲得：${d.rewardTypes.map(k=>({moves:'招式',talents:'技能',equipment:'裝備',books:'魔法書'}[k]||k)).join('、')}<br>${D.maps[d.mapId]?.sortOrder===0?'招式／技能優先抽取未收藏內容。<br>':''}通關後依獎勵池抽取；波間不回復資源；通關離開後回滿。</p><div class="modal-footer">${U.button('稍後再來','close')}${U.button('進入地下城 →','enter-dungeon',{id:d.id,primary:true})}</div>`, 'result-modal');
 }
 function travelMapExit(exit){
+ if(exit.starterPortal&&game.practice){exitPractice();return;}
  if(exit.starterPortal){game.keys.clear();resetJoystick();openModal('world-map',WorldDebug.atlas(game.run),'world-route-modal');return;}
  if(!checkMapAccess(exit.id))return;
  const run=game.run,old={...run.position},map=Maps.enter(run,exit.id);if(!map)return;
@@ -2851,7 +2921,7 @@ function interactDiscovery(o){
  if(o.kind==='sealed-book'){const reward=Explore.collect(game.run,o.bookQuestId);if(!reward)return;game.rewards=P.grantRewards(game.permanent,game.run,[reward]);persist();saveSession();Audio.emit('itemGain');showReward();}
 }
 
-function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
+function interact() { if (game.scene !== 'explore' || game.modal || game.screen) return; const target = World.nearby(game.run); if (!target) return; if(target.kind==='training-station')showTrainingStation();else if(target.kind==='map-exit')travelMapExit(target.entity);else if (target.kind === 'dungeon') showDungeon(target.entity);
   else if(['run-event','book-clue','book-research','sealed-book'].includes(target.kind))interactDiscovery(target.entity);
   else if (target.kind === 'enemy') startEncounter(target.entity);
   else { const result = World.interactObject(game.run, target.entity.id); if (!result) return;
@@ -2902,7 +2972,8 @@ function finishEncounter() {
   if(!game.debugBattle){const unlocked=Ach.battleEnd(game.permanent,run,b);if(unlocked.length)persist();} const won = b.phase === 'victory', beforeLevel = run.level, exp = won ? P.grantExp(run, game.encounter.level, game.encounter.type,game.encounter) : null;
   if (won && game.encounter.id) { const e = run.world.enemies.find(e => e.id === game.encounter.id); if (e) { e.defeatedUntil = run.world.time + D.balance.respawnSeconds; e.x = e.homeX; e.y = e.homeY; } }
   if(!game.debugBattle){if(won){Enc.victory(game.permanent,run,game.encounter);Explore.record(run,'kill',game.encounter);} else Enc.loss(game.permanent,run,game.encounter,b);run.lastEncounterResult={mode:'normal',countsForCombatChallenges:true};persist();}
-  game.fieldRewards = won && !run.dungeon && !game.debugBattle ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId,run)) : []; if(won&&!run.dungeon&&!game.debugBattle)game.fieldRewards.push(...P.starterReward(game.permanent,run,game.encounter));if(game.fieldRewards.length)persist();
+  if(won&&TrainingMap.task(run)){TrainingMap.victory(run,game.encounter);if(run.training.stage===8&&!game.practice){game.permanent.meta.tutorialMapCompleted=true;persist();}}
+  game.fieldRewards = won && !run.dungeon && !game.debugBattle && !TrainingMap.task(run) ? P.grantRewards(game.permanent,run,WorldRewards.enemy(game.encounter.type,Math.random,run.currentMapId,run)) : []; if(won&&!run.dungeon&&!game.debugBattle&&!TrainingMap.task(run))game.fieldRewards.push(...P.starterReward(game.permanent,run,game.encounter));if(game.fieldRewards.length)persist();
  game.result = { won, exp, beforeLevel, bossAppeared: won&&run.starter?.phase==='boss'&&beforeLevel<9 }; game.resultDelay = 1.05;
 
 }
@@ -2928,9 +2999,11 @@ function continueResult() {
   if (game.modal !== 'result') return;
   const run = game.run;
   if(game.debugBattle){game.debugBattle=false;game.run=null;game.battle=null;game.scene='title';closeModal();renderUI();return;}
+  if (run.status === 'failed'&&game.practice){exitPractice();return;}
   if (run.status === 'failed') { closeModal(); game.scene = 'title'; game.run = null; game.battle = null; saveSession(); renderUI(); return; }
   if (game.result.won && run.dungeon) {
     if (run.dungeon.stage < currentDungeon().enemyWaves.length-1) { run.dungeon.stage++; game.scene = 'explore'; startEncounter(P.dungeonEncounter(run)); return; }
+    if(currentDungeon().training){P.dungeonReward(game.permanent,run);run.dungeon=null;delete run.dungeonResources;saveSession();returnExplore();showTrainingGuide();return;}
     game.rewards = P.dungeonReward(game.permanent, run); Ach.dungeonClear(game.permanent,run,run.dungeon.id); Meta.clear(game.permanent,run,run.dungeon.id);Enc.clear(game.permanent,run,run.dungeon.id);Explore.record(run,'dungeon',run.dungeon.id); saveSession();persist(); Audio.emit('itemGain', { rewards: game.rewards }); showReward(); return;
   }
   if (!game.result.won) { delete run.fieldEncounterQueue;run.position = { ...(D.maps[run.currentMapId]?.entry||D.world.camp) }; run.dungeon = null; delete run.dungeonResources; }
@@ -2968,9 +3041,10 @@ function returnExplore() {if(tutorialState.stage==='awaitResult'){tutorialState.
 function pause() { if(game.debugBattle){openModal('debug-lab',GameDebug.form(game.debugBattle));return;} if (!game.run || game.modal || game.screen) return; openModal('pause', `<div class="eyebrow">A MOMENT OF STILLNESS</div><h2 id="modal-title">旅途暫歇</h2><p>時間已暫停。整理呼吸，再繼續前行。</p><div class="modal-footer">${U.button('設定', 'settings')}${U.button('繼續旅途', 'close', { primary: true })}</div>`, 'result-modal'); }
 function renderUI() {
   $('game').dataset.mode = game.scene; $('title-screen').hidden = game.scene !== 'title' || !!game.screen;
+  $('training-guide').hidden=!TrainingMap.task(game.run)||game.scene!=='explore'||!!game.screen||!!game.modal;if(!$('training-guide').hidden)$('training-guide').textContent=(game.practice?'練習':'教學')+' '+(game.run.training.stage+1)+'/9 · '+TrainingMap.task(game.run).action;
   $('hud').hidden = !game.run || !!game.screen; if (!game.run) return;
   if(renderer.time>(game.passiveUntil||0))$('passive-flash').textContent='';
-  const rank=Enc.rankView(game.run),rankHud=$('adventure-rank');rankHud.hidden=game.scene!=='explore'||!!game.debugBattle;
+  const rank=Enc.rankView(game.run),rankHud=$('adventure-rank');rankHud.hidden=game.scene!=='explore'||!!game.debugBattle||!!TrainingMap.task(game.run);
   rankHud.innerHTML=`<span>冒險者 <b>${rank.rank}</b></span><span class="rank-hud-track"><i style="width:${rank.required?100*rank.progress/rank.required:100}%"></i></span><small>${rank.nextRank?rank.progress+' / '+rank.required:'最高階級'}</small>${rank.active?'<span class="rank-hud-task">晉階任務 · '+rank.normal.filter(t=>t.value>=t.target).length+'/'+rank.normal.length+'<br>'+U.escape(rank.normal.find(t=>t.value<t.target)?.label||'已完成')+'</span>':''}<small>查看直接晉階挑戰 ›</small>`;
   const history=game.run.adventurerRank.history;if(game.rankNoticeRun===game.run&&history.length>(game.rankNoticeCount||0))toast('冒險者晉階 '+history.at(-1).from+' → '+history.at(-1).to+'！');game.rankNoticeRun=game.run;game.rankNoticeCount=history.length;
   const run = game.run, fighting = game.scene === 'battle', stats = P.statsFor(run), actor = fighting ? game.battle.player : { ...stats, stats };
@@ -3029,6 +3103,14 @@ function showTooltip(element) {
   if(game.scene==='battle'&&kind==='move'){$('tooltip').style.left='12px';$('tooltip').style.top=(stageHeight/2+10)+'px';}
 }
 function handleAction(action, id, element) {
+  if(game.practice&&['end-run','end-run-confirm'].includes(action)){exitPractice();return;}
+  if(game.practice&&['full-reset','full-reset-confirm','restart-basic','restart-basic-confirm','world-map','world-enter-map','debug-lab','debug-start','world-debug'].includes(action)){toast('請先離開練習模式。');return;}
+  if(action==='training-practice'){startPractice();return;}
+  if(action==='practice-exit'){exitPractice();return;}
+  if(action==='training-journal'){showTrainingGuide();return;}
+  if(action==='training-station'){showTrainingStation();return;}
+  if(action==='training-gift'&&game.modal==='training-station'&&game.run?.training?.stage===2){const run=game.run;if(!TrainingMap.giftClaimed(game.permanent)){game.rewards=P.grantRewards(game.permanent,run,TrainingMap.rewards);Meta.normalize(game.permanent).tutorialGiftClaimed=true;}else game.rewards=[];for(const r of TrainingMap.rewards){const list=r.kind==='moves'?'availableMoves':'availableSkills';run[list]||=[];if(!run[list].includes(r.id))run[list].push(r.id);}TrainingMap.advance(run);persist();saveSession();if(game.rewards.length)showReward();else{closeModal();showRunLoadout();}return;}
+  if(['training-pact','training-refuse'].includes(action)&&game.modal==='training-station'&&game.run?.training?.stage===5){if(action==='training-pact'){const state=Explore.ensure(game.run);if(!state.effects.includes('mana_pact'))state.effects.push('mana_pact');}TrainingMap.advance(game.run);saveSession();closeModal();renderUI();toast(action==='training-pact'?'魔力契約：本局 MP +10%，SP −10%。':'已拒絕契約，前往教學地下城。');return;}
   if(action==='achievements'){openScreen('achievements');return;}
   if(action==='adventure-rank'){showRank();return;}
   if(action==='achievement-tab'&&game.screen==='achievements'){game.achievementTab=id;renderScreen();return;}
@@ -3090,7 +3172,7 @@ function handleAction(action, id, element) {
   else if(action.startsWith('world-'))worldDebugAction(action,id);
   else if (action === 'interact') interact();
   else if (action === 'move') chooseMove(id, element.dataset.ultimate === 'true');
-  else if (action === 'enter-dungeon' && game.modal === 'dungeon' && D.dungeons.some(d=>d.id===id)) { if(!game.debugBattle){Meta.enter(game.permanent,id);persist();}game.run.dungeon = { id, stage: 0 }; Audio.emit('dungeonEnter'); startEncounter(P.dungeonEncounter(game.run)); }
+  else if (action === 'enter-dungeon' && game.modal === 'dungeon' && D.findDungeon(id)) { if(!game.debugBattle&&!D.findDungeon(id).training){Meta.enter(game.permanent,id);persist();}game.run.dungeon = { id, stage: 0 }; Audio.emit('dungeonEnter'); startEncounter(P.dungeonEncounter(game.run)); }
   else if (action === 'result-next') continueResult();
 
   else if (action === 'reward-next' && game.modal === 'reward') acquisitionNext();
@@ -3177,6 +3259,7 @@ window.addEventListener('blur', () => { game.keys.clear(); game.touch.clear(); r
 document.addEventListener('visibilitychange', () => { if (document.hidden) {pause();saveSession();} last = performance.now(); });
 function input() { return { x: stick.x + Number(game.keys.has('d') || game.keys.has('arrowright') || game.touch.has('right')) - Number(game.keys.has('a') || game.keys.has('arrowleft') || game.touch.has('left')), y: stick.y + Number(game.keys.has('s') || game.keys.has('arrowdown') || game.touch.has('down')) - Number(game.keys.has('w') || game.keys.has('arrowup') || game.touch.has('up')) }; }
 function combatEvent(event) {
+  if(event.type==='interrupt'&&event.actorId==='player'&&game.run?.training?.stage===4)game.run.training.interrupted=true;
   if(game.run&&!game.debugBattle)Enc.hit(game.permanent,game.run,event);
   renderer.event(event);
   if(event.type==='skill'&&event.actorId==='player'){$('passive-flash').textContent='【'+event.text+'】';game.passiveUntil=renderer.time+.8;}
