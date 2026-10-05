@@ -10,6 +10,7 @@
   const LevelProgression=typeof module!=='undefined'?require('./level-progression'):root.LevelProgression;if(typeof module!=='undefined')LevelProgression.apply(D);
   const Training=typeof module!=='undefined'?require('./training-map'):root.TrainingMap;
   const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
+  Exploration.configureDungeons();
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, rankDisplayVersion:2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
   function migratePermanent(p){if(p.rankDisplayVersion===2)return p;for(const key of Object.keys(p.achievementProgress||{}))if(key.endsWith('_rank'))p.achievementProgress[key]=Math.max(0,p.achievementProgress[key]-2);p.rankDisplayVersion=2;return p;}
@@ -166,7 +167,7 @@
   function starterReward(permanent,run,enemy,rng=Math.random){if(!run.starter||run.starter.phase!=='cleared'||enemy.id!==run.starter.bossId||run.starter.rewardProcessed)return [];run.starter.rewardProcessed=true;const reward=Meta.claimStarter(permanent,rng);if(!reward)return [];if(reward.kind==='marks'){recordLoot(run,reward);return [reward];}return grantRewards(permanent,run,[reward]);}
   function dungeonReward(permanent,run,rng=Math.random,options={}){
     if(!run.dungeon)throw Error('不在地下城');const d=D.findDungeon(run.dungeon.id);
-    if(run.dungeon.stage!==d.enemyWaves.length-1)throw Error('尚未完成所有波次');
+    if(run.dungeon.stage!==Exploration.waves(run,d.id).length-1)throw Error('尚未完成所有波次');
     if(run.dungeon.rewardClaimed)return [];
     if(d.training){run.dungeon.rewardClaimed=true;run.training.stage=7;Maps.syncStarter(run);return [];}
     const draw=Rewards.dungeon(d.id,rng,{...options,level:run.level,permanent,preferUnowned:D.maps[d.mapId]?.sortOrder===0}),rewards=grantRewards(permanent,run,draw.rewards);run.dungeon.rewardClaimed=true;run.dungeon.rewardCombination=draw.combination;permanent.completions++;permanent.dungeonCompletions||={};permanent.dungeonCompletions[d.id]=(permanent.dungeonCompletions[d.id]||0)+1;return rewards;

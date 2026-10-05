@@ -23,17 +23,70 @@
  let blocked=()=>false;
  const rngFor=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const hash=s=>[...s].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,917);
+ const dungeonRules={version:1,first:{normal:[.5,.65],boss:.8},early:{normal:.6,elite:.55,boss:.65},earlyThrough:50,maxEarlyControl:1,maxLaterControl:2};
+ function configureDungeons(){
+  if(D.dungeonEncounterRules?.version===dungeonRules.version)return;
+  D.dungeonEncounterRules=dungeonRules;
+  for(const d of D.dungeons){
+   if(d.training)continue;
+   d.previousEnemyWaves=copy(d.enemyWaves);
+   const map=D.maps[d.mapId],first=map?.sortOrder===0,early=d.recommendedLevel<=dungeonRules.earlyThrough,boss=d.enemyWaves.find(w=>w.role==='boss');
+   if(!boss)continue;
+   const normalTypes=map?.enemyPoolIds||[],normal=d.enemyWaves.find(w=>w.role==='normal')||{role:'normal',type:normalTypes[0],level:d.recommendedLevel};
+   if(first){
+    const count=d.dungeonType==='short'?1:2;
+    d.enemyWaves=Array.from({length:count},(_,i)=>({...normal,type:normalTypes[i%normalTypes.length]||normal.type,level:Math.max(1,Math.round(d.recommendedLevel*dungeonRules.first.normal[i]))}));
+    d.enemyWaves.push({...boss,level:Math.max(1,Math.round(d.recommendedLevel*dungeonRules.first.boss))});
+   }else if(early){
+    const elite=d.enemyWaves.find(w=>w.role==='elite');
+    // Reserve the early control encounter for the boss; do not stack a control elite before it.
+    const guard=elite&&pressure(boss.type).control&&pressure(elite.type).control?{...normal,type:normalTypes[1]||normal.type}:elite;
+    d.enemyWaves=[{...normal,level:Math.max(1,Math.round(d.recommendedLevel*dungeonRules.early.normal))},...(guard?[{...guard,level:Math.max(1,Math.round(d.recommendedLevel*dungeonRules.early.elite))}]:[]),{...boss,level:Math.max(1,Math.round(d.recommendedLevel*dungeonRules.early.boss))}];
+   }
+   const last=d.enemyWaves.length-2;
+   if(last>0&&pressure(boss.type).control&&d.enemyWaves[last].role==='elite'){
+    const index=d.enemyWaves.findIndex((w,i)=>i<last&&w.role==='normal');
+    if(index>=0)[d.enemyWaves[index],d.enemyWaves[last]]=[d.enemyWaves[last],d.enemyWaves[index]];
+   }
+   d.encounters=d.enemyWaves.map(w=>w.type);
+   d.encounterTemplate=d.enemyWaves.map(w=>w.role);
+  }
+ }
+ function pressure(type){
+  const m=D.monsters[type],moves=m.moves.map(id=>D.moves[id]).filter(Boolean),skills=(m.skills||[]).map(id=>D.skills[id]).filter(Boolean);
+  const control=moves.some(move=>move.effects.some(e=>e.type==='interrupt'||e.type==='freeze'||e.status?.id==='frozen'||e.status?.modifiers?.some(x=>x.stage==='attackTime'&&x.value>1)));
+  const resistant=skills.some(s=>s.combatModifiers?.some(x=>x.stage==='incoming'&&x.value<.85)||s.targetElements&&s.incomingElementDamageReductionPct>=.2)||(m.physicalDefenseBonus||0)>=15||(m.magicResistanceBonus||0)>=15;
+  return {control,resistant,heavy:(D.enemyBalance.species[m.sprite]||D.enemyBalance.species.default).hp>1.1};
+ }
  const sample=(xs,r)=>xs[Math.min(xs.length-1,Math.floor(r()*xs.length))];
  function weighted(weights,r){let n=r()*weights.reduce((a,b)=>a+b,0);return weights.findIndex(w=>(n-=w)<0);}
  function point(map,quadrant,r,occupied){const w=map.width||D.world.width,h=map.height||D.world.height;for(let i=0;i<160;i++){const p={x:Math.round((quadrant%2)*w/2+180+r()*(w/2-360)),y:Math.round(Math.floor(quadrant/2)*h/2+180+r()*(h/2-360))};if(distance(p,map.entry)<700||R.safe(p,map)||blocked(p.x,p.y,map.id)||(map.deepPoints||[]).some(d=>distance(p,d)<180)||occupied.some(x=>distance(x,p)<180)||D.dungeons.some(d=>d.mapId===map.id&&distance(d,p)<180)||map.spawnPoints?.some(x=>distance(x,p)<90))continue;occupied.push(p);return p;}return null;}
  function dungeonPools(d){const map=D.maps[d.mapId];const pools={normal:[],elite:[]};for(const role of ['normal','elite']){const ids=[...new Set([...d.enemyWaves.filter(w=>w.role===role).map(w=>w.type),...(role==='normal'?map?.enemyPoolIds||[]:map?.elitePoolIds||[])])];pools[role]=ids.filter(id=>D.monsters[id]&&!D.monsters[id].boss&&(role==='elite'?D.monsters[id].elite:!D.monsters[id].elite));}return pools;}
- function stableWaves(d,r){const pools=dungeonPools(d);let previous=null;return d.enemyWaves.map(w=>{if(w.role==='boss')return copy(w);const base=D.enemyBalance.species[D.monsters[w.type]?.sprite]||D.enemyBalance.species.default;let ids=(pools[w.role]||[]).filter(id=>{const s=D.enemyBalance.species[D.monsters[id].sprite]||D.enemyBalance.species.default;return s.hp/base.hp>=.7&&s.hp/base.hp<=1.4&&s.damage/s.cycle/(base.damage/base.cycle)>=.7&&s.damage/s.cycle/(base.damage/base.cycle)<=1.4;});if(ids.length>1)ids=ids.filter(id=>id!==previous);const type=ids.length?sample(ids,r):w.type;previous=type;return {...copy(w),type};});}
+ function stableWaves(d,r){
+  const pools=dungeonPools(d),first=D.maps[d.mapId]?.sortOrder===0,early=d.recommendedLevel<=dungeonRules.earlyThrough,boss=d.enemyWaves.find(w=>w.role==='boss'),limit=early?dungeonRules.maxEarlyControl:dungeonRules.maxLaterControl;
+  let previous=null,previousPressure={},controls=boss&&pressure(boss.type).control?1:0;
+  let reservedElites=d.enemyWaves.filter(w=>w.role==='elite'&&(pools.elite||[]).every(id=>pressure(id).control)).length;
+  return d.enemyWaves.map(w=>{
+   if(w.role==='boss')return copy(w);
+   if(w.role==='elite'&&(pools.elite||[]).every(id=>pressure(id).control))reservedElites--;
+   const base=D.enemyBalance.species[D.monsters[w.type]?.sprite]||D.enemyBalance.species.default;
+   let ids=(pools[w.role]||[]).filter(id=>{const s=D.enemyBalance.species[D.monsters[id].sprite]||D.enemyBalance.species.default;return s.hp/base.hp>=.7&&s.hp/base.hp<=1.4&&s.damage/s.cycle/(base.damage/base.cycle)>=.7&&s.damage/s.cycle/(base.damage/base.cycle)<=1.4;});
+   const preferred=ids.filter(id=>{const p=pressure(id);return !(first&&p.control)&&!(p.control&&(controls+reservedElites>=limit||previousPressure.control))&&!(p.resistant&&previousPressure.resistant)&&!(p.heavy&&previousPressure.heavy);});
+   // Regional pools are finite: choose the least stacking pressure if no strict candidate exists.
+   if(preferred.length)ids=preferred;
+   else ids.sort((a,b)=>{const score=id=>{const p=pressure(id);return +p.control*3+ +(p.resistant&&previousPressure.resistant)*2+ +(p.heavy&&previousPressure.heavy);};return score(a)-score(b);}),ids=ids.slice(0,1);
+   if(ids.length>1&&ids.includes(previous))ids=ids.filter(id=>id!==previous);
+   const type=ids.length?sample(ids,r):w.type;previous=type;previousPressure=pressure(type);controls+=+previousPressure.control;
+   return {...copy(w),type};
+  });
+ }
  function ensure(run,options={}){if(!run||!D.mapData)return null;if(run.exploration?.version===config.version){
    const s=run.exploration;if(s.geometryRepair||s.routeVersion!==D.mapRouteVersion){const repair=(p,mapId)=>{if(!p||!blocked(p.x,p.y,mapId))return;for(let radius=24;radius<=240;radius+=24)for(let i=0;i<16;i++){const x=p.x+Math.cos(i*Math.PI/8)*radius,y=p.y+Math.sin(i*Math.PI/8)*radius;if(!blocked(x,y,mapId)){p.x=x;p.y=y;return;}}};for(const [mapId,m]of Object.entries(s.maps))for(const e of m.events)repair(e,mapId);for(const b of s.books){repair(b.start,b.mapId);repair(b.finish,b.mapId);for(const p of b.research)repair(p,b.mapId);}delete s.geometryRepair;s.routeVersion=D.mapRouteVersion;}return s;
   }
   const seed=Math.floor((options.rng||Math.random)()*4294967296)>>>0,s={version:config.version,routeVersion:D.mapRouteVersion,geometryVersion:D.mapGeometry?.version,seed,maps:{},dungeons:{},books:[],effects:[],history:[]};run.exploration=s;
   for(const map of D.mapData){if(map.starter)continue;const r=rngFor(seed^hash(map.id)),occupied=[],count=weighted(config.eventCountWeights,r),quadrants=[0,1,2,3].sort(()=>0);for(let i=3;i>0;i--){const j=Math.floor(r()*(i+1));[quadrants[i],quadrants[j]]=[quadrants[j],quadrants[i]];}let emptyPlaced=false;const events=[];for(const q of quadrants.slice(0,count)){const p=point(map,q,r,occupied);if(!p)continue;const empty=!emptyPlaced&&r()<config.emptyChance;if(empty)emptyPlaced=true;const category=r()<.5?'positive':'exchange',def=sample(definitions.filter(x=>x.category===category),r);events.push({id:map.id+'-event-'+q,mapId:map.id,quadrant:q,...p,definitionId:def.id,name:def.name,visual:def.kind,empty,state:'unseen',action:'調查'});}s.maps[map.id]={events};}
-  for(const d of D.dungeons)s.dungeons[d.id]=run.dungeon?.id===d.id?copy(d.enemyWaves):stableWaves(d,rngFor(seed^hash(d.id)));
+  s.dungeonPlanVersion=dungeonRules.version;
+  for(const d of D.dungeons)s.dungeons[d.id]=run.dungeon?.id===d.id?copy(d.previousEnemyWaves||d.enemyWaves):stableWaves(d,rngFor(seed^hash(d.id)));
   const r=rngFor(seed^0x734ad9),bookCount=weighted(config.bookCountWeights,r),available=D.mapData.filter(m=>!m.starter);for(let i=0;i<bookCount&&available.length;i++){const map=sample(available,r);available.splice(available.indexOf(map),1);const ids=[...new Set(map.dungeonIds.flatMap(id=>{const d=D.dungeons.find(x=>x.id===id);return (d?.rewardPoolIds||[d?.primaryRewardPool,d?.secondaryRewardPool,d?.rareRewardPool]).flatMap(pid=>(D.rewardPools[pid]?.entries||[]).filter(e=>e.rewardType==='books').flatMap(e=>e.rewardIds));}))].filter(id=>D.books[id]);if(!ids.length)continue;const novel=ids.filter(id=>!options.permanent?.books?.includes(id)),bookId=sample(novel.length?novel:ids,r),occupied=s.maps[map.id].events.map(e=>({...e})),start=point(map,Math.floor(r()*4),r,occupied),finish=point(map,Math.floor(r()*4),r,occupied);if(!start||!finish)continue;const questType=sample(['hunt','elite','dungeon','research'],r),enemyType=questType==='elite'?map.elitePoolIds[0]:map.enemyPoolIds[0],target=questType==='hunt'?3:questType==='research'?2:1,research=[];if(questType==='research'){for(let n=0;n<2;n++){const p=point(map,Math.floor(r()*4),r,occupied);if(p)research.push({id:map.id+'-rubbing-'+n,...p});}if(research.length!==2)continue;}s.books.push({id:'sealed-book-'+i,mapId:map.id,bookId,questType,enemyType,dungeonId:map.dungeonIds[0],target,progress:0,state:'unseen',start,finish,research,visited:[],clue:`${['西北','東北','西南','東南'][(finish.x<(map.width||D.world.width)/2?0:1)+(finish.y<(map.height||D.world.height)/2?0:2)]}方有一座封印石匣；完成前置任務後才能開啟。`});}
   return s;
  }
@@ -52,5 +105,5 @@
  function collect(run,id){const b=quest(run,id);if(!b||b.state!=='ready'||b.mapId!==run.currentMapId||distance(b.finish,run.position)>=config.interactionRadius||!D.books[b.bookId])return null;b.state='claimed';run.exploration.history.push({kind:'book',id,name:D.books[b.bookId].name,text:'完成前置任務並取得藏書。'});return {kind:'books',id:b.bookId};}
  function taskText(b){if(b.questType==='research')return '依線索調查兩處古代碑文';if(b.questType==='dungeon')return '接下任務後通關 '+(D.dungeons.find(d=>d.id===b.dungeonId)?.name||b.dungeonId);return '接下任務後在此地圖'+(b.questType==='elite'?'正常擊敗菁英 ':'擊敗 ')+(D.monsters[b.enemyType]?.name||'指定魔物')+' '+b.target+' 次';}
  function bookHint(id){const ds=D.dungeons.filter(d=>(d.rewardPoolIds||[]).some(pid=>D.rewardPools[pid]?.entries.some(e=>e.rewardType==='books'&&e.rewardIds.includes(id))));const maps=[...new Set(ds.map(d=>D.maps[d.mapId]?.regionId).filter(Boolean))];return '地下城：'+(ds.map(d=>d.name).join('／')||'對應魔法書獎勵池')+'。稀有藏書可能出現在'+(maps.map(id=>D.regionById[id]?.name).join('／')||'正式地圖')+'；必須先找到線索並完成前置任務，每局不保證出現。';}
- const api={config,effects,definitions,ensure,waves,dungeonPools,sources,statFactor,objects,nearby,discover,event,takeEvent,quest,accept,record,research,collect,taskText,bookHint,setPositionValidator:fn=>blocked=fn};if(typeof module!=='undefined')module.exports=api;else root.RunExploration=api;
+ const api={config,effects,definitions,dungeonRules,configureDungeons,pressure,ensure,waves,dungeonPools,sources,statFactor,objects,nearby,discover,event,takeEvent,quest,accept,record,research,collect,taskText,bookHint,setPositionValidator:fn=>blocked=fn};if(typeof module!=='undefined')module.exports=api;else root.RunExploration=api;
 })(globalThis);

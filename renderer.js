@@ -79,13 +79,13 @@
       if(definition?.color){this.ellipse(0,7,type==='boss'?28:20,2,definition.color);}
       c.restore();
     }
-    dungeon(x, y, data) {
+    dungeon(x, y, data, run) {
       const c = this.ctx; this.ellipse(x, y + 8, 65, 19, '#06101188'); this.glow(x, y - 32, 120, '#a891ee30');
       for (let i = 3; i >= 0; i--) { c.fillStyle = i % 2 ? '#626b65' : '#4e5b56'; c.fillRect(x - 50 - i * 5, y + i * 7, 100 + i * 10, 8); }
       c.fillStyle = '#55645e'; c.fillRect(x - 48, y - 78, 18, 80); c.fillRect(x + 30, y - 78, 18, 80); this.poly([[x - 53, y - 78], [x, y - 112], [x + 53, y - 78]], '#788278', '#a8ab8b');
       c.fillStyle = '#151b28'; c.fillRect(x - 30, y - 76, 60, 76); const g = c.createLinearGradient(x, y - 75, x, y); g.addColorStop(0, '#373957'); g.addColorStop(1, '#b59ce6'); c.fillStyle = g; c.fillRect(x - 23, y - 73, 46, 72);
       for (let i = 0; i < 5; i++) { this.ellipse(x + Math.sin(this.time + i * 2) * 19, y - ((this.time * 18 + i * 15) % 72), 1.5, 2, '#e6dcff'); }
-      this.text('✦', x, y - 84, 20, '#e6d2ab'); this.text(data.name, x, y - 138, 17, '#e6d7bd'); this.text(`最高 ${Progression.dungeonGrade(data)} · ${data.enemyWaves.length} 場`, x, y - 119, 13, '#b6bca9');
+      this.text('✦', x, y - 84, 20, '#e6d2ab'); this.text(data.name, x, y - 138, 17, '#e6d7bd'); this.text(`最高 ${Progression.dungeonGrade(data,run)} · ${run?RunExploration.waves(run,data.id).length:data.enemyWaves.length} 場`, x, y - 119, 13, '#b6bca9');
     }
     camp(x, y) {
       this.ellipse(x, y, 100, 50, '#76735b33'); this.poly([[x - 70, y - 3], [x - 33, y - 68], [x + 5, y - 3]], '#a69b71', '#d2c59b'); this.poly([[x - 33, y - 68], [x - 6, y - 55], [x + 32, y - 3], [x + 5, y - 3]], '#706f57'); this.poly([[x - 48, y - 3], [x - 33, y - 42], [x - 18, y - 3]], '#293c33');
@@ -118,7 +118,7 @@
       if(activeMap?.training){for(const q of GameData.training.tasks.slice(1,7)){this.ellipse(q.x,q.y,76,34,'#1a2c2855');this.text(q.name,q.x,q.y+72,14,'#b4bca488');}const q=GameData.training.task(run);if(q){this.glow(q.x,q.y,50,'#e7ce7144');c.strokeStyle='#e8d08c';c.lineWidth=2;c.beginPath();c.ellipse(q.x,q.y,34,15,0,0,Math.PI*2);c.stroke();}}
       for(const point of activeMap?.deepPoints||[]){if(Math.abs(point.x-pos.x)>w/zoom||Math.abs(point.y-pos.y)>h/zoom)continue;c.save();c.translate(point.x,point.y);c.fillStyle='#283b37';c.strokeStyle='#bba36e';c.lineWidth=2;c.beginPath();c.moveTo(0,-35);c.lineTo(24,0);c.lineTo(0,20);c.lineTo(-24,0);c.closePath();c.fill();c.stroke();c.fillStyle='#d3bd7a';c.fillRect(-3,-23,6,21);c.restore();this.text(point.name,point.x,point.y+42,15,'#d9c68d');}
       const things = World.sceneryForMap(activeMap).filter(t => !activeMap?.training && t.x > this.camera.x - 80 && t.x < this.camera.x + w / zoom + 80 && t.y > this.camera.y - 20 && t.y < this.camera.y + h / zoom + 140).map(t => ({ y: t.y, draw: () => { c.save(); if (t.kind !== 'rock' && Math.abs(t.x - pos.x) < 45 && t.y > pos.y && t.y < pos.y + 110) c.globalAlpha = .4; t.kind === 'rock' ? this.rock(t) : this.tree(t); c.restore(); } }));
-      for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d) });
+      for (const d of [...GameData.dungeons,...(run?.training&&run.training.stage===6?[GameData.trainingDungeon]:[])]) if(!run?.currentMapId||d.mapId===run.currentMapId)things.push({ y: d.y, draw: () => this.dungeon(d.x, d.y, d,run) });
       if (run&&!activeMap?.starter) for (const o of GameData.explorationObjects || []) things.push({ y: o.y, draw: () => {
         const used = run.world.usedObjects?.includes(o.id), near = World.distance(o, pos) < 65;
         c.save(); c.translate(o.x, o.y); this.ellipse(0, 4, 22, 7, '#0a191977');
