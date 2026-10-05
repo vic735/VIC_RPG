@@ -507,7 +507,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.26.3', date: '2026-10-05' },
+    release: { version: '0.26.4', date: '2026-10-06' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -1373,6 +1373,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const oldRanks=[...D.runRating.ranks],oldPromotions=D.rankPromotions;
   D.rankPromotions=ranks.slice(0,-1).map(rank=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:scaleLevel(old.normal.enemyLevel)},challenge:{...old.challenge,enemyLevel:scaleLevel(old.challenge.enemyLevel)}};});
   D.runRating.ranks=ranks;D.runRating.thresholds=[0];for(const p of D.rankPromotions)D.runRating.thresholds.push(D.runRating.thresholds.at(-1)+p.points);
+  D.rankPromotionRules={version:1,normalRankOffset:0,challengeRankOffset:2};
+  D.rankPromotions.forEach((p,i)=>{p.normal.enemyRankIndex=i;p.challenge.enemyRankIndex=i+2<ranks.length?i+2:null;});
   D.rankReferenceLevels=anchors;
   // Preserve the agreed tuning in data.js. Only project the existing world
   // curve into the requested 500 cap, using the preceding release's formula.
@@ -2804,12 +2806,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
-   {label:'任務出現後討伐達標魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   {label:`任務出現後討伐 ${D.runRating.ranks[cfg.normal.enemyRankIndex]} 級以上魔物（含壓制）`,value:s.normalKills,target:cfg.normal.kills},
    ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
    ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
   ]:[];
   return {index:s.index,rank:D.runRating.ranks[s.index],tier:D.levelProgression.tier(D.runRating.ranks[s.index]),nextRank:D.runRating.ranks[s.index+1]||null,progress:s.progress,required:cfg?.points||0,remaining:cfg?Math.max(0,cfg.points-s.progress):0,active,normal,
-   challenge:cfg?{label:'本階正常擊敗越階挑戰目標（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
+   challenge:cfg&&cfg.challenge.enemyRankIndex!==null?{label:`本階正常擊敗 ${D.runRating.ranks[cfg.challenge.enemyRankIndex]} 級以上魔物（高兩階以上，不含壓制）`,value:s.challengeKills,target:cfg.challenge.kills}:null};
  }
  function advanceRank(run,event={}){
   if(run.starter&&run.adventurerRank.index===-1){if(event.enemy&&!event.quick&&Maps.clearStarter(run,event.enemy))return {from:'D',to:'C−',route:'starter'};return null;}
@@ -2818,9 +2820,9 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const wasActive=s.progress>=cfg.points;
   // A triggering kill belongs to exactly one rank. The kill filling the bar
   // does not count as a newly revealed ordinary mission's first kill.
-  if(event.enemy){if(wasActive&&event.enemy.level>=cfg.normal.enemyLevel)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
+  if(event.enemy){const e=event.enemy,grade=P.enemyGrade(e.type,e.level,{...e,overworld:!run.dungeon,dungeonId:run.dungeon?.id});if(wasActive&&grade.index>=cfg.normal.enemyRankIndex)s.normalKills++;if(!event.quick&&cfg.challenge.enemyRankIndex!==null&&grade.index>=cfg.challenge.enemyRankIndex)s.challengeKills++;}
   if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
-  const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
+  const view=rankView(run),direct=!!view.challenge&&s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
   if(!direct&&!normal)return null;
   const promotion={from:view.rank,to:view.nextRank,route:direct?'challenge':'normal'};
   s.index++;s.progress=0;s.normalKills=0;s.challengeKills=0;s.history.push(promotion);return promotion;
@@ -3114,7 +3116,7 @@ function showRank(){
  if(!game.run||game.scene!=='explore')return;
  const r=Enc.rankView(game.run);
  if(r.index===-1){openModal('adventure-rank',`<h2 id="modal-title">冒險者 D</h2><p>${game.run.starter.phase==='boss'?'晉階任務：打倒守關 Boss，直接升為 C−。':'能力成長達到新手區上限後，守關 Boss 將會現身。'}</p><p>${Meta.starterEligible(game.permanent)?'守關者收藏獎勵可領取：未收藏 C 級招式／技能。':'收藏獎勵已領取；第三次倒下完成整輪後恢復資格。'}</p><p>新手區能力成長達到上限後不再獲得經驗。擊敗守關者後，前往邊緣傳送點選擇七大區。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);return;}
- openModal('adventure-rank',`<div class="eyebrow">THIS RUN · ADVENTURER</div><h2 id="modal-title">冒險者 ${r.rank}</h2>${r.nextRank?`<p>下一階 ${r.nextRank} · ${r.progress} / ${r.required} 分</p><h3>一般晉階</h3>${r.active?r.normal.map(rankTaskHTML).join(''):'<p>達到分數門檻後，才會出現晉階任務。</p>'}<h3>直接晉階挑戰</h3>${rankTaskHTML(r.challenge)}<p class="quiet-note">不必累積滿分數，也不用完成一般晉階任務。達成即升至 ${r.nextRank}。</p>`:'<p>已達本局最高階級。</p>'}<p class="quiet-note">每局從 D 開始。每升一小階，分數與討伐任務計數歸零；地下城通關紀錄可追認。溢出分數不保留。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);
+ openModal('adventure-rank',`<div class="eyebrow">THIS RUN · ADVENTURER</div><h2 id="modal-title">冒險者 ${r.rank}</h2>${r.nextRank?`<p>下一階 ${r.nextRank} · ${r.progress} / ${r.required} 分</p><h3>一般晉階</h3>${r.active?r.normal.map(rankTaskHTML).join(''):'<p>達到分數門檻後，才會出現晉階任務。</p>'}<h3>直接晉階挑戰</h3>${r.challenge?`${rankTaskHTML(r.challenge)}<p class="quiet-note">不必累積滿分數，也不用完成一般晉階任務。達成即升至 ${r.nextRank}。</p>`:'<p>目前沒有高兩階以上的敵人階級，請完成一般晉階任務。</p>'}`:'<p>已達本局最高階級。</p>'}<p class="quiet-note">每局從 D 開始。每升一小階，分數與討伐任務計數歸零；地下城通關紀錄可追認。溢出分數不保留。</p><div class="modal-footer">${U.button('繼續探索','close',{primary:true})}</div>`);
 }
 
 function buildReportHTML(run){const r=run.buildReport;if(!r?.battles)return '<section class="run-loot"><h3>搭配戰績</h3><p>尚無可統計的實戰紀錄。壓制不計入。</p></section>';const n=x=>Math.round(x||0).toLocaleString('zh-TW'),sourceName=id=>D.skills[id]?.name||D.equipment[id]?.name||D.moves[id]?.name||id,labels={damage:'追加傷害',hpRecovered:'實際回復 HP',manaRecovered:'實際回復 MP',staminaRecovered:'實際回復 SP',shieldCreated:'產生護盾',interruptsPrevented:'抵擋中斷',triggers:'效果觸發'};return `<section class="run-loot build-report"><h3>本局搭配戰績</h3><p>統計 ${r.battles} 場實戰 · 總傷害 ${n(r.damage)}</p><div class="journey-counts"><div><strong>${n(r.healing)}</strong><small>實際治療 HP</small></div><div><strong>${n(r.shieldAbsorbed)}</strong><small>護盾實際吸收</small></div></div><p>MP 消耗 ${n(r.manaSpent)} · 費用修正${r.manaDelta>=0?'淨省':'額外消耗'} ${n(Math.abs(r.manaDelta))}<br>SP 消耗 ${n(r.staminaSpent)} · 費用修正${r.staminaDelta>=0?'淨省':'額外消耗'} ${n(Math.abs(r.staminaDelta))}</p><details><summary>招式傷害占比</summary>${Object.entries(r.byMove).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`<p>${U.escape(D.moves[id]?.name||id.replace('status:','狀態：'))}：${n(v)}（${r.damage?(v/r.damage*100).toFixed(1):0}%）</p>`).join('')}</details><details><summary>技能與裝備貢獻</summary>${Object.entries(r.sources).map(([id,values])=>`<p><strong>${U.escape(sourceName(id))}</strong><br>${Object.entries(values).filter(([k,v])=>labels[k]&&v>0).map(([k,v])=>labels[k]+' '+n(v)).join(' · ')}</p>`).join('')||'<p>尚無獨立觸發紀錄。</p>'}</details><small>只記錄本次更新後的實戰。費用修正以招式原始消耗為基準；一般傷害倍率不拆分成個別技能功勞。</small></section>`;}

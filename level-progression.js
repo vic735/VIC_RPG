@@ -27,6 +27,8 @@
   const oldRanks=[...D.runRating.ranks],oldPromotions=D.rankPromotions;
   D.rankPromotions=ranks.slice(0,-1).map(rank=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:scaleLevel(old.normal.enemyLevel)},challenge:{...old.challenge,enemyLevel:scaleLevel(old.challenge.enemyLevel)}};});
   D.runRating.ranks=ranks;D.runRating.thresholds=[0];for(const p of D.rankPromotions)D.runRating.thresholds.push(D.runRating.thresholds.at(-1)+p.points);
+  D.rankPromotionRules={version:1,normalRankOffset:0,challengeRankOffset:2};
+  D.rankPromotions.forEach((p,i)=>{p.normal.enemyRankIndex=i;p.challenge.enemyRankIndex=i+2<ranks.length?i+2:null;});
   D.rankReferenceLevels=anchors;
   // Preserve the agreed tuning in data.js. Only project the existing world
   // curve into the requested 500 cap, using the preceding release's formula.
