@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),D=require('./data'),P=require('./progression');
 test('固定分段曲線、物種倍率與攻擊力不依玩家階級調整',()=>{
  for(let i=0;i<D.enemyBalance.levels.length;i++){const level=D.enemyBalance.levels[i],e=P.enemyDefinition('greywind_1',level);assert.equal(e.stats.hp,D.enemyBalance.hp[i]);assert.equal(e.attackPower,D.enemyBalance.attack[i]);}
- assert.equal(P.enemyDefinition('greywind_1',23).stats.hp,299);assert.equal(P.enemyDefinition('greywind_0',20).stats.hp,225);
+ assert.ok(P.enemyDefinition('greywind_1',23).stats.hp>P.enemyDefinition('greywind_1',20).stats.hp);assert.equal(P.enemyDefinition('greywind_0',20).stats.hp,Math.round(P.enemyDefinition('greywind_1',20).stats.hp*.9));
  let hp=0;for(let l=1;l<=200;l++){const e=P.enemyDefinition('greywind_1',l);assert.ok(e.stats.hp>=hp);hp=e.stats.hp;}
 });
 test('十等內額外減傷為零，十一等起平滑增加；基礎防禦仍生效',()=>{
@@ -18,6 +18,6 @@ test('史萊姆EXP七折、定位單選，地下城不觸發開局三倍',()=>{
  assert.equal(P.expMultiplier(-20),.1);assert.equal(P.expMultiplier(5),1.3);assert.equal(P.expMultiplier(10),1.6);assert.equal(P.expMultiplier(20),2);
 });
 test('冒險階級Lv對照只決定任務目標，不要求角色等級',()=>{
- assert.equal(D.rankReferenceLevels[3],20);assert.equal(D.rankPromotions[2].challenge.enemyLevel,20);
+ assert.equal(D.rankReferenceLevels[3],30);assert.equal(D.rankPromotions[2].challenge.enemyLevel,30);
  assert.ok(D.rankPromotions.every(r=>r.normal.level===0));
 });

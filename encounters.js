@@ -32,38 +32,38 @@
   const cfg=D.runRating,safe=n=>Number.isFinite(n)?Math.max(0,Math.floor(n)):0;
   const parts={kills:Math.min(cfg.kills.cap,safe(stats.kills)*cfg.kills.points),dungeons:Math.min(cfg.dungeons.cap,safe(stats.dungeons)*cfg.dungeons.points),levels:Math.min(cfg.levels.cap,Math.max(0,safe(stats.level)-1)*cfg.levels.points)};
   const score=parts.kills+parts.dungeons+parts.levels,index=cfg.thresholds.findLastIndex(n=>score>=n);
-  return {score,parts,rank:cfg.ranks[index],tier:['D','C','B','A','S','SS'][Math.floor(index/3)],nextRank:cfg.ranks[index+1]||null,remaining:cfg.thresholds[index+1]===undefined?0:cfg.thresholds[index+1]-score};
+  return {score,parts,rank:cfg.ranks[index],tier:D.levelProgression.tier(cfg.ranks[index]),nextRank:cfg.ranks[index+1]||null,remaining:cfg.thresholds[index+1]===undefined?0:cfg.thresholds[index+1]-score};
  }
  function rankMetrics(run){const s=records(run);return {kills:s.kills,dungeons:s.clearedDungeonIds.length,level:run.level};}
  function rankState(run){
   if(!run.adventurerRank){
    // Migration: retain an old run's already earned grade, but carry no points.
    // Historical kills cannot be replayed as new promotion tasks.
-   const metrics=rankMetrics(run),old=rating(metrics);
-   run.adventurerRank={version:1,index:D.runRating.ranks.indexOf(old.rank),progress:0,last:metrics,normalKills:0,challengeKills:0,history:[],migrated:true};
+   const metrics=rankMetrics(run),score=rating(metrics).score,oldName=D.levelProgression.legacyRanks[D.levelProgression.legacyThresholds.findLastIndex(n=>score>=n)],old={rank:oldName};
+   run.adventurerRank={version:1,index:run.starter&&run.starter.phase!=='cleared'?-1:Math.max(0,D.runRating.ranks.indexOf(old.rank)),progress:0,last:metrics,normalKills:0,challengeKills:0,history:[],migrated:true};
   }
-  return run.adventurerRank;
+  run.adventurerRank.version=2;return run.adventurerRank;
  }
  function rankView(run){
-  if(run.starter&&run.adventurerRank.index===-1){const active=run.starter.phase==='boss';return {index:-1,rank:'E',tier:'E',nextRank:'D−',progress:run.level,required:9,remaining:Math.max(0,9-run.level),active,normal:active?[{label:'打倒守關 Boss',value:0,target:1}]:[],challenge:{label:active?'打倒守關 Boss':'升至 Lv.9，喚醒守關 Boss',value:active?0:run.level,target:active?1:9}};}
+  rankState(run);if(run.starter&&run.adventurerRank.index===-1){const active=run.starter.phase==='boss';return {index:-1,rank:'D',tier:'D',nextRank:'C−',progress:run.level,required:9,remaining:Math.max(0,9-run.level),active,normal:active?[{label:'打倒守關 Boss',value:0,target:1}]:[],challenge:{label:active?'打倒守關 Boss':'提升能力，喚醒守關 Boss',value:active?0:run.level,target:active?1:9}};}
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
-   {label:'任務出現後討伐 Lv.'+cfg.normal.enemyLevel+' 以上魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   {label:'任務出現後討伐 '+D.runRating.ranks[cfg.normal.enemyGradeIndex]+' 以上魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
    ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
    ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
   ]:[];
-  return {index:s.index,rank:D.runRating.ranks[s.index],tier:['D','C','B','A','S','SS'][Math.floor(s.index/3)],nextRank:D.runRating.ranks[s.index+1]||null,progress:s.progress,required:cfg?.points||0,remaining:cfg?Math.max(0,cfg.points-s.progress):0,active,normal,
-   challenge:cfg?{label:'本階正常擊敗 Lv.'+cfg.challenge.enemyLevel+' 以上魔物（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
+  return {index:s.index,rank:D.runRating.ranks[s.index],tier:D.levelProgression.tier(D.runRating.ranks[s.index]),nextRank:D.runRating.ranks[s.index+1]||null,progress:s.progress,required:cfg?.points||0,remaining:cfg?Math.max(0,cfg.points-s.progress):0,active,normal,
+   challenge:cfg?{label:'本階正常擊敗 '+D.runRating.ranks[cfg.challenge.enemyGradeIndex]+' 以上魔物（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
  }
  function advanceRank(run,event={}){
-  if(run.starter&&run.adventurerRank.index===-1){if(event.enemy&&!event.quick&&Maps.clearStarter(run,event.enemy))return {from:'E',to:'D−',route:'starter'};return null;}
+  if(run.starter&&run.adventurerRank.index===-1){if(event.enemy&&!event.quick&&Maps.clearStarter(run,event.enemy))return {from:'D',to:'C−',route:'starter'};return null;}
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run),previous=s.last;
   s.last=metrics;if(!cfg||run.status!=='active')return null;
   const wasActive=s.progress>=cfg.points;
   // A triggering kill belongs to exactly one rank. The kill filling the bar
   // does not count as a newly revealed ordinary mission's first kill.
-  if(event.enemy){if(wasActive&&event.enemy.level>=cfg.normal.enemyLevel)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
+  if(event.enemy){if(wasActive&&P.enemyGrade(event.enemy.type,event.enemy.level,{...event.enemy,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).index>=cfg.normal.enemyGradeIndex)s.normalKills++;if(!event.quick&&P.enemyGrade(event.enemy.type,event.enemy.level,{...event.enemy,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).index>=cfg.challenge.enemyGradeIndex)s.challengeKills++;}
   if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
   const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
   if(!direct&&!normal)return null;

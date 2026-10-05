@@ -47,21 +47,23 @@
   return q;
  }
  function dungeonClear(p,run,dungeonId){if(!p.unlockedClassIds.includes('WARRIOR')||!p.unlockedClassIds.includes('MAGE'))return [];const ids=run.build.moves.map(id=>D.moves[id]);const mp=ids.filter(m=>m?.damageType==='magic'&&m.cost?.mana).length,physical=ids.filter(m=>m?.damageType==='physical').length;if(mp<2||physical<2)return [];const seen=run.runAchievementTemporaryState?.uniqueDungeonIdsCountedForSpellsword||[];if(seen.includes(dungeonId))return [];run.runAchievementTemporaryState||={};run.runAchievementTemporaryState.uniqueDungeonIdsCountedForSpellsword=[...seen,dungeonId];const q=[];add(p,'ACH_UNLOCK_SPELLSWORD',1,q);run.pendingAchievementNotifications=(run.pendingAchievementNotifications||[]).concat(q);return q;}
+ const legacyRanks=['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'];
+ const rankTarget=i=>Math.max(0,D.runRating.ranks.indexOf(legacyRanks[i]));
  const journeyTasks=[
   {id:'RUN_HUNT',name:'戰鬥歷練',metric:'kills',target:20,marks:15},
   {id:'RUN_CLEAR',name:'遺跡突破',metric:'dungeons',target:1,marks:25},
-  {id:'RUN_LEVEL',name:'逐漸成長',metric:'level',target:10,marks:20},
-  ...[3,6,9,12,15].map((i,n)=>({id:'RUN_RANK_'+i,name:D.runRating.ranks[i]+' 評級挑戰',metric:'rank',target:i,marks:[20,30,40,60,90][n]}))
+  {id:'RUN_LEVEL',name:'逐漸成長',metric:'level',target:9,marks:20},
+  ...[3,6,9,12,15].map((i,n)=>({id:'RUN_RANK_'+i,name:legacyRanks[i]+' 評級挑戰',metric:'rank',target:rankTarget(i),marks:[20,30,40,60,90][n]}))
  ];
  const rankRewards={3:['moves','spark'],6:['skills','economy'],9:['moves','double_slash'],12:['skills','fast_cast'],15:['moves','lightning_whip'],17:['skills','mana_cycle']};
  const journeyAchievements=[
-  ...D.runRating.ranks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'rank',target:i,marks:10+i*5,ability:rankRewards[i]})),
+  ...legacyRanks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:i===0?'旅途開端 · D':i===2?'初階歷練 · D':'旅途評級 · '+rank,metric:'rank',target:rankTarget(i),marks:10+i*5,ability:rankRewards[i]})),
   {id:'ACH_JOURNEY_HUNT',name:'百戰旅人',metric:'kills',target:100,marks:60,ability:['moves','heavy']},
   {id:'ACH_JOURNEY_CLEAR',name:'遺跡征服者',metric:'dungeons',target:3,marks:80,ability:['skills','counter']},
-  {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:30,marks:60,ability:['skills','swift']}
+  {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:29,marks:60,ability:['skills','swift']}
  ];
- function journeyStats(run){const E=typeof module!=='undefined'?require('./encounters'):root.EncounterFlow,s=E.summary(run);return {kills:s.kills,dungeons:s.dungeons,level:s.level,score:s.rating.score,rank:s.rating.index};}
- function journeyDescription(d){return d.metric==='rank'?'本局實際晉升至 '+D.runRating.ranks[d.target]+'（含更高階）。':d.metric==='score'?(d.target?'單局結算評分達到 '+d.target+' 分。':'完成一次冒險結算。'):'單局'+({kills:'擊敗 ',dungeons:'通關不同地下城 ',level:'達到 Lv.'}[d.metric])+d.target+({kills:' 隻敵人（含壓制）。',dungeons:' 座。',level:'。'}[d.metric]);}
+ function journeyStats(run){const E=typeof module!=='undefined'?require('./encounters'):root.EncounterFlow,s=E.summary(run);return {kills:s.kills,dungeons:s.dungeons,level:Math.max(0,s.level-1),score:s.rating.score,rank:s.rating.index};}
+ function journeyDescription(d){return d.metric==='rank'?'本局實際晉升至 '+D.runRating.ranks[d.target]+'（含更高階）。':d.metric==='score'?(d.target?'單局結算評分達到 '+d.target+' 分。':'完成一次冒險結算。'):'單局'+({kills:'擊敗 ',dungeons:'通關不同地下城 ',level:'完成能力成長 '}[d.metric])+d.target+({kills:' 隻敵人（含壓制）。',dungeons:' 座。',level:' 次。'}[d.metric]);}
  function journeyReward(d){const a=d.ability,content=a&&(a[0]==='moves'?D.moves:D.skills)[a[1]];return d.marks+' 旅者徽記'+(content?' ＋ '+(a[0]==='moves'?'招式':'技能')+'「'+content.name+'」':'');}
  function settleJourney(p,run){
   if(!run||run.status!=='failed')return null;if(run.journeySettlement)return run.journeySettlement;

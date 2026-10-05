@@ -63,6 +63,7 @@
       for(const [resource,value]of Object.entries(move.cost))move.cost[resource]=Math.max(0,Math.round(actor.runtime.modify('cost:'+resource,value,ctx,trace)*costFactor*100)/100);
       // Consumed next-cast modifiers must survive for the whole selected move, not future moves.
       move.reservedModifiers=Object.values(actor.statuses).filter(s=>s.consume===move.damageType&&s.expiresAt>this.time).flatMap(s=>s.modifiers.filter(m=>m.stage==='damage'));
+      if(player)move.description=move.description?.replace(/消耗[：:]\s*[\d.]+\s*(?:MP|SP)(?:\s*[＋+]\s*[\d.]+\s*(?:MP|SP))?/g,'消耗：'+Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+(k==='mana'?'MP':'SP')).join('＋'));
       move.modifications=[...trace]; return move;
     }
     effectiveStat(actor,key){return actor.runtime.modify(key,actor.stats[key]);}
