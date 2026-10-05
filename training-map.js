@@ -15,8 +15,8 @@
  {name:'配置練習',action:'裝備生命強化、魔力強化、震盪打擊',x:1100,y:420,text:'從角色頁的調整招式技能進入，將三項能力放入欄位。普通招式和技能各最多四個。'},
  {name:'詠唱試煉場',action:'中斷石偶一次，再擊敗它',x:1550,y:620,text:'等石偶開始讀條，再使用震盪打擊。普通攻擊不一定能中斷。若未完成中斷，可重新挑戰。'},
  {name:'探索庭園',action:'調查祭壇並選擇契約',x:1580,y:1040,text:'探索事件可能給予本局效果。此契約會增加最大 MP、降低最大 SP，可以接受或拒絕。'},
- {name:'初光遺跡',action:'完成地下城兩場連戰',x:1320,y:1360,text:'兩場之間 HP／MP／SP 保留，通關離開後回復。完成課程會取得教學經驗，升至 Lv.9。'},
- {name:'中央守關者',action:'擊敗守關者',x:1100,y:690,text:'運用招式、被動技能與讀條判斷。擊敗後由 E 升至 D−，走到地圖邊緣可選擇七大區。'},
+ {name:'初光遺跡',action:'完成地下城兩場連戰',x:1320,y:1360,text:'兩場之間 HP／MP／SP 保留，通關離開後回復。完成課程會取得教學經驗，能力成長達到新手區上限。'},
+ {name:'中央守關者',action:'擊敗守關者',x:1100,y:690,text:'運用招式、被動技能與讀條判斷。擊敗後由 D 升至 C−，走到地圖邊緣可選擇七大區。'},
  {name:'旅途啟程',action:'前往邊緣傳送點',x:2140,y:900,text:'收藏會留下。前兩次倒下會休養，第三次結算本局；旅者徽記可到商店換取能力。圖鑑可查效果與取得來源，魔法書需要前置條件。必殺仍於首次完整冒險結算後解鎖。'}
  ];
  function start(run,practice=false){run.training={version:1,stage:0,practice,interrupted:false};run.starter={version:1,mapId:map.id,phase:'training',bossId:'tutorial-guardian'};run.currentMapId=map.id;run.position={...map.entry};run.mapPositions={};run.world.enemies=[];run.adventurerRank.index=-1;ensure(run);return map;}
