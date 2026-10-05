@@ -507,7 +507,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.26.0', date: '2026-10-05' },
+    release: { version: '0.26.2', date: '2026-10-05' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -1351,10 +1351,10 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  const anchors=[1,10,20,30,45,65,90,120,155,195,240,290,345,400,450,490];
  const bands=[
   {through:10,hp:12,stamina:3,mana:3,agility:.6,luck:.3},
-  {through:50,hp:14,stamina:3.5,mana:3.5,agility:.45,luck:.16},
-  {through:150,hp:14,stamina:4,mana:4,agility:.35,luck:.10},
-  {through:300,hp:16,stamina:4.5,mana:4.5,agility:.25,luck:.08},
-  {through:500,hp:18,stamina:5,mana:5,agility:.20,luck:.06}
+  {through:25,hp:14,stamina:3.5,mana:3.5,agility:.7,luck:.35},
+  {through:40,hp:16,stamina:4,mana:4,agility:.8,luck:.4},
+  {through:50,hp:18,stamina:4.5,mana:4.5,agility:.9,luck:.45},
+  {through:500,hp:12,stamina:4,mana:4,agility:1.2,luck:.6}
  ];
  const clamp=n=>Math.max(1,Math.min(NEW_CAP,Number(n)||1));
  const from999=n=>Math.round(n<=OPENING_CAP?Math.max(1,n):OPENING_CAP+(NEW_CAP-OPENING_CAP)*Math.min(1,(n-OPENING_CAP)/(999-OPENING_CAP)));
@@ -1371,19 +1371,14 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   if(D.levelProgression?.version===VERSION)return D;
   D.adventure.maxLevel=NEW_CAP;D.adventure.growthTable=table;D.adventure.growthBands=bands;
   const oldRanks=[...D.runRating.ranks],oldPromotions=D.rankPromotions;
-  D.rankPromotions=ranks.slice(0,-1).map((rank,i)=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:anchors[i],enemyGradeIndex:i},challenge:{...old.challenge,enemyLevel:anchors[i+1],enemyGradeIndex:i+1}};});
+  D.rankPromotions=ranks.slice(0,-1).map(rank=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:scaleLevel(old.normal.enemyLevel)},challenge:{...old.challenge,enemyLevel:scaleLevel(old.challenge.enemyLevel)}};});
   D.runRating.ranks=ranks;D.runRating.thresholds=[0];for(const p of D.rankPromotions)D.runRating.thresholds.push(D.runRating.thresholds.at(-1)+p.points);
   D.rankReferenceLevels=anchors;
-  D.balance.expPacing={...D.balance.expPacing,version:3,legacyThrough:20,surgeFrom:50,levelKnots:[[1,1],[20,1.3],[50,2],[100,4],[200,8],[300,12],[400,16],[500,20]]};
-  D.balance.resourceGrowth={field:1,dungeon:.25};D.balance.critDamageCap=2.2;D.balance.post50Mastery=[[100,.006],[250,.003],[500,.0015]];
-  const levels=[1,5,10,20,30,50,75,100,150,200,250,300,350,400,450,500];
-  const stat=(n,k)=>D.adventure.baseStats[k]+growth(n,k),defense=n=>6+34*(n-1)/(NEW_CAP-1);
-  D.enemyBalance.levels=levels;
-  D.enemyBalance.hp=levels.map(n=>Math.round((stat(n,'stamina')+10)*.56*(1+stat(n,'agility')/100)/4*(1+Math.min(.55,.05+stat(n,'luck')*.006)*(.4+stat(n,'luck')*.008))/(1+defense(n)/100)*(9+3*Math.min(1,(n-1)/49))));
-  D.enemyBalance.attack=levels.map(n=>Math.round((stat(n,'hp')+30)*.12));
-  D.enemyBalance.defenseBase=6;D.enemyBalance.defensePerLevel=34/(NEW_CAP-1);
-  D.enemyBalance.roles={normal:{hp:1,damage:1,exp:1},strong:{hp:1.2,damage:.95,exp:1.5},dungeon:{hp:1.12,damage:.92,exp:1.8},elite:{hp:1.3,damage:.88,exp:4},boss:{hp:1.65,damage:.75,exp:8},importantBoss:{hp:1.85,damage:.7,exp:12}};
-  D.enemyBalance.firstBoss={hp:1.65,damage:.75,exp:8};D.enemyBalance.gradeShift={normal:0,strong:0,dungeon:0,elite:0,boss:0,importantBoss:0};D.enemyBalance.version=3;
+  // Preserve the agreed tuning in data.js. Only project the existing world
+  // curve into the requested 500 cap, using the preceding release's formula.
+  const oldLevels=[...D.enemyBalance.levels],oldHp=[...D.enemyBalance.hp],oldAttack=[...D.enemyBalance.attack];
+  const scaleCurve=values=>oldLevels.map((level,i)=>Math.round(values[i]*Math.max(1,scaleLevel(level)/level)));
+  D.enemyBalance.levels=oldLevels.map(scaleLevel);D.enemyBalance.hp=scaleCurve(oldHp);D.enemyBalance.attack=scaleCurve(oldAttack);D.enemyBalance.version=2;
   for(const region of D.world.regions||[]){region.min=region.recommendedLevelMin=scaleLevel(region.min||region.recommendedLevelMin);region.max=region.recommendedLevelMax=scaleLevel(region.max||region.recommendedLevelMax);for(const band of region.subAreaLevelRanges||[]){band.min=scaleLevel(band.min);band.max=scaleLevel(band.max);}}
   for(const map of D.mapData||[]){
    map.recommendedLevelMin=from999(map.recommendedLevelMin);map.recommendedLevelMax=from999(map.recommendedLevelMax);map.eliteLevelRange=map.eliteLevelRange.map(from999);
@@ -1471,7 +1466,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  ];
  const rankRewards={3:['moves','spark'],6:['skills','economy'],9:['moves','double_slash'],12:['skills','fast_cast'],15:['moves','lightning_whip'],17:['skills','mana_cycle']};
  const journeyAchievements=[
-  ...legacyRanks.flatMap((rank,i)=>D.runRating.ranks.includes(rank)?[{id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'rank',target:rankTarget(i),marks:10+i*5,ability:rankRewards[i]}]:[]),
+  ...legacyRanks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:i===0?'旅途開端 · D':i===2?'初階歷練 · D':'旅途評級 · '+rank,metric:'rank',target:rankTarget(i),marks:10+i*5,ability:rankRewards[i]})),
   {id:'ACH_JOURNEY_HUNT',name:'百戰旅人',metric:'kills',target:100,marks:60,ability:['moves','heavy']},
   {id:'ACH_JOURNEY_CLEAR',name:'遺跡征服者',metric:'dungeons',target:3,marks:80,ability:['skills','counter']},
   {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:29,marks:60,ability:['skills','swift']}
@@ -1656,12 +1651,11 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
       const move={...original,cost:{...(!player&&original.originalResourceCost?original.originalResourceCost:original.cost)},multiplier:original.multiplier*(player?this.moveScale(this.moveLevels[id]||1):1)*(player&&physical?this.equipmentEffects.physicalMultiplier||1:1),attackTime:original.attackTime+(player&&physical?this.equipmentEffects.physicalAttackTime||0:0)};
       if(player&&physical&&(this.equipmentEffects.physicalMultiplier||this.equipmentEffects.physicalAttackTime))trace.add(D.equipment[this.build.equipment.weapon]?.name||'裝備');
       const ctx={move};move.attackTime=actor.runtime.modify('attackTime',move.attackTime,ctx,trace);
-      if(player&&this.options.resourceScale)for(const key of ['mana','stamina'])if(move.cost[key])move.cost[key]*=this.options.resourceScale[key];
       const elementRules=D.balance.elementSkills||{},elementTotals=actor.runtime.elementTotals(move.elements,trace),costFactor=Math.max(elementRules.minimumResourceCostMultiplier??.2,1-elementTotals.costReduction);
       for(const [resource,value]of Object.entries(move.cost))move.cost[resource]=Math.max(0,Math.round(actor.runtime.modify('cost:'+resource,value,ctx,trace)*costFactor*100)/100);
       // Consumed next-cast modifiers must survive for the whole selected move, not future moves.
       move.reservedModifiers=Object.values(actor.statuses).filter(s=>s.consume===move.damageType&&s.expiresAt>this.time).flatMap(s=>s.modifiers.filter(m=>m.stage==='damage'));
-      if(player&&this.options.resourceScale)move.description=move.description?.replace(/消耗[：:]\s*[\d.]+\s*(?:MP|SP)(?:\s*[＋+]\s*[\d.]+\s*(?:MP|SP))?/g,'消耗：'+Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+(k==='mana'?'MP':'SP')).join('＋'));
+      if(player)move.description=move.description?.replace(/消耗[：:]\s*[\d.]+\s*(?:MP|SP)(?:\s*[＋+]\s*[\d.]+\s*(?:MP|SP))?/g,'消耗：'+Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+(k==='mana'?'MP':'SP')).join('＋'));
       move.modifications=[...trace]; return move;
     }
     effectiveStat(actor,key){return actor.runtime.modify(key,actor.stats[key]);}
@@ -1928,7 +1922,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, rankDisplayVersion:2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
-  function migratePermanent(p){if(p.rankDisplayVersion===2)return p;for(const key of Object.keys(p.achievementProgress||{}))if(key.endsWith('_rank'))p.achievementProgress[key]=Math.max(0,p.achievementProgress[key]-2);if((p.completedAchievementIds||[]).some(id=>['ACH_JOURNEY_RANK_0','ACH_JOURNEY_RANK_2'].includes(id))&&!p.completedAchievementIds.includes('ACH_JOURNEY_RANK_1'))p.completedAchievementIds.push('ACH_JOURNEY_RANK_1');p.rankDisplayVersion=2;return p;}
+  function migratePermanent(p){if(p.rankDisplayVersion===2)return p;for(const key of Object.keys(p.achievementProgress||{}))if(key.endsWith('_rank'))p.achievementProgress[key]=Math.max(0,p.achievementProgress[key]-2);p.rankDisplayVersion=2;return p;}
   function loadProgress(storage) {
     try {
       const raw = storage.getItem('afterlight.progress.v2'); let session=null;try{session=JSON.parse(storage.getItem('afterlight.session.v1')||'null');}catch(_){}if (!raw&&!session?.permanent) return { progress: freshProgress(), warning: null };
@@ -1967,14 +1961,23 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   }
   function createRun(permanent, build = defaultBuild(), rng = Math.random) {
     validateBuild(build, permanent);
-    const run={ mapGeometryVersion:Maps.geometry.version, adventurerRank:{version:2,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
+    const run={ mapGeometryVersion:Maps.geometry.version, adventurerRank:{version:2,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, restoredRulesVersion:1, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
     Exploration.ensure(run,{rng,permanent});ensureWorldContent(run);return run;
   }
   function migrateRun(run){
-    if(run.enemyLevelCurveVersion===LevelProgression.VERSION)return false;
-    const before=legacyStatsFor(run);LevelProgression.migrateRun(D,run);const after=statsFor(run);
+    const needsLevel=run.enemyLevelCurveVersion!==LevelProgression.VERSION;
+    if(!needsLevel&&run.restoredRulesVersion===1)return false;
+    const before=needsLevel?legacyStatsFor(run):statsBeforeRollback(run);if(needsLevel)LevelProgression.migrateRun(D,run);const after=statsFor(run);
     if(run.dungeonResources)for(const k of ['hp','mana','stamina'])run.dungeonResources[k]=Math.max(0,Math.min(after[k],run.dungeonResources[k]/Math.max(1,before[k])*after[k]));
+    run.restoredRulesVersion=1;
     return true;
+  }
+  // Read-only reconstruction of 0.26.0/0.26.1 capacity for save migration.
+  function statsBeforeRollback(run){
+    const bands=[{through:10,hp:12,stamina:3,mana:3,agility:.6,luck:.3},{through:50,hp:14,stamina:3.5,mana:3.5,agility:.45,luck:.16},{through:150,hp:14,stamina:4,mana:4,agility:.35,luck:.10},{through:300,hp:16,stamina:4.5,mana:4.5,agility:.25,luck:.08},{through:500,hp:18,stamina:5,mana:5,agility:.20,luck:.06}],stats={},detail=statBreakdown(run);
+    for(const [k,d]of Object.entries(detail)){let growth=0,start=1;for(const b of bands){growth+=Math.max(0,Math.min(run.level,b.through)-start)*b[k];start=b.through;}stats[k]=(d.base+growth*d.classGrowthMultiplier*(1+d.bonusRate)+d.allocated)*(1+d.finalRate);}
+    for(const id of run.debuffIds){const d=D.debuffs.find(d=>d.id===id);if(d)stats[d.stat]*=d.factor;}
+    for(const k of Object.keys(stats))stats[k]*=Exploration.statFactor(run,k);return stats;
   }
   function legacyStatsFor(run){
     const stats={},detail=statBreakdown(run);
@@ -2088,9 +2091,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
     const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
     const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
     const starterBoss=type.startsWith('starter_');
-    const baseIndex=LevelProgression.gradeIndex(level),shift=source.training||starterBoss?0:cfg.gradeShift[role]||0;
-    const combatLevel=Math.min(D.adventure.maxLevel,level+LevelProgression.anchors[Math.min(15,baseIndex+shift)]-LevelProgression.anchors[baseIndex]);
-    level=combatLevel;
+    level=Math.min(D.adventure.maxLevel,level);
     const attackPower=interpolate(cfg.attack)*species.damage*(source.training?.35:starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
     const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
     const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
@@ -2117,18 +2118,17 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   function mapGrades(map){if(mapGradeCache.has(map.id))return mapGradeCache.get(map.id);const grades=(map.spawnPoints||[]).map((p,i)=>{const pool=p.elite?map.elitePoolIds:map.enemyPoolIds;return enemyGrade(pool[i%pool.length],p.level,{...p,overworld:true}).index;});if(!grades.length)grades.push(0);const low=D.runRating.ranks[Math.min(...grades)],high=D.runRating.ranks[Math.max(...grades)],result={low,high,caption:low===high?low:low+'～'+high};mapGradeCache.set(map.id,result);return result;}
   function dungeonGrade(d,run=null){const waves=run?Exploration.waves(run,d.id):d.enemyWaves;return waves.map(w=>enemyGrade(w.type,w.level,{...w,overworld:false,dungeonId:d.id})).sort((a,b)=>b.index-a.index)[0]?.rank||'D';}
   function battleFor(run, encounter, rng = Math.random) {
-    const resourceScale=Object.fromEntries(['mana','stamina'].map(key=>[key,1+LevelProgression.growth(run.level,key)/D.adventure.baseStats[key]*(run.dungeon?D.balance.resourceGrowth.dungeon:D.balance.resourceGrowth.field)]));
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, extraSources:Exploration.sources(run), classTrait:Classes.active(run).innateTrait, balance50:true, resourceScale, levelGap:LevelProgression.referenceLevel(enemyDefinition(encounter.type,encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, extraSources:Exploration.sources(run), classTrait:Classes.active(run).innateTrait, balance50:true, levelGap:LevelProgression.referenceLevel(enemyDefinition(encounter.type,encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
-      critMultiplier: stats => Math.min(D.balance.critDamageCap,D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck)
+      critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
     } });
     if(run.training&&['tutorial-first','tutorial-caster'].includes(encounter.id)){b.rules.critChance=0;b.rules.dodgeChance=0;}
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.findDungeon(run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { migratePermanent, migrateRun, legacyStatsFor, ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, enemyGrade, mapGrades, dungeonGrade, battleFor, dungeonEncounter };
+  const api = { statsBeforeRollback, migratePermanent, migrateRun, legacyStatsFor, ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, enemyGrade, mapGrades, dungeonGrade, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);
 
@@ -2645,8 +2645,8 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
  return out;}
  function save(storage,game){if(game.debugBattle||game.practice)return true;try{storage.setItem(KEY,JSON.stringify(game.run?pack(game):{version:1,run:null,permanent:game.permanent}));return true;}catch(_){return false;}}
  function load(storage){try{const raw=storage.getItem(KEY);if(!raw)return {snapshot:null};const s=JSON.parse(raw);if(s.version!==1)throw Error('存檔版本不相容');if(!s.run)return {snapshot:null};if(s.worldVersion!==D.worldContentVersion)throw Error('世界版本不相容');
- const run=s.run,oldCurve=run.enemyLevelCurveVersion,needsMigration=oldCurve!==2;run.defeatedEnemyTypesThisRun=[...new Set((run.defeatedEnemyTypesThisRun||[]).filter(id=>D.monsters[id]))];if(!run.battleStats)run.battleStatsPartial=true; if(s.permanent.ultimateUnlocked===undefined)s.permanent.ultimateUnlocked=run.status==='failed';if(!s.permanent.ultimateUnlocked){run.build.ultimate=null;if(s.build)s.build.ultimate=null;}run.points=0;if(!run.loot){run.loot={};run.lootHistoryPartial=true;}if(!Number.isFinite(run.ultimateCharge))run.ultimateCharge=0;P.migratePermanent(s.permanent);P.validateBuild(run.build,s.permanent);P.normalizeUltimateCharge(run);if(needsMigration){P.migrateRun(run);const convert=oldCurve===1?D.levelProgression&& (typeof module!=='undefined'?require('./level-progression'):root.LevelProgression).from999:D.levelProgression.scaleLevel;if(s.encounter)s.encounter.level=convert(s.encounter.level);if(s.result?.exp){const exp=s.result.exp;exp.beforeLevel=convert(exp.beforeLevel);exp.afterLevel=convert(exp.afterLevel);exp.levels=Math.max(0,exp.afterLevel-exp.beforeLevel);exp.beforeStats=P.statsFor({...run,level:exp.beforeLevel});exp.afterStats=P.statsFor({...run,level:exp.afterLevel});if(exp.maxLevel)exp.maxLevel=500;}if(s.battle?.run)s.battle.run.level=run.level;}P.statsFor(run);if(!Number.isInteger(run.level)||run.level<1||!['active','failed'].includes(run.status)||!Number.isFinite(run.position.x)||!Number.isFinite(run.position.y)||!Array.isArray(run.world.enemies))throw Error('冒險資料不完整');for(const e of run.world.enemies)if(!D.monsters[e.type]||!Number.isFinite(e.level))throw Error('敵人資料不相容');if(run.dungeon)P.dungeonEncounter(run);
- if(!['explore','battle'].includes(s.scene))throw Error('場景不相容');if(s.scene==='battle'){if(!s.battle||!D.monsters[s.encounter?.type])throw Error('戰鬥資料不完整');const b=P.battleFor(run,s.encounter);for(const k of ['time','phase','charge','enemyTurn','run','delayedHits','buildReport','reportCommitted'])if(s.battle[k]!==undefined)b[k]=s.battle[k];b.lastOutcome=s.battle.lastOutcome;if(!Number.isFinite(b.time)||!['fighting','victory','revived','gameover'].includes(b.phase))throw Error('戰鬥狀態不相容');for(const id of ['player','enemy']){const actor=s.battle[id],runtime=b[id].runtime;if(!actor||!Number.isFinite(actor.hp)||!Number.isFinite(actor.mana)||!Number.isFinite(actor.stamina))throw Error('資源資料不完整');if(actor.cast&&(!D.moves[actor.cast.moveId]||!Number.isFinite(actor.cast.endAt)||actor.cast.endAt<b.time))throw Error('讀條不相容');if(actor.sequence&&(!D.moves[actor.sequence.moveId]||!Number.isFinite(actor.sequence.nextAt)||actor.sequence.nextAt<b.time))throw Error('連擊資料不相容');for(const status of Object.values(actor.statuses||{}))if(!Number.isFinite(status.expiresAt)||status.tick&&(!(status.tick.interval>0)||!Number.isFinite(status.nextTick)))throw Error('狀態不相容');if(actor.statuses?.charged)actor.statuses.charged.consume='physical';if(actor.statuses?.counter_guard)actor.statuses.counter_guard.counterRatio=.25;const {once,...data}=actor;if(needsMigration){const next={...b[id].stats};for(const key of ['hp','mana','stamina'])data[key]=Math.max(0,Math.min(next[key],data[key]/Math.max(1,actor.stats[key])*next[key]));data.stats=next;}Object.assign(b[id],data);runtime.once=new Set(once||[]);}b.events=[];if(s.noRandom){b.rules.critChance=0;b.rules.dodgeChance=0;}s.battle=b;}
+ const run=s.run,oldCurve=run.enemyLevelCurveVersion,needsMigration=oldCurve!==2,needsStatsRefresh=needsMigration||run.restoredRulesVersion!==1;run.defeatedEnemyTypesThisRun=[...new Set((run.defeatedEnemyTypesThisRun||[]).filter(id=>D.monsters[id]))];if(!run.battleStats)run.battleStatsPartial=true; if(s.permanent.ultimateUnlocked===undefined)s.permanent.ultimateUnlocked=run.status==='failed';if(!s.permanent.ultimateUnlocked){run.build.ultimate=null;if(s.build)s.build.ultimate=null;}run.points=0;if(!run.loot){run.loot={};run.lootHistoryPartial=true;}if(!Number.isFinite(run.ultimateCharge))run.ultimateCharge=0;P.migratePermanent(s.permanent);P.validateBuild(run.build,s.permanent);P.normalizeUltimateCharge(run);P.migrateRun(run);if(needsMigration){const convert=oldCurve===1?D.levelProgression&& (typeof module!=='undefined'?require('./level-progression'):root.LevelProgression).from999:D.levelProgression.scaleLevel;if(s.encounter)s.encounter.level=convert(s.encounter.level);if(s.result?.exp){const exp=s.result.exp;exp.beforeLevel=convert(exp.beforeLevel);exp.afterLevel=convert(exp.afterLevel);exp.levels=Math.max(0,exp.afterLevel-exp.beforeLevel);exp.beforeStats=P.statsFor({...run,level:exp.beforeLevel});exp.afterStats=P.statsFor({...run,level:exp.afterLevel});if(exp.maxLevel)exp.maxLevel=500;}if(s.battle?.run)s.battle.run.level=run.level;}if(needsStatsRefresh&&!needsMigration&&s.result?.exp){s.result.exp.beforeStats=P.statsFor({...run,level:s.result.exp.beforeLevel});s.result.exp.afterStats=P.statsFor({...run,level:s.result.exp.afterLevel});}P.statsFor(run);if(!Number.isInteger(run.level)||run.level<1||!['active','failed'].includes(run.status)||!Number.isFinite(run.position.x)||!Number.isFinite(run.position.y)||!Array.isArray(run.world.enemies))throw Error('冒險資料不完整');for(const e of run.world.enemies)if(!D.monsters[e.type]||!Number.isFinite(e.level))throw Error('敵人資料不相容');if(run.dungeon)P.dungeonEncounter(run);
+ if(!['explore','battle'].includes(s.scene))throw Error('場景不相容');if(s.scene==='battle'){if(!s.battle||!D.monsters[s.encounter?.type])throw Error('戰鬥資料不完整');const b=P.battleFor(run,s.encounter);for(const k of ['time','phase','charge','enemyTurn','run','delayedHits','buildReport','reportCommitted'])if(s.battle[k]!==undefined)b[k]=s.battle[k];b.lastOutcome=s.battle.lastOutcome;if(!Number.isFinite(b.time)||!['fighting','victory','revived','gameover'].includes(b.phase))throw Error('戰鬥狀態不相容');for(const id of ['player','enemy']){const actor=s.battle[id],runtime=b[id].runtime;if(!actor||!Number.isFinite(actor.hp)||!Number.isFinite(actor.mana)||!Number.isFinite(actor.stamina))throw Error('資源資料不完整');if(actor.cast&&(!D.moves[actor.cast.moveId]||!Number.isFinite(actor.cast.endAt)||actor.cast.endAt<b.time))throw Error('讀條不相容');if(actor.sequence&&(!D.moves[actor.sequence.moveId]||!Number.isFinite(actor.sequence.nextAt)||actor.sequence.nextAt<b.time))throw Error('連擊資料不相容');for(const status of Object.values(actor.statuses||{}))if(!Number.isFinite(status.expiresAt)||status.tick&&(!(status.tick.interval>0)||!Number.isFinite(status.nextTick)))throw Error('狀態不相容');if(actor.statuses?.charged)actor.statuses.charged.consume='physical';if(actor.statuses?.counter_guard)actor.statuses.counter_guard.counterRatio=.25;const {once,...data}=actor;if(needsStatsRefresh){const next={...b[id].stats};for(const key of ['hp','mana','stamina'])data[key]=Math.max(0,Math.min(next[key],data[key]/Math.max(1,actor.stats[key])*next[key]));data.stats=next;}Object.assign(b[id],data);runtime.once=new Set(once||[]);}b.events=[];if(s.noRandom){b.rules.critChance=0;b.rules.dodgeChance=0;}s.battle=b;}
  P.ensureWorldContent(run);return {snapshot:s};}catch(error){return {snapshot:null,warning:'無法接續冒險：'+error.message+'。永久收藏仍保留。'};}}
  const api={KEY,pack,save,load};if(typeof module!=='undefined')module.exports=api;else root.RunSave=api;
 })(globalThis);
@@ -2750,12 +2750,12 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const s=rankState(run),cfg=D.rankPromotions[s.index],metrics=rankMetrics(run);
   const active=!!cfg&&s.progress>=cfg.points;
   const normal=cfg&&active?[
-   {label:'任務出現後討伐 '+D.runRating.ranks[cfg.normal.enemyGradeIndex]+' 以上魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
+   {label:'任務出現後討伐達標魔物（含壓制）',value:s.normalKills,target:cfg.normal.kills},
    ...(cfg.normal.level?[{label:'本局角色等級',value:metrics.level,target:cfg.normal.level}]:[]),
    ...(cfg.normal.dungeons?[{label:'本局通關不同地下城',value:metrics.dungeons,target:cfg.normal.dungeons}]:[])
   ]:[];
   return {index:s.index,rank:D.runRating.ranks[s.index],tier:D.levelProgression.tier(D.runRating.ranks[s.index]),nextRank:D.runRating.ranks[s.index+1]||null,progress:s.progress,required:cfg?.points||0,remaining:cfg?Math.max(0,cfg.points-s.progress):0,active,normal,
-   challenge:cfg?{label:'本階正常擊敗 '+D.runRating.ranks[cfg.challenge.enemyGradeIndex]+' 以上魔物（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
+   challenge:cfg?{label:'本階正常擊敗越階挑戰目標（不含壓制）',value:s.challengeKills,target:cfg.challenge.kills}:null};
  }
  function advanceRank(run,event={}){
   if(run.starter&&run.adventurerRank.index===-1){if(event.enemy&&!event.quick&&Maps.clearStarter(run,event.enemy))return {from:'D',to:'C−',route:'starter'};return null;}
@@ -2764,7 +2764,7 @@ if(typeof module!=='undefined')module.exports=enrich;else root.WorldContent=enri
   const wasActive=s.progress>=cfg.points;
   // A triggering kill belongs to exactly one rank. The kill filling the bar
   // does not count as a newly revealed ordinary mission's first kill.
-  if(event.enemy){if(wasActive&&P.enemyGrade(event.enemy.type,event.enemy.level,{...event.enemy,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).index>=cfg.normal.enemyGradeIndex)s.normalKills++;if(!event.quick&&P.enemyGrade(event.enemy.type,event.enemy.level,{...event.enemy,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).index>=cfg.challenge.enemyGradeIndex)s.challengeKills++;}
+  if(event.enemy){if(wasActive&&event.enemy.level>=cfg.normal.enemyLevel)s.normalKills++;if(!event.quick&&event.enemy.level>=cfg.challenge.enemyLevel)s.challengeKills++;}
   if(!wasActive)s.progress=Math.min(cfg.points,s.progress+Math.max(0,metrics.kills-previous.kills)*D.runRating.kills.points+Math.max(0,metrics.dungeons-previous.dungeons)*D.runRating.dungeons.points+Math.max(0,metrics.level-previous.level)*D.runRating.levels.points);
   const view=rankView(run),direct=s.challengeKills>=cfg.challenge.kills,normal=view.active&&view.normal.every(t=>t.value>=t.target);
   if(!direct&&!normal)return null;

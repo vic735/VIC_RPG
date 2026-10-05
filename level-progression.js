@@ -5,10 +5,10 @@
  const anchors=[1,10,20,30,45,65,90,120,155,195,240,290,345,400,450,490];
  const bands=[
   {through:10,hp:12,stamina:3,mana:3,agility:.6,luck:.3},
-  {through:50,hp:14,stamina:3.5,mana:3.5,agility:.45,luck:.16},
-  {through:150,hp:14,stamina:4,mana:4,agility:.35,luck:.10},
-  {through:300,hp:16,stamina:4.5,mana:4.5,agility:.25,luck:.08},
-  {through:500,hp:18,stamina:5,mana:5,agility:.20,luck:.06}
+  {through:25,hp:14,stamina:3.5,mana:3.5,agility:.7,luck:.35},
+  {through:40,hp:16,stamina:4,mana:4,agility:.8,luck:.4},
+  {through:50,hp:18,stamina:4.5,mana:4.5,agility:.9,luck:.45},
+  {through:500,hp:12,stamina:4,mana:4,agility:1.2,luck:.6}
  ];
  const clamp=n=>Math.max(1,Math.min(NEW_CAP,Number(n)||1));
  const from999=n=>Math.round(n<=OPENING_CAP?Math.max(1,n):OPENING_CAP+(NEW_CAP-OPENING_CAP)*Math.min(1,(n-OPENING_CAP)/(999-OPENING_CAP)));
@@ -25,19 +25,14 @@
   if(D.levelProgression?.version===VERSION)return D;
   D.adventure.maxLevel=NEW_CAP;D.adventure.growthTable=table;D.adventure.growthBands=bands;
   const oldRanks=[...D.runRating.ranks],oldPromotions=D.rankPromotions;
-  D.rankPromotions=ranks.slice(0,-1).map((rank,i)=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:anchors[i],enemyGradeIndex:i},challenge:{...old.challenge,enemyLevel:anchors[i+1],enemyGradeIndex:i+1}};});
+  D.rankPromotions=ranks.slice(0,-1).map(rank=>{const old=oldPromotions[oldRanks.indexOf(rank)]||oldPromotions[0];return {...old,normal:{...old.normal,enemyLevel:scaleLevel(old.normal.enemyLevel)},challenge:{...old.challenge,enemyLevel:scaleLevel(old.challenge.enemyLevel)}};});
   D.runRating.ranks=ranks;D.runRating.thresholds=[0];for(const p of D.rankPromotions)D.runRating.thresholds.push(D.runRating.thresholds.at(-1)+p.points);
   D.rankReferenceLevels=anchors;
-  D.balance.expPacing={...D.balance.expPacing,version:3,legacyThrough:20,surgeFrom:50,levelKnots:[[1,1],[20,1.3],[50,2],[100,4],[200,8],[300,12],[400,16],[500,20]]};
-  D.balance.resourceGrowth={field:1,dungeon:.25};D.balance.critDamageCap=2.2;D.balance.post50Mastery=[[100,.006],[250,.003],[500,.0015]];
-  const levels=[1,5,10,20,30,50,75,100,150,200,250,300,350,400,450,500];
-  const stat=(n,k)=>D.adventure.baseStats[k]+growth(n,k),defense=n=>6+34*(n-1)/(NEW_CAP-1);
-  D.enemyBalance.levels=levels;
-  D.enemyBalance.hp=levels.map(n=>Math.round((stat(n,'stamina')+10)*.56*(1+stat(n,'agility')/100)/4*(1+Math.min(.55,.05+stat(n,'luck')*.006)*(.4+stat(n,'luck')*.008))/(1+defense(n)/100)*(9+3*Math.min(1,(n-1)/49))));
-  D.enemyBalance.attack=levels.map(n=>Math.round((stat(n,'hp')+30)*.12));
-  D.enemyBalance.defenseBase=6;D.enemyBalance.defensePerLevel=34/(NEW_CAP-1);
-  D.enemyBalance.roles={normal:{hp:1,damage:1,exp:1},strong:{hp:1.2,damage:.95,exp:1.5},dungeon:{hp:1.12,damage:.92,exp:1.8},elite:{hp:1.3,damage:.88,exp:4},boss:{hp:1.65,damage:.75,exp:8},importantBoss:{hp:1.85,damage:.7,exp:12}};
-  D.enemyBalance.firstBoss={hp:1.65,damage:.75,exp:8};D.enemyBalance.gradeShift={normal:0,strong:0,dungeon:0,elite:0,boss:0,importantBoss:0};D.enemyBalance.version=3;
+  // Preserve the agreed tuning in data.js. Only project the existing world
+  // curve into the requested 500 cap, using the preceding release's formula.
+  const oldLevels=[...D.enemyBalance.levels],oldHp=[...D.enemyBalance.hp],oldAttack=[...D.enemyBalance.attack];
+  const scaleCurve=values=>oldLevels.map((level,i)=>Math.round(values[i]*Math.max(1,scaleLevel(level)/level)));
+  D.enemyBalance.levels=oldLevels.map(scaleLevel);D.enemyBalance.hp=scaleCurve(oldHp);D.enemyBalance.attack=scaleCurve(oldAttack);D.enemyBalance.version=2;
   for(const region of D.world.regions||[]){region.min=region.recommendedLevelMin=scaleLevel(region.min||region.recommendedLevelMin);region.max=region.recommendedLevelMax=scaleLevel(region.max||region.recommendedLevelMax);for(const band of region.subAreaLevelRanges||[]){band.min=scaleLevel(band.min);band.max=scaleLevel(band.max);}}
   for(const map of D.mapData||[]){
    map.recommendedLevelMin=from999(map.recommendedLevelMin);map.recommendedLevelMax=from999(map.recommendedLevelMax);map.eliteLevelRange=map.eliteLevelRange.map(from999);

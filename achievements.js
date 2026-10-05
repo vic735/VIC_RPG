@@ -57,7 +57,7 @@
  ];
  const rankRewards={3:['moves','spark'],6:['skills','economy'],9:['moves','double_slash'],12:['skills','fast_cast'],15:['moves','lightning_whip'],17:['skills','mana_cycle']};
  const journeyAchievements=[
-  ...legacyRanks.flatMap((rank,i)=>D.runRating.ranks.includes(rank)?[{id:'ACH_JOURNEY_RANK_'+i,name:'旅途評級 · '+rank,metric:'rank',target:rankTarget(i),marks:10+i*5,ability:rankRewards[i]}]:[]),
+  ...legacyRanks.map((rank,i)=>({id:'ACH_JOURNEY_RANK_'+i,name:i===0?'旅途開端 · D':i===2?'初階歷練 · D':'旅途評級 · '+rank,metric:'rank',target:rankTarget(i),marks:10+i*5,ability:rankRewards[i]})),
   {id:'ACH_JOURNEY_HUNT',name:'百戰旅人',metric:'kills',target:100,marks:60,ability:['moves','heavy']},
   {id:'ACH_JOURNEY_CLEAR',name:'遺跡征服者',metric:'dungeons',target:3,marks:80,ability:['skills','counter']},
   {id:'ACH_JOURNEY_LEVEL',name:'成長足跡',metric:'level',target:29,marks:60,ability:['skills','swift']}

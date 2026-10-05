@@ -12,7 +12,7 @@
   const Exploration=typeof module!=='undefined'?require('./run-exploration'):root.RunExploration;
   const clone = x => JSON.parse(JSON.stringify(x));
   function freshProgress() { const p={ schemaVersion: 2, rankDisplayVersion:2, ultimateUnlocked: false, skills: [...D.startingSkills], moves: Object.fromEntries(D.startingMoves.map(id=>[id,1])), ultimates: ['nova'], books: [], equipment: ['hood', 'coat', 'wraps', 'boots', 'sword'], completions: 0 };Classes.normalize(p);return p; }
-  function migratePermanent(p){if(p.rankDisplayVersion===2)return p;for(const key of Object.keys(p.achievementProgress||{}))if(key.endsWith('_rank'))p.achievementProgress[key]=Math.max(0,p.achievementProgress[key]-2);if((p.completedAchievementIds||[]).some(id=>['ACH_JOURNEY_RANK_0','ACH_JOURNEY_RANK_2'].includes(id))&&!p.completedAchievementIds.includes('ACH_JOURNEY_RANK_1'))p.completedAchievementIds.push('ACH_JOURNEY_RANK_1');p.rankDisplayVersion=2;return p;}
+  function migratePermanent(p){if(p.rankDisplayVersion===2)return p;for(const key of Object.keys(p.achievementProgress||{}))if(key.endsWith('_rank'))p.achievementProgress[key]=Math.max(0,p.achievementProgress[key]-2);p.rankDisplayVersion=2;return p;}
   function loadProgress(storage) {
     try {
       const raw = storage.getItem('afterlight.progress.v2'); let session=null;try{session=JSON.parse(storage.getItem('afterlight.session.v1')||'null');}catch(_){}if (!raw&&!session?.permanent) return { progress: freshProgress(), warning: null };
@@ -51,14 +51,23 @@
   }
   function createRun(permanent, build = defaultBuild(), rng = Math.random) {
     validateBuild(build, permanent);
-    const run={ mapGeometryVersion:Maps.geometry.version, adventurerRank:{version:2,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
+    const run={ mapGeometryVersion:Maps.geometry.version, adventurerRank:{version:2,index:0,progress:0,last:{kills:0,dungeons:0,level:1},normalKills:0,challengeKills:0,history:[]}, schemaVersion: 2, restoredRulesVersion:1, enemyLevelCurveVersion:LevelProgression?.VERSION||0, currentMapId:'north_plains_1', activeClassId:build.activeClassId||'ADVENTURER', defeatedEnemyTypesThisRun: [], battleStats:{kills:0,normalKills:0,quickKills:0,clearedDungeonIds:[],highestHit:0,previousBestHit:permanent.meta?.bestHit||0,lastDefeat:null}, loot: {}, ultimateCharge: 0, ultimateChargeVersion: 2, level: 1, exp: 0, points: 0, allocated: { hp: 0, stamina: 0, mana: 0, agility: 0, luck: 0 }, deaths: 0, debuffIds: [], status: 'active', moveLevels: clone(permanent.moves), build: clone(build), position: { x: D.world.camp.x, y: D.world.camp.y }, world: { time: 0, enemies: D.world.spawns.map(([x, y, type], index) => ({ id: type==='camp_golem'?'enemy-camp-golem':'enemy-' + index, x, y, homeX: x, homeY: y, type, level: D.enemySpawnData[index]?.level || regionLevel(x,y)+(D.enemySpawnData[index]?.levelBonus||0), elite:!!D.enemySpawnData[index]?.elite, regionId:D.enemySpawnData[index]?.regionId, discovered: false, defeatedUntil: 0 })), discoveredDungeons: [] }, dungeon: null };
     Exploration.ensure(run,{rng,permanent});ensureWorldContent(run);return run;
   }
   function migrateRun(run){
-    if(run.enemyLevelCurveVersion===LevelProgression.VERSION)return false;
-    const before=legacyStatsFor(run);LevelProgression.migrateRun(D,run);const after=statsFor(run);
+    const needsLevel=run.enemyLevelCurveVersion!==LevelProgression.VERSION;
+    if(!needsLevel&&run.restoredRulesVersion===1)return false;
+    const before=needsLevel?legacyStatsFor(run):statsBeforeRollback(run);if(needsLevel)LevelProgression.migrateRun(D,run);const after=statsFor(run);
     if(run.dungeonResources)for(const k of ['hp','mana','stamina'])run.dungeonResources[k]=Math.max(0,Math.min(after[k],run.dungeonResources[k]/Math.max(1,before[k])*after[k]));
+    run.restoredRulesVersion=1;
     return true;
+  }
+  // Read-only reconstruction of 0.26.0/0.26.1 capacity for save migration.
+  function statsBeforeRollback(run){
+    const bands=[{through:10,hp:12,stamina:3,mana:3,agility:.6,luck:.3},{through:50,hp:14,stamina:3.5,mana:3.5,agility:.45,luck:.16},{through:150,hp:14,stamina:4,mana:4,agility:.35,luck:.10},{through:300,hp:16,stamina:4.5,mana:4.5,agility:.25,luck:.08},{through:500,hp:18,stamina:5,mana:5,agility:.20,luck:.06}],stats={},detail=statBreakdown(run);
+    for(const [k,d]of Object.entries(detail)){let growth=0,start=1;for(const b of bands){growth+=Math.max(0,Math.min(run.level,b.through)-start)*b[k];start=b.through;}stats[k]=(d.base+growth*d.classGrowthMultiplier*(1+d.bonusRate)+d.allocated)*(1+d.finalRate);}
+    for(const id of run.debuffIds){const d=D.debuffs.find(d=>d.id===id);if(d)stats[d.stat]*=d.factor;}
+    for(const k of Object.keys(stats))stats[k]*=Exploration.statFactor(run,k);return stats;
   }
   function legacyStatsFor(run){
     const stats={},detail=statBreakdown(run);
@@ -172,9 +181,7 @@
     const source=D.monsters[type];if(!source)throw Error('未知敵人');const cfg=D.enemyBalance,{role,species,tuning}=enemyProfile(type,options);
     const interpolate=values=>{let i=cfg.levels.findIndex(x=>x>=level);if(i===0)return values[0];if(i<0)i=cfg.levels.length-1;const a=cfg.levels[i-1],b=cfg.levels[i];return values[i-1]+(level-a)/(b-a)*(values[i]-values[i-1]);};
     const starterBoss=type.startsWith('starter_');
-    const baseIndex=LevelProgression.gradeIndex(level),shift=source.training||starterBoss?0:cfg.gradeShift[role]||0;
-    const combatLevel=Math.min(D.adventure.maxLevel,level+LevelProgression.anchors[Math.min(15,baseIndex+shift)]-LevelProgression.anchors[baseIndex]);
-    level=combatLevel;
+    level=Math.min(D.adventure.maxLevel,level);
     const attackPower=interpolate(cfg.attack)*species.damage*(source.training?.35:starterBoss?Maps.starterConfig.bossDamageMultiplier:tuning.damage);
     const damaging=source.moves.map(id=>D.moves[id]).filter(m=>m&&m.multiplier>0),all=source.moves.map(id=>D.moves[id]).filter(Boolean);
     const averageMultiplier=damaging.reduce((n,m)=>n+m.multiplier,0)/Math.max(1,damaging.length);
@@ -201,17 +208,16 @@
   function mapGrades(map){if(mapGradeCache.has(map.id))return mapGradeCache.get(map.id);const grades=(map.spawnPoints||[]).map((p,i)=>{const pool=p.elite?map.elitePoolIds:map.enemyPoolIds;return enemyGrade(pool[i%pool.length],p.level,{...p,overworld:true}).index;});if(!grades.length)grades.push(0);const low=D.runRating.ranks[Math.min(...grades)],high=D.runRating.ranks[Math.max(...grades)],result={low,high,caption:low===high?low:low+'～'+high};mapGradeCache.set(map.id,result);return result;}
   function dungeonGrade(d,run=null){const waves=run?Exploration.waves(run,d.id):d.enemyWaves;return waves.map(w=>enemyGrade(w.type,w.level,{...w,overworld:false,dungeonId:d.id})).sort((a,b)=>b.index-a.index)[0]?.rank||'D';}
   function battleFor(run, encounter, rng = Math.random) {
-    const resourceScale=Object.fromEntries(['mana','stamina'].map(key=>[key,1+LevelProgression.growth(run.level,key)/D.adventure.baseStats[key]*(run.dungeon?D.balance.resourceGrowth.dungeon:D.balance.resourceGrowth.field)]));
     const effects = {}; for (const id of Object.values(run.build.equipment)) if (id) for (const key of ['physicalMultiplier', 'physicalAttackTime', 'onDodgeShorten']) if (D.equipment[id][key]) effects[key] = D.equipment[id][key];
-    const b = new C.Battle({ rng, extraSources:Exploration.sources(run), classTrait:Classes.active(run).innateTrait, balance50:true, resourceScale, levelGap:LevelProgression.referenceLevel(enemyDefinition(encounter.type,encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
+    const b = new C.Battle({ rng, extraSources:Exploration.sources(run), classTrait:Classes.active(run).innateTrait, balance50:true, levelGap:LevelProgression.referenceLevel(enemyDefinition(encounter.type,encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}).level)-LevelProgression.referenceLevel(run.level), preserveResources:!!run.dungeon, stats: statsFor(run, false), build: run.build, moveLevels: run.moveLevels, moveScale, enemy: enemyDefinition(encounter.type, encounter.level,{...encounter,overworld:!run.dungeon,dungeonId:run.dungeon?.id}), equipmentEffects: effects, rules: {
       dodgeChance: stats => Math.min(D.balance.dodgeCap, stats.agility * D.balance.dodgePerAgility),
       critChance: stats => Math.min(D.balance.critCap, D.balance.critBase + stats.luck * D.balance.critPerLuck),
-      critMultiplier: stats => Math.min(D.balance.critDamageCap,D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck)
+      critMultiplier: stats => D.balance.critDamageBase + stats.luck * D.balance.critDamagePerLuck
     } });
     if(run.training&&['tutorial-first','tutorial-caster'].includes(encounter.id)){b.rules.critChance=0;b.rules.dodgeChance=0;}
     b.run.deaths = run.deaths; b.run.debuffIds = [...run.debuffIds]; b.start(); b.charge=normalizeUltimateCharge(run);if(run.dungeon&&run.dungeonResources)for(const k of ['hp','mana','stamina'])b.player[k]=Math.max(0,Math.min(b.player.stats[k],run.dungeonResources[k]));return b;
   }
   function dungeonEncounter(run){const d=D.findDungeon(run.dungeon?.id),wave=d?Exploration.waves(run,d.id)[run.dungeon.stage]:null;if(!wave)throw Error('地下城波次不存在');return {...wave,level:wave.level};}
-  const api = { migratePermanent, migrateRun, legacyStatsFor, ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, enemyGrade, mapGrades, dungeonGrade, battleFor, dungeonEncounter };
+  const api = { statsBeforeRollback, migratePermanent, migrateRun, legacyStatsFor, ensureWorldContent, recordLoot, ultimateChargeCost, normalizeUltimateCharge, carryBattleCharge, freshProgress, loadProgress, saveProgress, defaultBuild, validateBuild, createRun, regionAt, regionDepth, regionLevel, statBreakdown, statsFor, moveScale, expMultiplier, levelCost, targetLevelsFor, expForLevels, grantExp, allocate, acquireMove, learnSkill, receiveAbility, resolveAcquisition, understandBook, grantRewards, starterReward, dungeonReward, enemyProfile, enemyDefinition, enemyGrade, mapGrades, dungeonGrade, battleFor, dungeonEncounter };
   if (typeof module !== 'undefined') module.exports = api; else root.Progression = api;
 })(globalThis);
