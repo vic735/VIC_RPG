@@ -16,7 +16,7 @@
  const geometry={version:1,areaRatio:.75,scale:Math.sqrt(.75),originalWidth:D.world.width,originalHeight:D.world.height};
  D.mapGeometry=geometry;D.world.width*=geometry.scale;D.world.height*=geometry.scale;
  for(const road of D.world.roads)for(const p of road){p.x*=geometry.scale;p.y*=geometry.scale;}
- const layoutVersion=7,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
+ const layoutVersion=8,safeRadius=R.rules.centerSafeRadius,sharedEntry={x:D.world.width/2,y:D.world.height/2};D.world.camp={...sharedEntry};
  const progressionBands=[[10,25],[25,80],[80,250],[250,600],[600,999]],eliteBands=[[20,30],[60,100],[200,300],[500,700],[850,999]];
  D.mapAccessRules={2:{rank:'B'},3:{rank:'A',previousDungeonMap:2},4:{rank:'S',previousDungeonMap:3}};
  const regions=[],maps=[];
@@ -58,7 +58,7 @@
  });
  function startStarter(run,rng=Math.random){const map=starterMaps[Math.min(starterMaps.length-1,Math.floor(rng()*starterMaps.length))];run.starter={version:1,mapId:map.id,phase:'training',bossId:map.id+'-boss'};run.currentMapId=map.id;run.position={...map.entry};run.mapPositions={};run.mapLayoutVersion=layoutVersion;run.mapGeometryVersion=geometry.version;run.world.enemies=[];run.adventurerRank.index=-1;ensureRun(run);return map;}
  function syncStarter(run){const s=run.starter;if(!s||run.currentMapId!==s.mapId)return;if(s.phase==='cleared'){run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);return;}if(run.training&&run.training.stage<7)return;if(run.level>=starterConfig.levelCap){run.level=starterConfig.levelCap;run.exp=0;s.phase='boss';if(!run.world.enemies.some(e=>e.id===s.bossId)){const map=D.maps[s.mapId],x=map.entry.x,y=map.entry.y-210;run.world.enemies.push({id:s.bossId,mapId:map.id,regionId:map.regionId,type:map.bossType,level:9,boss:true,role:'boss',quickBattleAllowed:false,x,y,homeX:x,homeY:y,discovered:true,defeatedUntil:0});}}}
- function clearStarter(run,enemy){const s=run.starter;if(!s||s.phase!=='boss'||enemy.id!==s.bossId||enemy.type!==D.maps[s.mapId].bossType)return false;s.phase='cleared';run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);const rank=run.adventurerRank;rank.index=0;rank.progress=0;rank.normalKills=rank.challengeKills=0;rank.last={kills:run.battleStats.kills,dungeons:run.battleStats.clearedDungeonIds.length,level:run.level};rank.history.push({from:'E',to:'D−',route:'starter'});return true;}
+ function clearStarter(run,enemy){const s=run.starter;if(!s||s.phase!=='boss'||enemy.id!==s.bossId||enemy.type!==D.maps[s.mapId].bossType)return false;s.phase='cleared';run.world.enemies=run.world.enemies.filter(e=>e.mapId!==s.mapId);const rank=run.adventurerRank;rank.index=1;rank.progress=0;rank.normalKills=rank.challengeKills=0;rank.last={kills:run.battleStats.kills,dungeons:run.battleStats.clearedDungeonIds.length,level:run.level};rank.history.push({from:'D',to:'C−',route:'starter'});return true;}
  function inferLegacy(run){
   const dungeon=D.dungeons.find(d=>d.id===run.dungeon?.id);if(dungeon?.mapId)return dungeon.mapId;
   const legacy=D.world.regions.find(r=>run.position.x>=r.bounds[0]&&run.position.x<r.bounds[0]+r.bounds[2]&&run.position.y>=r.bounds[1]&&run.position.y<r.bounds[1]+r.bounds[3])||D.world.regions[0];

@@ -45,7 +45,7 @@
  }
  function apply(D){
   unique(D.moves).forEach(polishMove);unique(D.skills).forEach(polishSkill);
-  for(const book of Object.values(D.books||{})){const move=D.moves[book.moveId],req=D.moves[book.requirement?.moveId];if(move&&req)book.description=`將「${req.subtitle||req.name}」永久提升至 Lv.${book.requirement.level} 後即可理解，並學會「${move.subtitle||move.name}」。`;}
+  for(const book of Object.values(D.books||{})){const move=D.moves[book.moveId],req=D.moves[book.requirement?.moveId];if(move&&req)book.description=`將「${req.subtitle||req.name}」永久熟練提升至 ${book.requirement.level} 後即可理解，並學會「${move.subtitle||move.name}」。`;}
   D.contentCopyVersion=1;return D;
  }
  if(typeof module!=='undefined')module.exports=apply;else root.ContentCopy=apply;

@@ -8,7 +8,7 @@
  battleActions:{title:'四個方向，四個招式',icon:'sword',text:'下半部的大型操作區對應 A／B／C／D 四個招式。點按已配置的招式即可施放，空欄位目前不能使用。',tip:'電腦使用 WASD／方向鍵或 1～4。手機長按、電腦停留一會可查看效果。'},
  battleTiming:{title:'看讀條，再出招',icon:'orb',text:'招式會先消耗 MP 或 SP，再開始讀條；讀條完成才發揮效果。敵人的讀條也會顯示在畫面上。',tip:'MP 是魔力、SP 是體力。留意剩餘資源；具中斷效果的招式才有機會打斷敵人。'},
  battleUltimate:{title:'中央是你的必殺',icon:'star',text:'中央圓形按鈕是必殺技。首次完整冒險結算後才會永久解鎖，之後可在角色設定指定招式。',tip:'能量在本局各場戰鬥間保留。充滿後仍需足夠 MP／SP；電腦按 Space 施放。'},
- journeyIntro:{title:'讓收穫陪你再出發',icon:'hood',text:'升級會自動提升五項能力，不需要配點。新手區升至 Lv.9 後會出現守關 Boss，擊敗後走到地圖邊緣，選擇七大區。',tip:'前兩次倒下會休養，第三次結束本局。收藏永久保留，結算的旅者徽記可到商店換取能力。'}
+ journeyIntro:{title:'讓收穫陪你再出發',icon:'hood',text:'升級會自動提升五項能力，不需要配點。新手區能力成長達到上限後會出現守關 Boss，擊敗後走到地圖邊緣，選擇七大區。',tip:'前兩次倒下會休養，第三次結束本局。收藏永久保留，結算的旅者徽記可到商店換取能力。'}
  };
  const order=Object.keys(cards),stages=[...order,'moving','awaitBattle','awaitResult','done'];
  function load(storage){try{const raw=storage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s.version===1&&stages.includes(s.stage))return s;}const veteran=!!(storage.getItem('afterlight.progress.v2')||storage.getItem('afterlight.session.v1'));return {version:1,stage:veteran?'done':'welcome'};}catch(_){return {version:1,stage:'welcome'};}}

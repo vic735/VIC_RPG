@@ -1,11 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const P=require('./progression'),Save=require('./run-save');
-test('結算評級涵蓋18階、門檻準確，單靠刷怪不能取得最高評級',()=>{
- const E=require('./encounters'),D=require('./data');assert.equal(D.runRating.ranks.length,18);
+test('結算評級涵蓋16階、門檻準確，單靠刷怪不能取得最高評級',()=>{
+ const E=require('./encounters'),D=require('./data');assert.equal(D.runRating.ranks.length,16);
  for(let score=0;score<=3000;score++){const kills=Math.min(300,Math.floor(score/3));const r=E.rating({kills,level:1,dungeons:0});assert.equal(r.rank,D.runRating.ranks[D.runRating.thresholds.findLastIndex(t=>r.score>=t)]);}
- assert.equal(E.rating({kills:0,dungeons:0,level:1}).rank,'D−');assert.equal(E.rating({kills:100000,dungeons:0,level:1}).rank,'A−');
+ assert.equal(E.rating({kills:0,dungeons:0,level:1}).rank,'D');assert.equal(E.rating({kills:100000,dungeons:0,level:1}).rank,'A');
  const best=E.rating({kills:1000,dungeons:39,level:190});assert.equal(best.rank,'SS＋');assert.equal(best.score,3000);assert.equal(best.nextRank,null);
- assert.deepEqual(E.rating({kills:73,dungeons:2,level:27}).parts,{kills:219,dungeons:300,levels:260});assert.equal(E.rating({kills:73,dungeons:2,level:27}).rank,'B＋');
+ assert.deepEqual(E.rating({kills:73,dungeons:2,level:27}).parts,{kills:219,dungeons:300,levels:260});assert.equal(E.rating({kills:73,dungeons:2,level:27}).rank,'A−');
 });
 test('結算重整維持同一評級，同局重複通關不重複計分',()=>{
  const E=require('./encounters'),p=P.freshProgress(),run=P.createRun(p);run.level=27;run.battleStats.kills=73;E.clear(p,run,'abandoned_mine');E.clear(p,run,'abandoned_mine');E.clear(p,run,'old_lab');const before=E.summary(run,p).rating;

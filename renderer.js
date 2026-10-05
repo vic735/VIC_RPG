@@ -85,7 +85,7 @@
       c.fillStyle = '#55645e'; c.fillRect(x - 48, y - 78, 18, 80); c.fillRect(x + 30, y - 78, 18, 80); this.poly([[x - 53, y - 78], [x, y - 112], [x + 53, y - 78]], '#788278', '#a8ab8b');
       c.fillStyle = '#151b28'; c.fillRect(x - 30, y - 76, 60, 76); const g = c.createLinearGradient(x, y - 75, x, y); g.addColorStop(0, '#373957'); g.addColorStop(1, '#b59ce6'); c.fillStyle = g; c.fillRect(x - 23, y - 73, 46, 72);
       for (let i = 0; i < 5; i++) { this.ellipse(x + Math.sin(this.time + i * 2) * 19, y - ((this.time * 18 + i * 15) % 72), 1.5, 2, '#e6dcff'); }
-      this.text('✦', x, y - 84, 20, '#e6d2ab'); this.text(data.name, x, y - 138, 17, '#e6d7bd'); this.text(`建議 Lv.${data.recommendedLevel} · ${data.enemyWaves.length} 場`, x, y - 119, 13, '#b6bca9');
+      this.text('✦', x, y - 84, 20, '#e6d2ab'); this.text(data.name, x, y - 138, 17, '#e6d7bd'); this.text(`最高 ${Progression.dungeonGrade(data)} · ${data.enemyWaves.length} 場`, x, y - 119, 13, '#b6bca9');
     }
     camp(x, y) {
       this.ellipse(x, y, 100, 50, '#76735b33'); this.poly([[x - 70, y - 3], [x - 33, y - 68], [x + 5, y - 3]], '#a69b71', '#d2c59b'); this.poly([[x - 33, y - 68], [x - 6, y - 55], [x + 32, y - 3], [x + 5, y - 3]], '#706f57'); this.poly([[x - 48, y - 3], [x - 33, y - 42], [x - 18, y - 3]], '#293c33');
@@ -142,7 +142,7 @@
       } });
       things.push({ y: pos.y, draw: () => { this.glow(pos.x, pos.y - 8, 70, '#dbd9a910'); this.person(pos.x, pos.y, 1.15, game.moving, game.facing || 1); } });
       things.sort((a, b) => a.y - b.y).forEach(t => t.draw());
-      if(run)for(const e of run.world.enemies)if((!run.currentMapId||e.mapId===run.currentMapId)&&e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${GameData.monsters[e.type].elite?'◆ ':''}Lv.${e.level}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
+      if(run)for(const e of run.world.enemies)if((!run.currentMapId||e.mapId===run.currentMapId)&&e.defeatedUntil<=run.world.time&&Math.abs(e.x-pos.x)<w/zoom&&Math.abs(e.y-pos.y)<h/zoom){this.text(`${e.alert?'! ':''}${Progression.enemyGrade(e.type,e.level,{...e,overworld:true}).rank}`,e.x,e.y-(GameData.monsters[e.type].labelHeight|| (GameData.monsters[e.type].elite?104:59)),14,'#e4e8d7');}
       if (!game.settings?.reducedMotion) for (let i = 0; i < 22; i++) { const x = pos.x - 470 + ((i * 157 + this.time * 8) % 940), y = pos.y - 320 + (i * 93 % 640) + Math.sin(this.time + i) * 15; this.ellipse(x, y, 1.3, 1.3, `rgba(212,220,153,${.15 + .3 * Math.sin(this.time + i) ** 2})`); }
       c.restore();
       const vignette = c.createRadialGradient(w / 2, h / 2, h * .15, w / 2, h / 2, Math.max(w, h) * .67); vignette.addColorStop(0, '#050b0d00'); vignette.addColorStop(1, '#050b0d9c'); c.fillStyle = vignette; c.fillRect(0, 0, w, h);

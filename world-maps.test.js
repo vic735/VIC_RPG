@@ -34,9 +34,9 @@ test('靠近地圖邊緣會指出相鄰地圖，首尾不會越出同一大區',
  Maps.enter(run,'north_plains_5');run.position={x:D.world.width-40,y:2000};assert.equal(World.edgeExit(run),null);
 });
 
-test('七大區各有五張地圖，正式首圖皆為 Lv.10～25，地下城均有唯一歸屬',()=>{
+test('七大區各有五張地圖，正式首圖皆為 內部10～22，地下城均有唯一歸屬',()=>{
  assert.equal(Maps.regions.length,7);assert.equal(Maps.maps.length,35);
- for(const region of Maps.regions){assert.equal(region.mapIds.length,5);const first=D.maps[region.mapIds[0]];assert.equal(first.recommendedLevelMin,10);assert.equal(first.recommendedLevelMax,25);for(const id of region.mapIds){const map=D.maps[id];assert.ok(map.enemyPoolIds.length);assert.ok(D.rewardPools[map.rewardPoolIds[0]]);}}
+ for(const region of Maps.regions){assert.equal(region.mapIds.length,5);const first=D.maps[region.mapIds[0]];assert.equal(first.recommendedLevelMin,10);assert.equal(first.recommendedLevelMax,22);for(const id of region.mapIds){const map=D.maps[id];assert.ok(map.enemyPoolIds.length);assert.ok(D.rewardPools[map.rewardPoolIds[0]]);}}
  for(const dungeon of D.dungeons)assert.deepEqual(Maps.maps.filter(m=>m.dungeonIds.includes(dungeon.id)).map(m=>m.id),[dungeon.mapId]);
  assert.equal(D.dungeons.find(d=>d.id==='old_lab').mapId,'southern_kingdom_1');
 });

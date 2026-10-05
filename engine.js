@@ -59,10 +59,12 @@
       const move={...original,cost:{...(!player&&original.originalResourceCost?original.originalResourceCost:original.cost)},multiplier:original.multiplier*(player?this.moveScale(this.moveLevels[id]||1):1)*(player&&physical?this.equipmentEffects.physicalMultiplier||1:1),attackTime:original.attackTime+(player&&physical?this.equipmentEffects.physicalAttackTime||0:0)};
       if(player&&physical&&(this.equipmentEffects.physicalMultiplier||this.equipmentEffects.physicalAttackTime))trace.add(D.equipment[this.build.equipment.weapon]?.name||'裝備');
       const ctx={move};move.attackTime=actor.runtime.modify('attackTime',move.attackTime,ctx,trace);
+      if(player&&this.options.resourceScale)for(const key of ['mana','stamina'])if(move.cost[key])move.cost[key]*=this.options.resourceScale[key];
       const elementRules=D.balance.elementSkills||{},elementTotals=actor.runtime.elementTotals(move.elements,trace),costFactor=Math.max(elementRules.minimumResourceCostMultiplier??.2,1-elementTotals.costReduction);
       for(const [resource,value]of Object.entries(move.cost))move.cost[resource]=Math.max(0,Math.round(actor.runtime.modify('cost:'+resource,value,ctx,trace)*costFactor*100)/100);
       // Consumed next-cast modifiers must survive for the whole selected move, not future moves.
       move.reservedModifiers=Object.values(actor.statuses).filter(s=>s.consume===move.damageType&&s.expiresAt>this.time).flatMap(s=>s.modifiers.filter(m=>m.stage==='damage'));
+      if(player&&this.options.resourceScale)move.description=move.description?.replace(/消耗[：:]\s*[\d.]+\s*(?:MP|SP)(?:\s*[＋+]\s*[\d.]+\s*(?:MP|SP))?/g,'消耗：'+Object.entries(move.cost).filter(([,n])=>n>0).map(([k,n])=>n+' '+(k==='mana'?'MP':'SP')).join('＋'));
       move.modifications=[...trace]; return move;
     }
     effectiveStat(actor,key){return actor.runtime.modify(key,actor.stats[key]);}

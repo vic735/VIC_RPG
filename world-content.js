@@ -65,7 +65,7 @@
  D.equipment.comet_steps.onDodgeShorten=.85;D.equipment.comet_steps.description+='；閃避時縮短目前讀條 0.85 秒';
  Object.assign(D.equipment.abyss_walkers,{targetElements:['dark'],incomingElementDamageReductionPct:.14});D.equipment.abyss_walkers.description+='；受到的闇屬性傷害 -14%';
  const bookRows=[['tide_book','潮汐魔法書','lesser_heal','water_0'],['frost_book','冰錐魔法書','ice_rain','water_0'],['lightning_book','冰凍雷光書','ice_lightning','metal_0'],['blacklight_book','黑光魔法書','black_light','dark_bolt'],['abyss_book','冥王爆炎書','hades_flare','black_flame'],['end_book','終末煉金書','alchemy','metal_0']];
- for(const [id,name,moveId,req]of bookRows)D.books[id]={id,name,moveId,requirement:{moveId:req,level:3},description:'永久 '+D.moves[req].name+' Lv.3 後可理解，學會 '+D.moves[moveId].name+'。',icon:'book'};
+ for(const [id,name,moveId,req]of bookRows)D.books[id]={id,name,moveId,requirement:{moveId:req,level:3},description:'永久 '+D.moves[req].name+' 熟練 3 後可理解，學會 '+D.moves[moveId].name+'。',icon:'book'};
  const definitions=[
  ['abandoned_mine','廢棄礦坑',0,12,'standard',920,760,['物理','土','重擊','防禦'],['heavy_slash','break_stance'],['heavy_master','swordsmanship'],['mining_guard','mace','hunter_cowl','duelist_gloves','trail_cap','leather_bracers','field_shoes','stone_sandals','iron_maul','bow'],'inferno'],
  ['old_lab','舊魔法研究室',0,20,'short',1720,1240,['基礎魔法','屬性攻擊'],['fireball','metal_0'],['economy','fire_affinity'],['flame_robe','hood','ember_visor','ash_staff','novice_circlet','apprentice_robe','focus_bands','runic_staff'],'inferno'],

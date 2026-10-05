@@ -15,13 +15,13 @@ test('數字由零與原始值狂飆，最後精準停在實際結果',()=>{
  const old=global.document;global.document={getElementById:id=>nodes.get(id)||null};
  try{
   L.update(exp,.85,false);
-  assert.ok(Number(nodes.get('growth-level-number').textContent)>exp.beforeLevel);
+  assert.ok(Number(nodes.get('growth-level-number').textContent)>exp.beforeStats.hp);
   assert.ok(Number(nodes.get('growth-level-gain').textContent)>0);
   assert.ok(Number(nodes.get('growth-hp-gain').textContent)>0);
   assert.ok(classes.has('racing'));
   L.update(exp,L.DURATION+1,false);
-  assert.equal(nodes.get('growth-level-number').textContent,'145');
-  assert.equal(nodes.get('growth-level-gain').textContent,'25');
+  assert.equal(nodes.get('growth-level-number').textContent,'400');
+  assert.equal(nodes.get('growth-level-gain').textContent,'300');
   assert.equal(nodes.get('growth-hp').textContent,'400');
   assert.equal(nodes.get('growth-hp-gain').textContent,'300');
   assert.ok(classes.has('landed'));assert.ok(!classes.has('racing'));

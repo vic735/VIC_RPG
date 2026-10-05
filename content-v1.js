@@ -120,7 +120,7 @@
   const id='std_'+el+'_greater_orb',config=greaterOrbBooks[el];
   if(!D.moves[id])D.moves[id]={id,name:`森・${rootName}・烏`,subtitle:`${elementLabels[el]}屬性高階巨球`,description:`${elementLabels[el]}屬性高階巨球：高傷害的後期招式。`,icon:'orb',kind:'normal',damageType:'magic',elements:[el],multiplier:2.25,cost:{mana:38},attackTime:190,ultimateChargeCost:150,effects:[],family:'GREATER_ORB',standardElementMatrix:true,matrixElement:el};
   D.moves[id].ultimateChargeCost||=150;
-  D.books[config.bookId]={id:config.bookId,name:config.bookName,moveId:id,requirement:{moveId:config.requirement,level:3},description:`永久 ${D.moves[config.requirement].name} Lv.3 後可理解，學會 ${D.moves[id].name}（${D.moves[id].subtitle}）。`,icon:'book'};
+  D.books[config.bookId]={id:config.bookId,name:config.bookName,moveId:id,requirement:{moveId:config.requirement,level:3},description:`永久 ${D.moves[config.requirement].name} 熟練 3 後可理解，學會 ${D.moves[id].name}（${D.moves[id].subtitle}）。`,icon:'book'};
   for(const pool of Object.values(D.rewardPools))for(const entry of pool.entries)if(entry.rewardType==='moves')entry.rewardIds=entry.rewardIds.filter(moveId=>moveId!==id);
   const dungeon=D.dungeons.find(x=>x.id===config.dungeonId);
   for(const poolId of [dungeon?.secondaryRewardPool,dungeon?.rareRewardPool]){const entry=D.rewardPools[poolId]?.entries.find(x=>x.rewardType==='books');if(entry&&!entry.rewardIds.includes(config.bookId))entry.rewardIds.push(config.bookId);}

@@ -1,5 +1,9 @@
 /** Static definitions stay separate from mutable run/battle/save data. IDs are stable save references. */
 export type Stat = 'hp' | 'stamina' | 'mana' | 'agility' | 'luck';
+export type AdventurerGrade = 'D' | 'C−' | 'C' | 'C＋' | 'B−' | 'B' | 'B＋' | 'A−' | 'A' | 'A＋' | 'S−' | 'S' | 'S＋' | 'SS−' | 'SS' | 'SS＋';
+export interface AbilityGrowthRow extends Stats {level:number;expToNext:number|null}
+export interface PromotionState {version:2;index:number;progress:number;last:{kills:number;dungeons:number;level:number};normalKills:number;challengeKills:number;history:{from:AdventurerGrade;to:AdventurerGrade;route:'normal'|'challenge'|'starter'}[]}
+export interface EnemyGradeBaseline {index:number;rank:AdventurerGrade;level:number;threat:number}
 export type Stats = Record<Stat, number>;
 export type Slot = 'head' | 'chest' | 'arms' | 'feet' | 'weapon';
 export interface StatGrowth { base: number; perLevel: number; bonusRate: number }
@@ -58,6 +62,7 @@ export interface FutureCombatRules {
 /** Runtime data contracts for the v2 vertical slice. Static definitions use stable string IDs. */
 export interface PermanentProgress {
   schemaVersion: 2;
+  rankDisplayVersion?: 2;
   skills: string[];
   moves: Record<string, number>; // integer permanent mastery 1..3
   ultimates: string[];
@@ -76,7 +81,9 @@ export interface RunState {
   training?: {version:1;stage:number;practice:boolean;interrupted:boolean;combatLesson?:string;interruptLesson?:string;configIntroduced?:boolean};
   loot: Record<string,RunLoot>;lootHistoryPartial?:boolean;ultimateCharge:number;
   schemaVersion: 2;
-  level: number; exp: number; points: number; allocated: Stats; // points remains 0; allocated retains legacy bonuses only
+  level: number; exp: number; points: number; allocated: Stats; // hidden ability level 1..500; points stays 0; retain legacy bonuses
+  enemyLevelCurveVersion:2;
+  adventurerRank:PromotionState; // independent of ability level; no stat awards
   deaths: number; debuffIds: string[]; status: 'active' | 'failed';
   pendingAcquisitions?: AcquisitionTicket[];
   moveLevels: Record<string, number>; // no hard cap, copied from permanent levels on new run

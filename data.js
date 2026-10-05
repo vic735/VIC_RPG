@@ -1,7 +1,7 @@
 (function (root) {
   const data = {
     version: 1,
-    release: { version: '0.25.1', date: '2026-10-04' },
+    release: { version: '0.26.0', date: '2026-10-05' },
     runRating: {
       kills: { points: 3, cap: 900 }, dungeons: { points: 150, cap: 1200 }, levels: { points: 10, cap: 900 },
       ranks: ['D−','D','D＋','C−','C','C＋','B−','B','B＋','A−','A','A＋','S−','S','S＋','SS−','SS','SS＋'],
@@ -57,7 +57,7 @@
     }
   };
   // Adventure tuning is separate from the combat engine's fixed sandbox defaults.
-  data.adventure = { version: 3, maxLevel:999, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
+  data.adventure = { version: 3, maxLevel:500, baseStats: { hp: 120, stamina: 45, mana: 40, agility: 22, luck: 5 }, growth: { hp: 12, stamina: 4, mana: 4, agility: 1.2, luck: .6 } };
   data.adventure.balance50 = { resourceDamage: .7, castAgilityScale: 100, chargePerSecond: 1,
     growth: [
       { through: 10, hp: 12, stamina: 3, mana: 3, agility: .6, luck: .3 },
